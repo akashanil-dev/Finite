@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import { useApi } from "@/lib/hooks";
 import { CitationChips } from "./citations";
-import { ErrorNote, Skeleton } from "./ui";
+import { Fold, ErrorNote, Skeleton } from "./ui";
 
 type Timeline = {
   status: string;
@@ -20,9 +20,10 @@ function timestamp(value: string) {
 
 export function TimeMachine({ storyId }: { storyId: string }) {
   const [open, setOpen] = useState(false);
+  const [requested, setRequested] = useState(false);
   const [view, setView] = useState<"events" | "coverage">("events");
   const contentId = useId();
-  const { data, loading, error, reload } = useApi<Timeline>(open ? `/api/stories/${storyId}/timeline` : null);
+  const { data, loading, error, reload } = useApi<Timeline>(requested ? `/api/stories/${storyId}/timeline` : null);
   const lookup = (ref: string) => data?.sources[ref];
   const groups = [
     ["background", "Earlier background", "Dates before the first coverage year in this story."],
@@ -31,12 +32,12 @@ export function TimeMachine({ storyId }: { storyId: string }) {
   ];
 
   return (
-    <section className="mt-4 rounded-3xl border border-line bg-card p-5">
-      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls={contentId} className="flex w-full items-center justify-between gap-3 text-left">
+    <section className="feature-panel feature-timeline mt-4 rounded-3xl p-5">
+      <button type="button" onClick={() => { setRequested(true); setOpen(!open); }} aria-expanded={open} aria-controls={contentId} className="flex w-full items-center justify-between gap-3 text-left">
         <span><span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">Time Machine</span><span className="mt-1 block font-serif text-xl">How did this story unfold?</span></span>
         <span className="shrink-0 whitespace-nowrap text-sm text-accent">{open ? "Hide −" : "Trace +"}</span>
       </button>
-      {open && <div id={contentId} className="mt-4">
+      <Fold open={open} id={contentId}>
         {loading && <div role="status"><p className="mb-3 text-xs text-muted">Finding dated passages in the stored coverage…</p><Skeleton lines={5} /></div>}
         {error && <ErrorNote message={error} onRetry={reload} />}
         {data && <>
@@ -79,7 +80,7 @@ export function TimeMachine({ storyId }: { storyId: string }) {
           </div>}
           <p className="mt-5 border-t border-line pt-3 text-xs text-muted">End of the available timeline. New evidence may fill the gaps.</p>
         </>}
-      </div>}
+      </Fold>
     </section>
   );
 }

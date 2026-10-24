@@ -157,3 +157,9 @@ Live completion UI promised a next delivery even though production scheduling is
 ## 2026-10-25T04:05:26+05:30 — Verify production QA fixes
 
 All fix releases passed GitHub checks, ARM64 image smoke/build/publish and automatic deployment. Final run https://github.com/akashanil-dev/Finite/actions/runs/40138920728 deployed `5613245f8e53b6d1245ae541f0a8947c3ef4434d`; both containers healthy. Live schedule wording and logout verified after deployment. Exclusion save/reload, on/off-topic questions, early ending and coverage-history dates passed. Latest corrected backup integrity returned ok, live account writes remained functional, and no AI budget ledger was created. QA accounts retained; session signed out. See LIVE_QA.md for scope and limitations.
+
+## 2026-10-25T04:38:33+05:30 — Add playful editorial design system
+
+Reworked shared UI, global tokens, login, briefing, story, exploration panels and Passport using the owner's Pinterest references. Added a desktop rail/wide reader, mobile dock, spring card motion, gliding depth selector, folding disclosures, citation entrances and a completion flower. Panels fetch lazily once per mount; returning from a rabbit hole restores the reader position. No new dependencies or AI calls.
+
+Validation: TypeScript, zero-warning ESLint and production build pass. Local browser samples at 390, 1280 and 1440 pixels cover signup, onboarding, briefing, depth selection, Lens, connection graph/evidence/list, timeline history, challenge prediction/reveal, completion and Passport save. Physical-device, OS reduced-motion and cross-browser audits remain pending. Human approved the direction; final visual review pending.

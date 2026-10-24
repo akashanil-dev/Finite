@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api, type Exploration, type NextQuestion } from "@/lib/api";
 import { CuriosityChallenge } from "./curiosity-challenge";
 import { CitationChips, ConfidenceBadge } from "./citations";
-import { Button, ErrorNote, Eyebrow, Skeleton } from "./ui";
+import { Button, CompletionFlower, ErrorNote, Eyebrow, Skeleton } from "./ui";
 
 export type HoleStart = { question: string; angle: string; search: string[]; custom?: boolean };
 
@@ -55,7 +55,7 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
   }, [load, start]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   }, [steps.length, ended]);
 
   const current = steps[steps.length - 1];
@@ -152,7 +152,8 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
       )}
 
       {ended && (
-        <section className="rise mt-8 rounded-3xl bg-ink p-6 text-paper">
+        <section className="completion rise mt-8 rounded-3xl bg-ink p-6 text-paper">
+          <CompletionFlower />
           <div className="text-[11px] uppercase tracking-[0.14em] text-paper/60">Expedition complete</div>
           <h3 className="mt-2 font-serif text-2xl leading-snug">You went {steps.length} level{steps.length > 1 ? "s" : ""} beneath the headline.</h3>
           {concepts.length > 0 && (
@@ -183,7 +184,7 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
 function JourneyMap({ storyTitle, levels, ended }: { storyTitle: string; levels: (string | null)[]; ended: boolean }) {
   const items = [{ label: "The event", text: storyTitle, state: "done" as const }, ...levels.map((q, i) => ({ label: `Level ${i + 1}`, text: q ?? (i === 0 ? "Context" : "Connections"), state: q ? ("done" as const) : ("todo" as const) }))];
   return (
-    <ol className="relative mt-5 space-y-3 border-l border-line pl-5">
+    <ol className="journey-map relative mt-5 space-y-3">
       {items.map((it, i) => (
         <li key={i} className="relative">
           <span className={`absolute -left-[26px] top-1 h-3 w-3 rounded-full border-2 ${it.state === "done" ? "border-accent bg-accent" : "border-line bg-paper"}`} />

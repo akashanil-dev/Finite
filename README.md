@@ -132,3 +132,9 @@ Existing local data is preserved, but not given to the first registrant. After c
 Target: `finite.akashanil.dev` on Oracle Ampere. See [server setup and deployment](deploy/README.md) and [server-side Codex handoff](deploy/SERVER_HANDOFF.md). Two ARM64 containers sit behind the existing Caddy; persistent data stays outside images. The workflow checks code, builds and smoke-tests images, then deploys only when `FINITE_DEPLOY_ENABLED=true` and repository Actions secrets are configured. Automatic deployment on main pushes is verified; the live site is https://finite.akashanil.dev. Deployment uses a forced-command SSH key and root-owned server configuration. AI and scheduling remain disabled.
 
 Live production QA scope and remaining verification boundaries are recorded in [LIVE_QA.md](LIVE_QA.md). Source-exclusion checkboxes are checked when excluded. Saved delivery times take effect only when scheduled delivery is enabled; production scheduling remains disabled.
+
+## Visual design and motion
+
+Finite uses a warm cream canvas, charcoal navigation, lime highlights and lavender/mint/yellow exploration cards. Mobile has a floating navigation dock; desktop has a navigation rail and a side-by-side reader at wide widths. Interactions include spring-like card lifts, gliding reading-depth selections, folding panels and a one-time completion flower. Reduced-motion preferences suppress decorative animation. No animation library or generated artwork was added.
+
+The owner's [finite-ideas Pinterest board](https://in.pinterest.com/gutgbihgg/finite-ideas/) informed the palette and card compositions; no reference artwork was copied. UI QA uses an isolated database and `OPENAI_API_KEY=''`, `FINITE_SCHEDULER_ENABLED=false` so visual testing does not consume AI budget. Physical-device and cross-browser accessibility/performance audits remain pending.

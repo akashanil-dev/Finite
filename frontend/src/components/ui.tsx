@@ -14,15 +14,16 @@ const NAV = [
 export function Shell({ children, nav = true }: { children: ReactNode; nav?: boolean }) {
   const path = usePathname();
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-xl flex-col">
-      <main className={`flex-1 px-5 pt-6 ${nav ? "pb-28" : "pb-10"}`}>{children}</main>
+    <div className="app-shell" data-nav={nav}>
+      <main className="app-main">{children}</main>
       {nav && (
-        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-paper/95 backdrop-blur">
-          <div className="mx-auto grid max-w-xl grid-cols-4">
+        <nav className="app-nav" aria-label="Main navigation">
+          <div className="nav-brand" aria-hidden="true">Finite.</div>
+          <div className="nav-items">
             {NAV.map((n) => {
               const active = path.startsWith(n.href) || (n.href === "/briefing" && path.startsWith("/story"));
               return (
-                <Link key={n.href} href={n.href} className={`flex flex-col items-center gap-1 py-3 text-[11px] ${active ? "text-accent" : "text-muted"}`}>
+                <Link key={n.href} href={n.href} className="nav-link" aria-current={active ? "page" : undefined}>
                   <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
                     <path d={n.icon} />
                   </svg>
@@ -39,8 +40,8 @@ export function Shell({ children, nav = true }: { children: ReactNode; nav?: boo
 
 export function Wordmark({ small }: { small?: boolean }) {
   return (
-    <span className={`font-serif tracking-tight ${small ? "text-lg" : "text-2xl"}`}>
-      Finite<span className="text-warm">.</span>
+    <span className={`wordmark ${small ? "text-lg" : "text-2xl"}`}>
+      Finite<span className="wordmark-dot">.</span>
     </span>
   );
 }
@@ -130,4 +131,24 @@ export function ErrorNote({ message, onRetry }: { message: string; onRetry?: () 
       )}
     </div>
   );
+}
+
+export function Fold({ open, children, id }: { open: boolean; children: ReactNode; id?: string }) {
+  return <div id={id} className="fold" data-open={open} inert={!open} aria-hidden={!open}>
+    <div className="fold-inner"><div className="fold-body">{children}</div></div>
+  </div>;
+}
+
+export function CompletionFlower() {
+  return <svg className="completion-flower" aria-hidden="true" viewBox="0 0 80 80">
+    {Array.from({ length: 8 }, (_, i) => <ellipse key={i} cx="40" cy="23" rx="10" ry="19" fill="currentColor" transform={`rotate(${i * 45} 40 40)`} />)}
+    <circle cx="40" cy="40" r="12" fill="#20211f" /><path d="m34 40 4 4 8-8" fill="none" stroke="#d3ed80" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>;
+}
+
+export function Segmented<T extends string>({ value, options, onChange, label }: { value: T; options: readonly T[]; onChange: (value: T) => void; label: string }) {
+  return <div className="segmented" role="group" aria-label={label}>
+    <span className="segmented-glider" aria-hidden="true" style={{ width: `calc((100% - 8px) / ${options.length})`, transform: `translateX(${Math.max(0, options.indexOf(value)) * 100}%)` }} />
+    {options.map((option) => <button key={option} type="button" aria-pressed={option === value} onClick={() => onChange(option)}>{option}</button>)}
+  </div>;
 }

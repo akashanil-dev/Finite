@@ -19,7 +19,7 @@ export default function PassportPage() {
 
       {p && (
         <>
-          <div className="mt-6 grid grid-cols-3 gap-2">
+          <div className="passport-stats rise mt-6 grid grid-cols-3 gap-3">
             {[
               [p.journeys.length, "expeditions"],
               [p.questions_explored, "questions"],
@@ -45,7 +45,7 @@ export default function PassportPage() {
                   {p.concepts.map((c) => (
                     <span
                       key={c.name}
-                      className="rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-accent"
+                      className="concept-chip rounded-full border border-accent/30 bg-accent-soft px-3 py-1 text-accent"
                       style={{ fontSize: `${12 + (c.count / max) * 6}px` }}
                     >
                       {c.name}

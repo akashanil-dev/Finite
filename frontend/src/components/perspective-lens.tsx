@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useApi } from "@/lib/hooks";
 import { CitationChips } from "./citations";
-import { ErrorNote, Skeleton, TierBadge } from "./ui";
+import { Fold, ErrorNote, Skeleton, TierBadge } from "./ui";
 
 type Lens = {
   mode: "ai" | "extractive";
@@ -16,14 +16,15 @@ const categories = { established: "Corroborated in this coverage", reported: "Re
 
 export function PerspectiveLens({ storyId }: { storyId: string }) {
   const [open, setOpen] = useState(false);
-  const { data, loading, error, reload } = useApi<Lens>(open ? `/api/stories/${storyId}/perspectives` : null);
+  const [requested, setRequested] = useState(false);
+  const { data, loading, error, reload } = useApi<Lens>(requested ? `/api/stories/${storyId}/perspectives` : null);
   return (
-    <section className="mt-4 rounded-3xl border border-line bg-card p-5">
-      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="perspective-content" className="flex w-full items-center justify-between gap-3 text-left">
+    <section className="feature-panel feature-lens mt-4 rounded-3xl p-5">
+      <button type="button" onClick={() => { setRequested(true); setOpen(!open); }} aria-expanded={open} aria-controls="perspective-content" className="flex w-full items-center justify-between gap-3 text-left">
         <span><span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">Perspective Lens</span><span className="mt-1 block font-serif text-xl">How is this story being covered?</span></span>
         <span className="shrink-0 whitespace-nowrap text-sm text-accent">{open ? "Hide −" : "Compare +"}</span>
       </button>
-      {open && <div id="perspective-content" className="mt-4">
+      <Fold open={open} id="perspective-content">
         {loading && <div role="status"><p className="mb-3 text-xs text-muted">Comparing the available coverage…</p><Skeleton lines={5} /></div>}
         {error && <ErrorNote message={error} onRetry={reload} />}
         {data && <>
@@ -47,7 +48,7 @@ export function PerspectiveLens({ storyId }: { storyId: string }) {
           </div>
           <p className="mt-3 text-[11px] text-muted">{data.outlets.length} of {data.total_outlets} distinct publishers shown · One article per publisher · Aggregators excluded. Original excerpts retain their source language; AI comparisons are in English.</p>
         </>}
-      </div>}
+      </Fold>
     </section>
   );
 }

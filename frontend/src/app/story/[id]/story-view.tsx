@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, fmtTime, type Analysis, type Depth, type Meta, type Profile, type StoryCard } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { CitationChips } from "@/components/citations";
@@ -10,7 +10,7 @@ import { ConnectionExplorer } from "@/components/connection-explorer";
 import { TimeMachine } from "@/components/time-machine";
 import { PerspectiveLens } from "@/components/perspective-lens";
 import { RabbitHole, type HoleStart } from "@/components/rabbit-hole";
-import { ErrorNote, Eyebrow, Shell, Skeleton, TierBadge, WeightBar } from "@/components/ui";
+import { ErrorNote, Eyebrow, Segmented, Shell, Skeleton, TierBadge, WeightBar } from "@/components/ui";
 
 type StoryResp = { card: StoryCard; analysis: Analysis };
 
@@ -26,13 +26,18 @@ export default function StoryView() {
   const story = useApi<StoryResp>(lang ? `/api/stories/${id}?lang=${lang}` : null);
   const [hole, setHole] = useState<HoleStart | null>(null);
   const [ask, setAsk] = useState("");
+  const readerScroll = useRef(0);
+  const openHole = (start: HoleStart) => {
+    readerScroll.current = window.scrollY;
+    setHole(start);
+  };
 
   useEffect(() => {
     if (bid) api(`/api/briefings/${bid}/read`, { method: "POST", json: { story_id: id } }).catch(() => {});
   }, [bid, id]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0 });
+    window.scrollTo({ top: hole ? 0 : readerScroll.current });
   }, [hole]);
 
   const s = story.data;
@@ -87,22 +92,17 @@ export default function StoryView() {
           <div className="flex flex-wrap gap-x-2 text-[11px] uppercase tracking-wide text-muted">
             {s.card.subfields.map((t) => <span key={t.id}>{t.name}</span>)}
           </div>
-          <h1 className={`mt-2 font-serif text-[1.9rem] leading-[1.15] ${s.card.lang === "ml" ? "font-sans text-2xl" : ""}`}>{s.card.title}</h1>
+          <h1 className={`reader-heading mt-2 font-serif ${s.card.lang === "ml" ? "font-sans text-2xl" : ""}`}>{s.card.title}</h1>
           <div className="mt-3 flex flex-wrap gap-x-4 text-xs text-muted">
             <span>First published {fmtTime(s.card.published_at)}</span>
             {s.card.updated_at - s.card.published_at > 900 && <span className="text-accent">Updated {fmtTime(s.card.updated_at)}</span>}
           </div>
 
-          <section className="mt-6 rounded-3xl border border-line bg-card p-5">
+          <div className="reader-layout"><div className="reader-content">
+          <section className="reader-summary mt-6">
             <div className="flex items-center justify-between">
               <Eyebrow>What happened</Eyebrow>
-              <div className="flex rounded-full bg-paper p-0.5 text-[11px]">
-                {(["quick", "standard", "deep"] as Depth[]).map((d) => (
-                  <button key={d} onClick={() => setDepth(d)} className={`rounded-full px-2.5 py-1 capitalize ${depth === d ? "bg-ink text-paper" : "text-muted"}`}>
-                    {d}
-                  </button>
-                ))}
-              </div>
+              <Segmented value={depth} options={["quick", "standard", "deep"] as const} onChange={setDepth} label="Reading depth" />
             </div>
             <p className="mt-3 font-serif text-[1.15rem] leading-relaxed">{a.summary[depth]}</p>
             {a.what_happened.length > 0 && (
@@ -141,10 +141,14 @@ export default function StoryView() {
             </details>
           </section>
 
+
+          </div><aside className="reader-tools" aria-label="Explore this story">
+            <div className="mt-6"><Eyebrow>Take a different view</Eyebrow></div>
           <PerspectiveLens key={id} storyId={id} />
           <ConnectionExplorer key={`connections-${id}`} storyId={id} storyTitle={s.card.title} />
           <TimeMachine key={`timeline-${id}`} storyId={id} />
 
+          </aside><div className="reader-questions">
           {a.missing_piece.length > 0 && (
             <section className="mt-4 rounded-3xl border border-warm/25 bg-warm-soft/60 p-5">
               <Eyebrow>The missing piece</Eyebrow>
@@ -153,7 +157,7 @@ export default function StoryView() {
                 {a.missing_piece.map((m, i) => (
                   <li key={i}>
                     <button
-                      onClick={() => setHole({ question: m.question, angle: "context", search: a.concepts.slice(0, 2) })}
+                      onClick={() => openHole({ question: m.question, angle: "context", search: a.concepts.slice(0, 2) })}
                       className="text-left text-[15px] font-medium text-warm underline decoration-warm/30 underline-offset-4"
                     >
                       {m.question}
@@ -171,7 +175,7 @@ export default function StoryView() {
               {a.questions.map((q) => (
                 <button
                   key={q.id}
-                  onClick={() => setHole({ question: q.question, angle: q.angle, search: q.search ?? [] })}
+                  onClick={() => openHole({ question: q.question, angle: q.angle, search: q.search ?? [] })}
                   className="group flex items-center justify-between rounded-2xl border border-line bg-card p-4 text-left transition hover:border-accent/50"
                 >
                   <span>
@@ -186,7 +190,7 @@ export default function StoryView() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (ask.trim()) setHole({ question: ask.trim(), angle: "context", search: [], custom: true });
+                if (ask.trim()) openHole({ question: ask.trim(), angle: "context", search: [], custom: true });
               }}
               className="mt-4 rounded-2xl border border-dashed border-line p-3"
             >
@@ -207,6 +211,7 @@ export default function StoryView() {
             </form>
           </section>
 
+          </div></div>
           <p className="mt-8 text-center text-[11px] text-muted">
             {a.mode === "ai" ? "Summary written by AI from the linked sources." : "Extractive summary: sentences quoted from the linked sources."}
             {a.translation === "unavailable" && " Malayalam translation needs an AI key."}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { api, fmtTime, timeAgo, type Briefing } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
-import { Button, ErrorNote, Eyebrow, Shell, Skeleton, TierBadge, Wordmark } from "@/components/ui";
+import { Button, CompletionFlower, ErrorNote, Eyebrow, Shell, Skeleton, TierBadge, Wordmark } from "@/components/ui";
 
 const noop = () => () => {};
 
@@ -57,7 +57,7 @@ export default function BriefingPage() {
       {!loading && !b && (
         <div className="mt-16 space-y-4 text-center">
           <h1 className="font-serif text-3xl">No briefing yet</h1>
-          <p className="text-sm text-muted">Your briefing is prepared automatically before your delivery time. You can also prepare one now.</p>
+          <p className="text-sm text-muted">A finite collection of stories, chosen around your interests. Prepare your first edition when you’re ready.</p>
           <Button onClick={prepare} disabled={busy}>{busy ? "Preparing…" : "Prepare my briefing now"}</Button>
           {err && <ErrorNote message={err} />}
         </div>
@@ -65,13 +65,13 @@ export default function BriefingPage() {
 
       {b && (
         <>
-          <section className="rise mt-8">
+          <section className="briefing-hero rise mt-8">
             <Eyebrow>{hello || "Your briefing"}</Eyebrow>
             <h1 className="mt-2 font-serif text-[2.1rem] leading-tight">
-              Your briefing: <span className="italic">{total} stories</span>
+              A little news.<span className="italic">A bigger picture.</span>
             </h1>
-            <p className="mt-2 text-sm text-muted">
-              Past {b.config.lookback_hours} hours · prepared {fmtTime(b.created_at)} · {b.config.depth} depth. This list is frozen and will not grow.
+            <p className="hero-caption mt-4 text-sm text-muted">
+              {total} stories · Past {b.config.lookback_hours} hours · prepared {fmtTime(b.created_at)} · {b.config.depth} depth. This list is frozen and will not grow.
             </p>
             <div className="mt-5 flex items-center gap-3">
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
@@ -83,17 +83,17 @@ export default function BriefingPage() {
             </div>
           </section>
 
-          <ol className="mt-8 space-y-3">
+          <ol className="story-list mt-8">
             {b.stories.map((s, i) => {
               const isRead = read.has(s.id);
               return (
-                <li key={s.id} className="rise" style={{ animationDelay: `${i * 40}ms` }}>
+                <li key={s.id} className="rise" style={{ animationDelay: `${Math.min(i, 5) * 65}ms` }}>
                   <Link
                     href={`/story/${s.id}?b=${b.id}`}
-                    className={`block rounded-3xl border border-line bg-card p-5 transition hover:border-accent/40 ${isRead ? "opacity-55" : ""}`}
+                    className="story-card" data-read={isRead}
                   >
                     <div className="flex items-start gap-4">
-                      <span className="font-serif text-2xl leading-none text-warm">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="story-number">{String(i + 1).padStart(2, "0")}</span>
                       <div className="min-w-0 flex-1">
                         <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted">
                           {s.subfields.slice(0, 2).map((t) => (
@@ -107,7 +107,7 @@ export default function BriefingPage() {
                         <div className="mt-3 flex flex-wrap items-center gap-1.5">
                           <TierBadge tier={s.sources[0]?.tier ?? "established"} label={s.sources[0]?.name} />
                           {s.sources.length > 1 && <span className="text-[11px] text-muted">+{s.sources.length - 1} more source{s.sources.length > 2 ? "s" : ""}</span>}
-                          {isRead && <span className="ml-auto text-[11px] text-accent">Read ✓</span>}
+                          <span className="ml-auto text-xs text-accent">{isRead ? "Read ✓" : <span className="card-arrow">Read story ↗</span>}</span>
                         </div>
                       </div>
                     </div>
@@ -117,9 +117,10 @@ export default function BriefingPage() {
             })}
           </ol>
 
-          <section className={`mt-10 rounded-3xl p-6 text-center ${b.completed_at ? "bg-ink text-paper" : "border border-dashed border-line"}`}>
+          <section className={`completion mt-10 rounded-3xl p-6 text-center ${b.completed_at ? "bg-ink text-paper" : "border border-dashed border-line"}`}>
             {b.completed_at ? (
               <>
+                <CompletionFlower />
                 <div className="font-serif text-3xl">You&apos;re done for today.</div>
                 <p className="mt-2 text-sm text-paper/70">
                   That&apos;s everything that mattered to you in the past {b.config.lookback_hours} hours. No more recommendations. Your saved briefing time is {b.config.delivery_time}. Automatic preparation depends on scheduled delivery being enabled.

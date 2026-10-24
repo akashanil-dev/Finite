@@ -77,7 +77,7 @@ It also **always ends**:
 4. Read Malayalam news, or read English news in Malayalam.
 5. Look back at what you've learned over time.
 
-**Expected user experience.** A calm, editorial dashboard (serif headlines, warm paper palette) that becomes an interactive map of knowledge as the user goes deeper. There are no streaks, no autoplay and no "recommended for you" loops.
+**Expected user experience.** A colorful editorial dashboard (cream, charcoal, lime and pastel cards; serif reading headlines) with playful, calm motion that becomes an interactive map of knowledge as the user goes deeper. There are no streaks, no autoplay and no "recommended for you" loops.
 
 **Differentiators.**
 
@@ -194,6 +194,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 
 | Feature | Description | Status | Relevant files | Remaining work |
 | --- | --- | --- | --- | --- |
+| Visual system and motion | Responsive rail/dock, colored exploration panels, spring card lifts, gliding depth control, folding panels and completion flower | VERIFIED local browser sample | `frontend/src/app/globals.css`, `frontend/src/components/ui.tsx`, reader/briefing/login/Passport components | Physical-device, reduced-motion runtime and cross-browser audit pending |
 | RSS ingestion | 29 feeds (English and Malayalam), language detection by script, upsert into SQLite | COMPLETE | `backend/app/ingest.py`, `backend/app/sources.py` | Add more Malayalam outlets; some publisher feeds block bots (see J) |
 | Full-text extraction | Fetched lazily with trafilatura, cached in `articles.content` | COMPLETE | `backend/app/ingest.py` (`extract_article`) | None for the MVP |
 | Keyword classification | Subfield and story-type scoring with phrase keywords plus source hints | COMPLETE (approximate quality) | `backend/app/ingest.py`, `backend/app/taxonomy.py` | Better quality; Malayalam articles default to `kerala` |
@@ -538,6 +539,8 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+2026-10-25T04:38:33+05:30 — Owner approved the Pinterest-informed overhaul and clarified that “smooth” means enjoyable, playful and calm animation. CSS transitions/keyframes and a small shared Fold/Segmented/CompletionFlower set implement that direction without a new dependency. Opened exploration panels retain fetched data for their mounted lifetime; closing does not trigger another request. Reading position is restored when leaving an in-page rabbit hole.
+
 D28 — Owner now requests automatic deployment on main pushes after CI, superseding D27 only for routine workflow releases. Forced-command SSH with root-owned deployment code/configuration is prepared; general-command key installation was rejected by automatic approval review. Owner approved protected installation, secrets and enablement; these are installed and the restricted-key deployment passed. Push-triggered end-to-end verification remains pending.
 
 D27 — Owner requires independent live verification of containerized Caddy and explicit approval before every server change or precisely scoped batch, including deployment, rollback, data-writing tests and documentation/Git mutations. Read-only discovery comes first; setup instructions are not authorization. See `deploy/SERVER_HANDOFF.md`.
@@ -578,6 +581,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 ---
 
 ## I. Current development state
+
+2026-10-25T04:38:33+05:30 — Visual overhaul implemented and locally exercised with AI disabled and an isolated database. Desktop (1280/1440) and mobile (390) samples cover signup/onboarding, briefing, depth selection, Lens, graph/list/evidence, timeline, challenge, completion and Passport save. Production build passes. Production release verification follows push.
 
 2026-10-25T04:05:26+05:30 — Live QA fixes deployed and verified at `5613245` through Actions run 40138920728. Both containers healthy, current-state database backups pass integrity, account writes work after deployment, and AI spending remains zero. LIVE_QA.md records browser acceptance and untested AI/mobile/scheduler boundaries.
 
@@ -638,6 +643,8 @@ Current verification: 2026-10-25T00:17:27+05:30; `0d88ce0` plus checkpoint `fix:
 
 ## J. Bugs, limitations and technical debt
 
+- Redesign QA is sampled local browser coverage, not a full accessibility or frame-rate audit. Reduced-motion CSS is implemented but OS-level emulation has not been exercised. Next development mode emits existing instant-navigation diagnostics for auth-gated routes; production build and tested navigation succeed.
+
 Auth v1 has no password recovery, email verification or MFA (reset excluded by owner). Production HTTPS/cookie and mobile validation pending. Login throttling behind an untrusted proxy uses a shared peer-IP bucket; trusted proxy configuration is intentionally not guessed. Legacy data is preserved but must be explicitly assigned by the owner.
 
 Knowledge graph is a finite selectable tree view of literal shared mentions, not a semantic or causal graph. Desktop verified; mobile-specific QA and full assistive-technology audit remain pending.
@@ -675,6 +682,8 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 ---
 
 ## K. Roadmap and pending tasks
+
+- Pinterest-inspired visual overhaul implemented; obtain owner visual feedback and complete physical-device/cross-browser motion and accessibility testing.
 
 No invented deadlines. The only external deadline is the 8:00 AM IST code freeze on 25 Oct 2026.
 
@@ -777,6 +786,8 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ## M. Instructions for Incoming AI Agents
 
+For visual work, preserve the owner-approved playful/calm motion and finite product boundaries. Preview with AI explicitly disabled and isolated data; do not enable the production key to test styling.
+
 Server agents must follow `deploy/SERVER_HANDOFF.md`: inspect containerized Caddy read-only first, then ask explicit owner permission before every change or precisely scoped batch. Do not treat deployment instructions as authorization.
 
 For Oracle work, read `deploy/README.md` and `deploy/SERVER_HANDOFF.md`. Verify live Caddy paths/networks; preserve Tuxos and other services. No server deployment has been verified. Do not enable auto-deploy before configuration and secrets are ready; keep the API key absent until the persistent budget ledger is migrated.
@@ -860,3 +871,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T04:01:18+05:30 | fix: clarify conditional briefing scheduling; QA fixes bef6333/b6b0f30/1c737ad | C/I; LIVE_QA.md and logs | Production browser flows verified without AI; scheduling copy deployment pending |
 
 | 2026-10-25T04:05:26+05:30 | docs: record live browser regression results; release `5613245` | I; LIVE_QA.md, submission and logs | Full CI/deploy passed; final live UI, logout, backup integrity and absent AI ledger verified |
+
+| 2026-10-25T04:38:33+05:30 | Visual overhaul checkpoint (this commit) | Responsive design, motion direction, browser validation and audit boundaries recorded. |

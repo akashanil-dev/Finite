@@ -29,7 +29,17 @@ export default function Login() {
       inFlight.current = false;
     }
   }
-  return <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-12">
+  return <main className="auth-layout">
+    <aside className="auth-art rise">
+      <h2>Stay curious.<br /><span className="font-serif italic font-normal">Then carry on.</span></h2>
+      <p className="mt-6 max-w-xs text-sm leading-relaxed">A daily dose of perspective. A little room to explore. A place to stop.</p>
+      <div className="auth-stack" aria-hidden="true">
+        <div className="auth-ticket"><span className="text-xs">01 / THE BRIEFING</span><p className="mt-2 font-serif text-2xl">The world, in a few stories.</p></div>
+        <div className="auth-ticket"><span className="text-xs">02 / THE EXPLORATION</span><p className="mt-2 font-serif text-2xl">Follow your curiosity.</p></div>
+        <div className="auth-ticket"><span className="text-xs">03 / THE ENDING</span><p className="mt-2 font-serif text-2xl">A little wiser. All done.</p></div>
+      </div>
+    </aside>
+    <div className="auth-form rise">
     <Wordmark />
     <h1 className="mt-8 font-serif text-3xl">{register ? "Make room for curiosity." : "Welcome back."}</h1>
     <p className="mt-3 text-sm leading-relaxed text-muted">{register ? "Create your account for a personal briefing and a place to keep what you learn." : "Sign in to your briefing and Knowledge Passport."}</p>
@@ -45,5 +55,5 @@ export default function Login() {
       <Button type="submit" disabled={busy} className="w-full">{busy ? "Please wait…" : register ? "Create account" : "Sign in"}</Button>
     </form>
     <button type="button" disabled={busy} className="mt-6 text-sm text-accent underline underline-offset-4" onClick={() => { setRegister(!register); setError(null); setPassword(""); }}>{register ? "Already have an account? Sign in" : "New to Finite? Create an account"}</button>
-  </main>;
+  </div></main>;
 }

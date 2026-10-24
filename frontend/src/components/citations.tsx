@@ -27,7 +27,7 @@ export function CitationChips({ refs, lookup }: { refs: string[]; lookup: (ref: 
         );
       })}
       {info && (
-        <span className="mt-2 block rounded-xl border border-line bg-paper p-3 text-xs">
+        <span className="rise mt-2 block rounded-xl border border-line bg-paper p-3 text-xs">
           <span className="flex items-center justify-between gap-2">
             <span className="font-semibold">{info.name}</span>
             {info.weight !== undefined && <WeightBar weight={info.weight} />}

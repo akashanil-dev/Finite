@@ -18,7 +18,7 @@ export function CuriosityChallenge({ question, onReveal, onCancel }: {
   useEffect(() => { heading.current?.focus(); }, []);
   const [selected, setSelected] = useState<string | null>(null);
   return (
-    <section className="mt-8 rounded-3xl border border-accent/30 bg-accent-soft/50 p-5" aria-label="Curiosity challenge">
+    <section className="challenge-panel rise mt-8 rounded-3xl border border-ink/20 p-5" aria-label="Curiosity challenge">
       <Eyebrow>Curiosity challenge · optional</Eyebrow>
       <h3 ref={heading} tabIndex={-1} className="mt-2 font-serif text-2xl">Predict the connection</h3>
       <p className="mt-2 text-sm leading-relaxed">{question}</p>
