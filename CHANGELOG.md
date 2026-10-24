@@ -150,3 +150,7 @@ Validation: real SSH negative tests and current-release deployment (backup and h
 Push-triggered [Actions run 40137766681](https://github.com/akashanil-dev/Finite/actions/runs/40137766681) passed checks, both ARM64 image jobs and deployment for `537687f062e2e42c080dd7d0e7ac12ab669a19d0`. Direct SSH verified that exact current-release and both healthy containers; public homepage/health returned 200, Faber/Tuxos 200, Notes its existing 401. AI and scheduler remain disabled.
 
 Reconciled deployment status in README, submission, context and handoff. Documentation-only follow-up; no additional API calls or infrastructure changes.
+
+## 2026-10-25T03:52:41+05:30 — Preserve SQLite ownership during deployment backups
+
+Live signup exposed readonly-database errors: host-user online backups created WAL/SHM files owned by finite-deploy (0644), while the backend uses UID 10001. Deployment now backs up inside the existing backend as its application UID, streams an integrity-checked snapshot into a private host backup, and stops on timeout/failure. Existing database without a running backend fails safely. Owner approved sidecar ownership repair and protected-script installation; signup then reached onboarding. Shell syntax passes; next CI deployment will verify the corrected backup path end to end.

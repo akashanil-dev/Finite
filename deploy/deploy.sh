@@ -16,17 +16,41 @@ export FINITE_IMAGE_TAG="$release"
 # Download everything before touching the running release.
 docker compose -f "$compose_file" pull
 mkdir -p backups
-# SQLite online backup includes committed WAL data. Keep both databases, including the budget ledger.
-python3 - <<'PY'
-import datetime, pathlib, sqlite3
-root = pathlib.Path('/opt/finite')
-stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-for name in ('finite.db', 'ai_budget.sqlite3'):
-    source = root / 'data' / name
-    if source.exists():
-        with sqlite3.connect(f"file:{source}?mode=ro", uri=True) as src, sqlite3.connect(root / 'backups' / f'{stamp}-{name}') as dst:
-            src.backup(dst)
-PY
+# Run SQLite backup as the application UID inside the existing container. Opening
+# WAL databases from the host deploy account can create sidecars the app cannot write.
+for name in finite.db ai_budget.sqlite3; do
+    [[ -f "$root/data/$name" ]] || continue
+    backend="$(docker compose -f "$compose_file" ps -q backend)"
+    [[ -n "$backend" ]] || { echo 'Existing database requires a running backend for backup.' >&2; exit 1; }
+    stamp="$(date -u +%Y%m%dT%H%M%S%N)"
+    backup="$root/backups/$stamp-$name"
+    if timeout 60 docker exec -i "$backend" python - "$name" > "$backup.tmp" <<'PYBACKUP'
+import pathlib, sqlite3, sys, tempfile, time
+source = pathlib.Path('/data') / sys.argv[1]
+deadline = time.monotonic() + 45
+
+def progress(status, remaining, total):
+    if time.monotonic() > deadline:
+        raise TimeoutError('Database backup timed out')
+
+with tempfile.TemporaryDirectory() as temporary:
+    target = pathlib.Path(temporary) / 'backup.db'
+    with sqlite3.connect(f"file:{source}?mode=ro", uri=True, timeout=5) as src, sqlite3.connect(target) as dst:
+        src.backup(dst, pages=256, progress=progress)
+        if dst.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
+            raise RuntimeError('Backup integrity check failed')
+    with target.open('rb') as stream:
+        import shutil
+        shutil.copyfileobj(stream, sys.stdout.buffer)
+PYBACKUP
+    then
+        mv -- "$backup.tmp" "$backup"
+    else
+        rm -f -- "$backup.tmp"
+        echo "Backup failed for $name; deployment stopped." >&2
+        exit 1
+    fi
+done
 if docker compose -f "$compose_file" up -d --wait --wait-timeout 120; then
     printf '%s\n' "$release" > current-release
     printf '%s\n' "$previous" > previous-release

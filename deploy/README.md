@@ -111,3 +111,5 @@ codex
 Complete the device-code login yourself. Use your ChatGPT login, not Finite's nearly exhausted API key. Official references: [Codex installation](https://github.com/openai/codex), [headless authentication](https://learn.chatgpt.com/docs/auth).
 
 This laptop chat and a separately installed server CLI do not automatically share messages or state. Provide the server CLI with the current deployment files, `PROJECT_CONTEXT.md` and `deploy/SERVER_HANDOFF.md`, then bring its results back here (or provide an authorized SSH host alias for direct server work). Keep application edits on the laptop and server configuration work on the server to avoid conflicting changes.
+
+Backups run inside the existing backend container as UID 10001 and stream to private host backup files after integrity checking (60-second outer timeout). Do not open production WAL databases as the host deploy user: that can create sidecars the app cannot write. If a database exists but the backend is stopped, deployment aborts; recover the backend or arrange an approved offline backup first.

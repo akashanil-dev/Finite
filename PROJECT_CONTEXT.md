@@ -579,6 +579,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
+2026-10-25T03:52:41+05:30 — Live signup found host-backup-created WAL/SHM ownership blocking SQLite writes. Approved ownership repair restored signup; protected deployment script now performs online backups inside the backend as UID 10001 with timeout/integrity verification. Full live QA continues with AI disabled.
+
 2026-10-25T03:49:07+05:30 — Push-triggered [Actions run 40137766681](https://github.com/akashanil-dev/Finite/actions/runs/40137766681) passed checks, both ARM64 image jobs and deployment for `537687f062e2e42c080dd7d0e7ac12ab669a19d0`. Direct SSH verified that exact current-release and both healthy containers; public homepage/health returned 200, Faber/Tuxos 200, Notes its existing 401. AI and scheduler remain disabled.
 
 2026-10-25T03:43:06+05:30 — Owner-provided Oracle results confirm fresh deployment of 9d246ab, healthy containers, public HTTPS and successful SQLite online backup. Direct laptop SSH confirmed current-release and host fingerprint. Automatic main deployment authorized; protected SSH dispatch installed, repository secrets configured and deploy variable enabled. Restricted-key existing-release deployment passed; push-triggered verification pending.
@@ -848,3 +850,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T03:45:14+05:30 | build: enable automatic oracle deployment | H/I and deployment docs; protected SSH setup and repository Actions secrets | Real restricted-key deployment and rejected shell/file commands pass; push run pending |
 
 | 2026-10-25T03:49:07+05:30 | docs: record automatic deployment verification; implementation `537687f` | C/D/I/K; README, submission, deployment guide/handoff | Push-triggered full workflow passed; exact release, health and existing-site responses verified |
+
+| 2026-10-25T03:52:41+05:30 | fix: preserve sqlite ownership during deployment backups | I; deployment guide, changelog, AI usage | Live signup reproduced then passed after approved repair; shell syntax passes |
