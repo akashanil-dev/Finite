@@ -38,7 +38,7 @@ export function ConnectionExplorer({ storyId, storyTitle }: { storyId: string; s
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">This story · starting point</p>
                 <p className="mt-2 break-words font-serif text-base">{storyTitle}</p>
               </div>
-              <div aria-hidden="true" className="mx-auto h-6 w-px bg-accent/50" />
+              <div aria-hidden="true" className="h-6 w-1/2 border-b border-r border-accent/50" />
               <div className="space-y-3 border-l border-accent/50 pl-3 sm:pl-5">
                 {data.connections.map((connection, i) => <div key={connection.story_id} className="relative">
                   <span aria-hidden="true" className="absolute -left-3 top-7 w-3 border-t border-accent/50 sm:-left-5 sm:w-5" />

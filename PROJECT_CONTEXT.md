@@ -221,7 +221,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Seven backend/API tests, desktop/mobile browser QA and production build pass; real-key sample passed; broader quality review pending |
 | Curiosity Challenges | Optional three-hypothesis prediction before Level 2; reveal, skip, reflect and save | COMPLETE in extractive mode | `curiosity-challenge.tsx`, `rabbit-hole.tsx`, Passport | Desktop/mobile browser QA passed; live AI journey/Passport sample passed; no extra AI generation |
 | Connection Explorer | Three finite source-backed cross-story comparisons | COMPLETE (v1; desktop browser verified) | `connections.py`, `connection-explorer.tsx` | Literal saved-concept matching; no causal inference |
-| Interactive knowledge graph | Selectable source-backed story map with list alternative | IMPLEMENTED (browser QA pending) | `connection-explorer.tsx` | Literal shared mentions only; maximum three branches |
+| Interactive knowledge graph | Selectable source-backed story map with list alternative | COMPLETE (v1; desktop browser verified) | `connection-explorer.tsx` | Literal shared mentions only; maximum three branches |
 | Push notifications | "Briefing ready" alert | PROPOSED | — | — |
 | Accounts and auth | Multiple users | PROPOSED | — | Needed before a public launch |
 | Native mobile app | Expo app reusing the API | PROPOSED (owner wants it after the hackathon) | — | — |
@@ -562,6 +562,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
+2026-10-25T01:16:43+05:30 — Knowledge graph v1 complete. Implementation `63b57a8`; connector fix and QA checkpoint follows. Desktop browser checks and 25 backend tests/frontend checks pass; no additional AI calls.
+
 2026-10-25T01:14:28+05:30 — Knowledge graph implemented; frontend checks pass, browser QA pending. No API calls. Ledger baseline now $0.002888 remaining (32 requests), following owner testing.
 
 2026-10-25T00:46:14+05:30 — Connection Explorer v1 complete, implementation `2aa0da1` pushed; browser evidence/retry/empty/end-state checks passed. API allowance unchanged: $0.223300. Mobile-specific QA not performed.
@@ -600,6 +602,8 @@ Current verification: 2026-10-25T00:17:27+05:30; `0d88ce0` plus checkpoint `fix:
 ---
 
 ## J. Bugs, limitations and technical debt
+
+Knowledge graph is a finite selectable tree view of literal shared mentions, not a semantic or causal graph. Desktop verified; mobile-specific QA and full assistive-technology audit remain pending.
 
 Connection Explorer requires saved concepts and literal mentions in both stories. It misses synonyms/translations and does not infer causality; source excerpts retain original language.
 
@@ -673,7 +677,7 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ### Optional and exploratory
 
-- Interactive knowledge graph v1 implemented in Connection Explorer; browser QA pending. Semantic expansion remains future work.
+- Interactive knowledge graph v1 complete in Connection Explorer; desktop browser verified. Semantic expansion remains future work.
 - Knowledge Passport tags concepts with Wikidata IDs. The agent recommended tagging nodes with Wikidata concept IDs from the start; this is not implemented, and concepts are plain strings.
 
 ---
@@ -736,6 +740,8 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ## M. Instructions for Incoming AI Agents
 
+Knowledge graph v1 is complete inside Connection Explorer; defaults to map with a list alternative. Uses existing stored data and makes no new AI requests. Preserve the nearly exhausted budget ledger.
+
 Connection Explorer and Time Machine v1 are implemented and desktop-browser verified. Preserve the $1 persistent ledger ($0.223300 remaining at this checkpoint); both features use stored evidence without new AI calls. Semantic connections and broader historical retrieval remain extensions.
 
 This document is a **map, not the territory**. Always verify against the code.
@@ -789,3 +795,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T00:46:14+05:30 | `docs: record connection explorer browser validation`, based on `2aa0da1` | C, I, K, M; submission, changelog, AI usage | Production desktop browser matches/citations/retry/empty/end; no API spending |
 
 | 2026-10-25T01:14:28+05:30 | `feat: add interactive knowledge graph` | C, D, H, I, K; README, changelog, AI usage | tsc, ESLint, production build; browser QA pending |
+
+| 2026-10-25T01:16:43+05:30 | `fix: connect knowledge graph branches`, based on `63b57a8` | C, I, J, K, M; changelog, AI usage, submission | Desktop browser QA, 25 backend tests, tsc/ESLint/build; no API calls |
