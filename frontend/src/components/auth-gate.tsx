@@ -6,7 +6,7 @@ import { api, ApiError } from "@/lib/api";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const publicPage = pathname === "/login";
+  const publicPage = ["/", "/login", "/signup"].includes(pathname);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);

@@ -171,3 +171,11 @@ Codex replaced repeated-tap interest cycling with Off/Occasional/Moderate/High b
 ## 2026-10-25T04:43:14+05:30 — Verify redesign deployment
 
 Actions run 40141543544 passed checks, both ARM64 builds/publishing and automatic deployment of `f64b943`. Codex visually verified the redesigned public HTTPS login page. Final local production-preview login/logout and profile persistence passed. `DESIGN_QA.md` records sources, tests and limitations. No additional AI budget used. Final human visual review remains pending.
+
+
+## 2026-10-25T05:25:18+05:30 — Public landing page
+
+- Added a public homepage with the Finite proposition, three-step journey, feature cards, calm paper-card motion and signup/login calls to action. Reused existing fonts, colors and SVG; no added dependencies or API calls.
+- Extracted the shared auth form, added `/signup`, and moved profile-based account routing to protected `/start`. Authentication success now goes to `/start`; `/` remains public. Backend authorization is unchanged.
+- Validation: TypeScript, ESLint and production build passed. Browser checked desktop and 320px layouts (no horizontal overflow), section anchor, signup form, login form and home navigation. Production deployment pending at commit time. Full auth submission regression and accessibility audit were not repeated for this change.
+Human requested the page; visual review by the owner remains pending. Codex implemented and checked the change.

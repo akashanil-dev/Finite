@@ -142,3 +142,8 @@ The owner's [finite-ideas Pinterest board](https://in.pinterest.com/gutgbihgg/fi
 Interest priorities are explicit Off / Occasional / Moderate / High choices in onboarding and Settings. Settings use animated section selectors and show saving feedback before confirmation.
 
 See [DESIGN_QA.md](DESIGN_QA.md) for the visual references, redesign test coverage and deployed release evidence.
+
+
+### Public homepage
+
+`/` introduces Finite without requiring an account or backend request. Get started opens `/signup`; Log in opens `/login`. Successful authentication continues through `/start` to onboarding or the briefing. The existing account pages remain protected.

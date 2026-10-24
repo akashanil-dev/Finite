@@ -194,6 +194,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 
 | Feature | Description | Status | Relevant files | Remaining work |
 | --- | --- | --- | --- | --- |
+| Public landing page | Public product introduction, journey and feature cards; dedicated signup and login links | COMPLETE (local browser/build verified) | `frontend/src/app/page.tsx`, `signup/page.tsx`, `start/page.tsx`, `components/auth-form.tsx` | Production check after push; full accessibility audit pending |
 | Visual system and motion | Responsive rail/dock, colored exploration panels, spring card lifts, gliding depth control, folding panels and completion flower | VERIFIED local browser sample | `frontend/src/app/globals.css`, `frontend/src/components/ui.tsx`, reader/briefing/login/Passport components | Physical-device, reduced-motion runtime and cross-browser audit pending |
 | RSS ingestion | 29 feeds (English and Malayalam), language detection by script, upsert into SQLite | COMPLETE | `backend/app/ingest.py`, `backend/app/sources.py` | Add more Malayalam outlets; some publisher feeds block bots (see J) |
 | Full-text extraction | Fetched lazily with trafilatura, cached in `articles.content` | COMPLETE | `backend/app/ingest.py` (`extract_article`) | None for the MVP |
@@ -232,6 +233,9 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 AI budget guard: persistent $1 conservative reservation allowance in `backend/data/ai_budget.sqlite3`; atomic across local workers, no refunds/reset, 100 requests maximum, reviewed models only. Four guard tests and backend import pass; live testing follows. `GET /api/ai-budget` exposes reservations, not billing.
 
 ## D. System architecture
+
+Public entry routes are `/`, `/login` and `/signup`. `/start` preserves the previous profile-based redirect to onboarding/briefing after authentication. The landing page performs no API calls. Backend authorization is unchanged.
+
 
 Deployment target: two ARM64 containers (Node standalone frontend and single-worker FastAPI backend), shared existing Caddy TLS proxy via external finite-edge network. No app ports published. `/opt/finite/data` persists all SQLite/cache/budget state. GitHub builds immutable SHA tags; deployment requires repository enable variable and repository Actions secrets. Forced-command SSH invokes root-owned scripts/configuration. Oracle deployment and public HTTPS are verified; see `deploy/README.md`.
 
@@ -539,6 +543,9 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+- Public homepage stays available to visitors and signed-in readers; account entry is explicitly `/start`. Landing visuals are illustrative journey cards, not fabricated live news.
+
+
 2026-10-25T04:38:33+05:30 — Owner approved the Pinterest-informed overhaul and clarified that “smooth” means enjoyable, playful and calm animation. CSS transitions/keyframes and a small shared Fold/Segmented/CompletionFlower set implement that direction without a new dependency. Opened exploration panels retain fetched data for their mounted lifetime; closing does not trigger another request. Reading position is restored when leaving an in-page rabbit hole.
 
 D28 — Owner now requests automatic deployment on main pushes after CI, superseding D27 only for routine workflow releases. Forced-command SSH with root-owned deployment code/configuration is prepared; general-command key installation was rejected by automatic approval review. Owner approved protected installation, secrets and enablement; these are installed and the restricted-key deployment passed. Push-triggered end-to-end verification remains pending.
@@ -581,6 +588,9 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 ---
 
 ## I. Current development state
+
+2026-10-25T05:25:18+05:30 — Public landing page implemented and locally verified at desktop/320px. Signup/login links and section navigation work; tsc, ESLint and production build pass. Deployment verification follows push. No API spend.
+
 
 2026-10-25T04:43:14+05:30 — Redesign release `f64b943` is live: Actions 40141543544 passed all jobs, including deploy. Live HTTPS login visually verified. Local production-preview authenticated QA passed; full verification scope is in DESIGN_QA.md. No new AI usage.
 
@@ -692,6 +702,9 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 No invented deadlines. The only external deadline is the 8:00 AM IST code freeze on 25 Oct 2026.
 
 ### Immediate (hackathon)
+
+Public landing page delivered; existing feature and accessibility follow-ups remain unchanged.
+
 
 Time Machine v1 is complete: dedicated source-extractive story timeline plus coverage history, no AI calls. Broad historical archive and richer multilingual date recognition remain extensions.
 
@@ -881,3 +894,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T04:39:05+05:30 | Preference controls (this commit), visual base `a9628be` | Explicit weights, save feedback and 320px QA reconciled. |
 
 | 2026-10-25T04:43:14+05:30 | Deployment QA (this commit); release `f64b943` | CI/CD success and live visual check recorded in DESIGN_QA.md. |
+
+| 2026-10-25T05:25:18+05:30 | feat: add public landing page (this commit) | C/D/H/I/K; README, changelog, AI usage | Local desktop/mobile browser, tsc, ESLint and build pass; deployment pending |
