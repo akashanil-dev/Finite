@@ -575,6 +575,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
+2026-10-25T01:45:05+05:30 — Hosted GitHub CI run 40128562535 passed code checks and both ARM64 image build/smoke/publish jobs at `9d246ab`. Deploy skipped (enable variable unset). Auth `be6ab58` locally verified with 34 tests and browser registration/sign-in/sign-out/isolation. Local ports 3000/8000 restored; Oracle/Caddy/HTTPS work remains pending.
+
 2026-10-25T01:39:40+05:30 — Auth checkpoint `be6ab58` committed. Oracle container/CI/CD files and server handoff prepared for finite.akashanil.dev. 34 tests and frontend checks pass; local Docker build blocked by daemon permissions; CI/container/Oracle verification pending. Deployment remains gated.
 
 2026-10-25T01:37:34+05:30 — Accounts implemented and locally verified in API tests and desktop browser. No AI calls. Deployment scaffolding is being prepared separately; Oracle remains unverified.
@@ -683,8 +685,8 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 - Accounts/auth implemented and locally verified; production HTTPS and broader security/UX review remain.
 - Postgres + pgvector, and migrations.
 - Rate limiting for ask-your-own, plus matching similar questions to a cached answer.
-- 34 unittest regressions and GitHub CI workflow prepared; verify first hosted CI/container run.
-- Oracle ARM64 hosted deployment prepared in `deploy/`; server configuration, secrets, CI image checks and HTTPS go-live remain pending.
+- 34 unittest regressions and GitHub CI workflow prepared; first hosted CI/container run passed; extend coverage as needed.
+- Oracle ARM64 hosted deployment prepared in `deploy/`; server configuration, secrets and HTTPS go-live remain pending; first CI image checks passed.
 
 ### Longer term
 
@@ -824,3 +826,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T01:37:34+05:30 | `feat: add accounts and isolate user data` | C, D, H, I, J, K, M; README, changelog, AI usage | Auth/isolation regression suite and production desktop browser checks; no AI calls |
 
 | 2026-10-25T01:39:40+05:30 | `build: prepare oracle containers and github deployment` | C/D/H/I/K/M reconciliation; deployment guide/handoff, README, submission, changelog, AI usage | 34 tests, import, tsc/ESLint/standalone build, Compose config, shell syntax; CI/Oracle pending |
+
+| 2026-10-25T01:45:05+05:30 | `docs: record hosted auth and container validation`, based on `9d246ab` | I/K; deployment guide/handoff, changelog, AI usage, submission | GitHub code + ARM64 image checks/publish passed; deploy intentionally skipped; mocked rollback/backup simulation passed |

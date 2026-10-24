@@ -2,7 +2,7 @@
 
 Target: `https://finite.akashanil.dev`, on the existing Tuxos Oracle server (ARM64, 4 cores, 24 GB RAM).
 
-Status: repository deployment configuration prepared; **not deployed or verified on Oracle**. Local Docker daemon access was unavailable. GitHub must build and smoke-test the ARM64 images before deployment is enabled. Authentication/browser tests run locally with no AI key.
+Status: **ARM64 images built, smoke-tested and published by [GitHub CI](https://github.com/akashanil-dev/Finite/actions/runs/40128562535) for `9d246ab5172e9eab681eb213a276aba2b0b8e2f0`; not deployed or verified on Oracle**. Local Docker daemon access was unavailable, so hosted CI performed container validation. Deployment was skipped because FINITE_DEPLOY_ENABLED is unset. Authentication/browser tests ran locally with no AI key.
 
 ## Architecture and reference
 

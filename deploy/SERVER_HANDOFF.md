@@ -1,6 +1,6 @@
 # Server-side Finite deployment handoff
 
-The owner wants Finite at finite.akashanil.dev on the same Oracle Ampere machine as Tuxos. Read AGENTS.md, RULES.md, PROJECT_CONTEXT.md and deploy/README.md first. The code and deployment files are prepared; no Oracle deployment has been claimed.
+The owner wants Finite at finite.akashanil.dev on the same Oracle Ampere machine as Tuxos. Read AGENTS.md, RULES.md, PROJECT_CONTEXT.md and deploy/README.md first. The code and deployment files are prepared. [GitHub CI](https://github.com/akashanil-dev/Finite/actions/runs/40128562535) passed code checks and both ARM64 container build/health-smoke/publish jobs for `9d246ab5172e9eab681eb213a276aba2b0b8e2f0`. Deployment was skipped; no Oracle deployment has been claimed.
 
 1. Inspect the running services, available resources, existing Caddy Compose/network/config and existing Tuxos site. Confirm live paths instead of relying on the laptop snapshot.
 2. Preserve every existing site, Caddy mount/network and unrelated container. Do not replace the full Caddyfile or run `docker compose down` on the shared stack.

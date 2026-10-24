@@ -56,3 +56,5 @@ Connection Explorer demo: open an OpenAI story, expand Connection Explorer, then
 Knowledge graph demo: expand Connection Explorer, select a story node in Knowledge map, inspect both cited excerpts, then switch to List view. Desktop browser verified; three-branch maximum with no additional AI generation.
 
 Accounts demo: create a username/password account at `/login`, save preferences, sign out and sign back in. Per-user API isolation and desktop browser flow verified; no reset flow. Oracle target is `finite.akashanil.dev`; container/CI setup prepared but not yet deployed or HTTPS-verified. Do not list this hostname as a working hosted demo until verification succeeds.
+
+Hosted validation: [GitHub run 40128562535](https://github.com/akashanil-dev/Finite/actions/runs/40128562535) passed code checks and both ARM64 image build/smoke/publish jobs at `9d246ab`. Production deployment skipped; hostname is not yet a verified working demo.
