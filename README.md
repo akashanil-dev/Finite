@@ -82,13 +82,13 @@ If a restricted agent run fails with a Turbopack CSS-worker `binding to a port: 
 ## Status
 
 - **Working, tested without an AI key:** reading 29 English and Malayalam feeds, sorting stories into topics, grouping duplicates, weighted ranking, frozen briefings with read progress and completion, story summaries and questions, rabbit holes with a depth limit, ask-your-own, Knowledge Passport, the sources page, and the scheduler.
-- **Built but not yet tested with a real key:** AI summaries and questions (`gpt-6-luna`), AI rabbit holes (`gpt-6.1-sol`) with claim-by-claim checking, embedding-based duplicate grouping, and Malayalam translation.
+- **Verified on a live-key sample (25 Oct):** AI summaries and questions (`gpt-6-luna`), AI rabbit holes (`gpt-6.1-sol`) with claim-by-claim checking, embedding-based duplicate grouping, and Malayalam translation.
 - **Known limitations:**
   - Single local user only.
   - Topic sorting without a key is approximate.
   - Duplicate grouping without a key sometimes splits one event into two stories.
   - Source weights are editorial judgements.
-  - Perspective Lens is implemented with fixture-tested AI handling; desktop/mobile browser checks pass; real-key quality remains pending. Curiosity Challenges pass no-key desktop/mobile browser QA, including skip, retry, endpoint and saved prediction. Live AI validation remains deferred.
+  - Perspective Lens and Curiosity Challenges pass a real-key desktop browser sample, including the endpoint and saved prediction. Earlier no-key mobile checks pass; live-AI mobile and broader editorial quality remain pending.
 
 ## Data and attribution
 
@@ -101,3 +101,7 @@ Finite reserves a conservative cost before every uncached OpenAI request, up to 
 Only the three default models have reviewed rates; unknown model overrides are blocked. Rates deliberately exceed standard published prices, input is conservatively counted by UTF-8 bytes plus framing, outputs are capped at 12,000 tokens, and SDK retries are disabled. Review rates against [OpenAI pricing](https://developers.openai.com/api/docs/pricing) before changing models. This guards this installation only: other apps, other checkouts, existing processes running older code, provider price changes and deleted ledgers are outside its scope. Restart the backend to load it.
 
 AI mode now recovers from previously cached extractive story summaries after a key is added. JSON requests include the required input instruction. Live classification, embedding clustering and story generation were verified on stored news on 25 October 2026; this is a sample check, not a quality guarantee across all news.
+
+Live AI QA (25 October): summaries, Missing Piece, Perspective Lens, two-level rabbit holes, unsupported-claim removal, challenges/Passport and Malayalam rendering were exercised in the browser. Rabbit-hole claims and dated timeline events require an explicit positive support verdict; verification failure removes them. Malformed translations fall back to the original payload. The sample is not a comprehensive editorial audit; Malayalam quality needs human review.
+
+For controlled local demos without scheduled/background ingestion, use `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --lifespan off` **after the database has already been initialized**. Normal startup retains scheduling. This session restarted the existing backend in this controlled mode to activate the guard without spending the remaining allowance on automatic ingestion.

@@ -38,13 +38,19 @@ def _key(story_id, question, lang):
 
 
 def _verify(nodes, passages):
+    if not nodes:
+        return [], 0
     by_ref = {p["ref"]: p["text"] for p in passages}
     claims = "\n\n".join(f"{i}. CLAIM: {n['text']}\nPASSAGES: " + " | ".join(by_ref.get(r, "")[:600] for r in n["citations"]) for i, n in enumerate(nodes))
     data = llm.chat_json(VERIFY_SYSTEM, claims, model=FAST_MODEL)
-    if not data:
-        return nodes, 0
-    bad = {r["i"] for r in data.get("results", []) if r.get("supported") is False}
-    return [n for i, n in enumerate(nodes) if i not in bad], len(bad)
+    verdicts = data.get("results", []) if isinstance(data, dict) else []
+    accepted = []
+    if isinstance(verdicts, list):
+        for i, node in enumerate(nodes):
+            matches = [v for v in verdicts if isinstance(v, dict) and type(v.get("i")) is int and v["i"] == i]
+            if len(matches) == 1 and matches[0].get("supported") is True:
+                accepted.append(node)
+    return accepted, len(nodes) - len(accepted)
 
 
 def _extractive(question, angle, passages, depth, concepts):
@@ -71,7 +77,7 @@ def _extractive(question, angle, passages, depth, concepts):
 def explore(story_id, question: str, angle: str = "context", search: list[str] | None = None, depth: int = 1, custom: bool = False, path: list | None = None):
     depth = max(1, min(MAX_DEPTH, depth))
     # Version the cache by depth and retrieval inputs so final-level responses stay final.
-    key = hid("explore-v2", _key(story_id, question, "en"), str(depth), angle,
+    key = hid("explore-v3", _key(story_id, question, "en"), str(depth), angle,
               json.dumps(search or [], ensure_ascii=False), str(custom))
     cached = db.query("SELECT payload FROM explorations WHERE key=?", (key,))
     if cached:
@@ -98,13 +104,20 @@ def explore(story_id, question: str, angle: str = "context", search: list[str] |
     dropped = 0
     if data and isinstance(data.get("nodes"), list):
         refs = {p["ref"] for p in passages}
-        nodes = [{**n, "citations": [r for r in n.get("citations", []) if r in refs]} for n in data["nodes"] if n.get("text")]
+        nodes = [{**n, "citations": [r for r in n.get("citations", []) if isinstance(r, str) and r in refs]} for n in data["nodes"] if isinstance(n, dict) and isinstance(n.get("text"), str) and isinstance(n.get("citations"), list)]
         uncited = sum(1 for n in nodes if not n["citations"])
         nodes = [n for n in nodes if n["citations"]]
         nodes, dropped = _verify(nodes, passages)
         dropped += uncited
         data["nodes"] = nodes
-        data["timeline"] = [t for t in data.get("timeline", []) if any(r in refs for r in t.get("citations", []))]
+        timeline = [{**t, "text": f"{t.get('date', '')}: {t['event']}", "citations": [r for r in t.get("citations", []) if isinstance(r, str) and r in refs]}
+                    for t in data.get("timeline", []) if isinstance(t, dict) and isinstance(t.get("event"), str)]
+        timeline = [t for t in timeline if t["citations"]]
+        timeline, timeline_dropped = _verify(timeline, passages)
+        dropped += timeline_dropped
+        data["timeline"] = [{k: v for k, v in t.items() if k != "text"} for t in timeline]
+        if not nodes:
+            data["insufficient"] = True
         data["next_questions"] = [] if final else data.get("next_questions", [])[:3]
         data["mode"] = "ai"
     else:

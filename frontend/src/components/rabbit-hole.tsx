@@ -118,7 +118,7 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
 
       {current && !pending && current.off_topic && (
         <div className="mt-6 space-y-3 rounded-3xl border border-line bg-card p-5 text-sm">
-          <p>That question seems unrelated to this story, so we didn&apos;t search for it. Finite keeps rabbit holes tied to the news you&apos;re reading.</p>
+          <p>That question seems unrelated to this story. Finite keeps rabbit holes tied to the news you&apos;re reading.</p>
           <Button variant="ghost" onClick={onClose}>Back to story</Button>
         </div>
       )}

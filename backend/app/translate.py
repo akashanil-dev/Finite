@@ -44,7 +44,7 @@ def translate_payload(payload, lang):
     if not strings:
         return payload
     data = llm.chat_json(SYSTEM.format(lang=LANG_NAMES[lang]), json.dumps(strings, ensure_ascii=False), model=FAST_MODEL, max_output_tokens=12000)
-    if not data or len(data.get("t", [])) != len(strings):
+    if not isinstance(data, dict) or not isinstance(data.get("t"), list) or len(data["t"]) != len(strings) or any(not isinstance(t, str) or not t.strip() for t in data["t"]):
         return {**payload, "translation": "unavailable"}
     return {**_apply(payload, dict(zip(strings, data["t"]))), "translation": lang}
 

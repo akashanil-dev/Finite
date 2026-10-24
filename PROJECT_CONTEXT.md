@@ -132,7 +132,7 @@ Legend: **[M]** mandatory, approved by the owner · **[O]** optional enhancement
 | R9 | Users can ask their own question. It is scoped to the story, answered only from sources, uses up journey depth, and is rate-limited later. | M (owner left it to the agent; the agent recommended yes) |
 | R10 | Language choice at onboarding. Choosing Malayalam crawls Malayalam outlets and enables Malayalam output. | M |
 | R11 | Public, confidence-weighted index of every outlet and website used, for transparency | M |
-| R12 | Perspective Lens: compare publisher coverage and group supported claims without false balance | M (implemented; live AI/UI verification pending) |
+| R12 | Perspective Lens: compare publisher coverage and group supported claims without false balance | M (implemented; live AI/browser sample verified) |
 | R13 | Time Machine: a timeline of how an event developed | M (partly delivered via rabbit-hole timelines) |
 | R14 | Connection Explorer: surprising, source-backed links *between* stories | O |
 | R15 | Curiosity Challenges: the user predicts a connection before it is revealed (active learning, not trivia) | O |
@@ -190,36 +190,36 @@ Status meanings:
 - **BLOCKED:** waiting on a dependency or decision.
 - **DEPRECATED:** no longer part of the product.
 
-"Verified" here means it was exercised via the API smoke test and/or page loads in **extractive (no-key) mode** on 2026-10-24. The original MVP had no automated tests; Perspective Lens now has seven focused tests. No full manual browser walkthrough has been recorded.
+Verification includes extractive checks on 24 Oct and a real-key AI sample/browser walkthrough on 25 Oct. Sixteen backend tests now exist. Live checks are sample coverage, not a full editorial audit.
 
 | Feature | Description | Status | Relevant files | Remaining work |
 | --- | --- | --- | --- | --- |
 | RSS ingestion | 29 feeds (English and Malayalam), language detection by script, upsert into SQLite | COMPLETE | `backend/app/ingest.py`, `backend/app/sources.py` | Add more Malayalam outlets; some publisher feeds block bots (see J) |
 | Full-text extraction | Fetched lazily with trafilatura, cached in `articles.content` | COMPLETE | `backend/app/ingest.py` (`extract_article`) | None for the MVP |
 | Keyword classification | Subfield and story-type scoring with phrase keywords plus source hints | COMPLETE (approximate quality) | `backend/app/ingest.py`, `backend/app/taxonomy.py` | Better quality; Malayalam articles default to `kerala` |
-| LLM classification | Batches of 40 headlines sent to `FAST_MODEL` | IMPLEMENTED / UNVERIFIED | `backend/app/ingest.py` (`llm_classify`) | Run with a real key |
+| LLM classification | Batches of 40 headlines sent to `FAST_MODEL` | VERIFIED live sample | `backend/app/ingest.py` (`llm_classify`) | Broader story coverage |
 | Source credibility index | Tier, weight and rationale per outlet; public page | COMPLETE | `backend/app/sources.py`, `frontend/src/app/sources/page.tsx` | Weights are editorial (methodology v0) |
 | Onboarding | Languages, weighted interests, exclusions, schedule | IMPLEMENTED / UNVERIFIED (page returns 200; API save verified; full click-through not recorded) | `frontend/src/app/onboarding/page.tsx`, `frontend/src/components/profile-editor.tsx` | Manual walkthrough on a phone |
 | Settings | Edit the same profile after onboarding | IMPLEMENTED / UNVERIFIED | `frontend/src/app/settings/page.tsx` | Manual walkthrough |
 | Briefing builder | Lookback window, dedupe vs earlier briefings, clustering, weighted ranking, diversity cap, freeze | COMPLETE | `backend/app/briefing.py` | Clustering sometimes splits one event (see J) |
-| Embedding clustering | Clusters by cosine similarity (0.8) when a key is set | IMPLEMENTED / UNVERIFIED | `backend/app/briefing.py` (`_cluster`), `backend/app/llm.py` (`embed`) | Run with a key |
+| Embedding clustering | Clusters by cosine similarity (0.8) when a key is set | VERIFIED live sample | `backend/app/briefing.py` (`_cluster`), `backend/app/llm.py` (`embed`) | Live sample passed; broaden coverage |
 | Finite feed UI | Numbered list, progress bar, read state, "You're done for today" | IMPLEMENTED / UNVERIFIED (API mark-read verified) | `frontend/src/app/briefing/page.tsx` | Manual walkthrough |
 | Scheduler | Ingests every 60 min; freezes the briefing 30 min before delivery time | IMPLEMENTED / UNVERIFIED (never seen firing at a real delivery time) | `backend/app/main.py` (`scheduler`) | Observe one real trigger |
 | Story analysis (extractive) | Lead-sentence summaries at 3 depths, cited facts, template questions and Missing Piece | COMPLETE | `backend/app/analysis.py` | Missing Piece is generic without a key |
-| Story analysis (AI) | Summaries, facts, story type, Missing Piece, 4–6 tailored questions, concepts | IMPLEMENTED / UNVERIFIED | `backend/app/analysis.py` (`ANALYSIS_SYSTEM`) | Run with a key; tune prompts |
-| Missing Piece | What the coverage didn't explain; each item opens a rabbit hole | IMPLEMENTED / UNVERIFIED (generic templates without a key) | `backend/app/analysis.py`, `frontend/src/app/story/[id]/story-view.tsx` | AI-generated version needs testing |
+| Story analysis (AI) | Summaries, facts, story type, Missing Piece, 4–6 tailored questions, concepts | VERIFIED live sample | `backend/app/analysis.py` (`ANALYSIS_SYSTEM`) | Sample passed; broader grounding quality review |
+| Missing Piece | What the coverage didn't explain; each item opens a rabbit hole | IMPLEMENTED / UNVERIFIED (generic templates without a key) | VERIFIED live sample | AI browser sample passed; broader coverage pending |
 | Rabbit holes (extractive) | Passages from articles and Wikipedia, ranked by TF-IDF; nodes, timeline, follow-ups | COMPLETE | `backend/app/rabbithole.py`, `backend/app/retrieval.py` | Follow-up questions can be odd, e.g. "How does Heinlein connect…" |
-| Rabbit holes (AI) | `SMART_MODEL` writes only from passages, then `FAST_MODEL` checks each claim; uncited or unsupported claims dropped | IMPLEMENTED / UNVERIFIED | `backend/app/rabbithole.py` (`SYNTH_SYSTEM`, `_verify`) | Run with a key |
-| Depth limit and ending | `MAX_DEPTH = 2`, journey map, "Expedition complete", end at any point | IMPLEMENTED / UNVERIFIED (API verified; UI not walked through) | `backend/app/config.py`, `frontend/src/components/rabbit-hole.tsx` | Manual walkthrough |
-| Ask your own question | Free-text question scoped to the story; off-topic check (word overlap without a key, LLM with one) | IMPLEMENTED / UNVERIFIED | `backend/app/rabbithole.py`, `frontend/src/app/story/[id]/story-view.tsx` | Rate limiting; matching similar questions to a cached answer |
+| Rabbit holes (AI) | `SMART_MODEL` writes only from passages, then `FAST_MODEL` checks each claim; uncited or unsupported claims dropped | IMPLEMENTED / UNVERIFIED | VERIFIED live sample | Live sample passed; broaden coverage |
+| Depth limit and ending | `MAX_DEPTH = 2`, journey map, "Expedition complete", end at any point | IMPLEMENTED / UNVERIFIED (API verified; UI not walked through) | VERIFIED live sample | Manual walkthrough |
+| Ask your own question | Free-text question scoped to the story; off-topic check (word overlap without a key, LLM with one) | IMPLEMENTED / UNVERIFIED | VERIFIED live sample | Rate limiting; matching similar questions to a cached answer |
 | Time Machine (basic) | Timeline inside rabbit holes for origin and history questions | IN PROGRESS | `backend/app/rabbithole.py`, `frontend/src/components/rabbit-hole.tsx` | A dedicated timeline needs an archive of past stories |
-| Malayalam translation | Translates generated content; cached per story | IMPLEMENTED / UNVERIFIED (returns "unavailable" without a key) | `backend/app/translate.py` | Run with a key; owner to judge quality |
+| Malayalam translation | Translates generated content; cached per story | IMPLEMENTED / UNVERIFIED (returns "unavailable" without a key) | Rendering verified; human quality review pending | Live rendering passed; owner to judge quality |
 | Malayalam crawl | Choosing Malayalam adds Malayalam feeds to briefings | COMPLETE | `backend/app/sources.py`, `backend/app/briefing.py` | Malayalam stories rank low without a key |
-| Knowledge Passport | Saved journeys, concept cloud, fields explored, counts | IMPLEMENTED / UNVERIFIED (API verified) | `backend/app/main.py` (`/api/passport`), `frontend/src/app/passport/page.tsx` | Manual walkthrough |
+| Knowledge Passport | Saved journeys, concept cloud, fields explored, counts | IMPLEMENTED / UNVERIFIED (API verified) | VERIFIED live sample | Manual walkthrough |
 | Citations UI | Citation chips with popovers (source, weight, link); confidence badges | IMPLEMENTED / UNVERIFIED | `frontend/src/components/citations.tsx` | Manual walkthrough |
 | PWA manifest | Installable app manifest and icon | IMPLEMENTED / UNVERIFIED | `frontend/src/app/manifest.ts`, `frontend/public/icon.svg` | No service worker or offline support |
-| Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Seven backend/API tests, desktop/mobile browser QA and production build pass; real-key quality pending |
-| Curiosity Challenges | Optional three-hypothesis prediction before Level 2; reveal, skip, reflect and save | COMPLETE in extractive mode | `curiosity-challenge.tsx`, `rabbit-hole.tsx`, Passport | Desktop/mobile browser QA passed; live AI integration validation deferred; no extra AI generation |
+| Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Seven backend/API tests, desktop/mobile browser QA and production build pass; real-key sample passed; broader quality review pending |
+| Curiosity Challenges | Optional three-hypothesis prediction before Level 2; reveal, skip, reflect and save | COMPLETE in extractive mode | `curiosity-challenge.tsx`, `rabbit-hole.tsx`, Passport | Desktop/mobile browser QA passed; live AI journey/Passport sample passed; no extra AI generation |
 | Connection Explorer | Links across stories | PROPOSED | — | Needs design |
 | Push notifications | "Briefing ready" alert | PROPOSED | — | — |
 | Accounts and auth | Multiple users | PROPOSED | — | Needed before a public launch |
@@ -288,6 +288,9 @@ sequenceDiagram
 ```
 
 ### D3. Backend
+
+All OpenAI requests pass through the persistent budget reservation guard. SDK retries are disabled. Timeline and node verification fail closed. Extractive story caches can upgrade to AI when a key is present.
+
 
 - **Entry point:** `backend/app/main.py`, served by `uvicorn app.main:app`. The lifespan hook calls `db.init()` and starts a daemon `scheduler()` thread. A `ThreadPoolExecutor(4)` prefetches story analysis after each briefing is built. A non-blocking lock (`_ingest_lock`) prevents ingests from running at the same time.
 - **Ranking** (`briefing.py`):
@@ -539,31 +542,21 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 | D17 | India first; Malayalam is the first regional language; Malayalam outlets are crawled only if chosen | Owner's market choice; Kochi audience | — | Active |
 | D19 | Perspective Lens uses existing excerpts and fails closed on verification failure | Avoid extra scraping and unchecked comparison claims | Coverage and AI quality remain limited; hostname deduplication cannot detect syndication | Active |
 | D20 | Ungraded connection hypotheses with skip and source-based reflection | Active learning without invented answers or scores; no extra AI calls | Generic choices rather than generated quizzes | Active |
+| D21 | Persistent $1 conservative reservation guard, no automatic refunds or resets | Owner-approved testing allowance; reserve before calls, including failed calls | Installation-local only; not an account billing cap | Active |
 | D18 | Name **"Finite"** | Owner's choice from the suggestions | Warren, Undercurrent, Kaaranam, Fathom, Sutra were considered | Active |
 
 ---
 
 ## I. Current development state
 
-2026-10-25T00:15:26+05:30 — Live classification/embeddings and story analysis now pass after JSON input fix; `fix: repair JSON requests and refresh extractive analyses`, based on `42a7b54`. Grounding and final browser QA checkpoint follows.
+Current verification: 2026-10-25T00:17:27+05:30; `0d88ce0` plus checkpoint `fix: enforce AI verification and validate translations` (SHA assigned at commit).
 
-
-2026-10-25T00:08:44+05:30 — Owner supplied a local key and authorized $1 guarded live AI testing. Guard implemented and unit-tested; live/browser validation remains pending. Checkpoint `feat: add persistent one-dollar AI budget guard` (based on `64884e3`).
-
-
-*Current verification: 2026-10-24T23:32:53+05:30, based on pushed `47bedbd` plus Curiosity Challenges QA fixes (`fix: handle challenge journey retries and focus`; SHA assigned at commit). No key used; stop before live AI validation.*
-
-| Item | Current state |
-| --- | --- |
-| Branch | `main`, tracks `origin/main`; owner authorized checkpoint commits and pushes |
-| Completed checkpoints | Event docs, shared context `9545897`, Perspective Lens `7777c34` pushed |
-| Current work | Curiosity Challenges `47bedbd` pushed; browser QA fixes verified in `fix: handle challenge journey retries and focus` checkpoint |
-| Verification | Nine unittest cases, backend import, TypeScript, ESLint and standard production build pass |
-| Browser | Production frontend checked on desktop and 390px mobile: loading, collapse, single publisher, error/retry, fixture AI claims/citations and existing Jamia coverage; final pages had no console warnings/errors |
-| Build resolution | Fresh `.next` cache in a port-capable environment; subsequent incremental builds pass. No build config changes |
-| Data | Browser QA used a temporary SQLite copy and labelled fixtures, with scheduler disabled; user database preserved |
-| Remaining | STOP before real-key AI/translation validation until owner provides a key; broader application walkthrough and roadmap remain |
-| Deadline | Code freeze 8:00 AM IST, 25 October 2026; final submission SHA still pending |
+- Owner supplied key locally; $1 persistent allowance guard `42a7b54` and JSON compatibility fix `0d88ce0` pushed.
+- Live sample: classification, embeddings, AI story summaries/questions/Missing Piece, Perspective Lens, two-level explorations/timeline, custom-question rejection, Malayalam rendering and challenge/Passport persistence verified.
+- 16 backend tests/import, TypeScript, ESLint and production build pass; browser pages have no console errors.
+- Tests used copied news database, no scheduler and real API calls. Shared ledger reserved $0.776700 over 15 requests; $0.223300 remains. Not actual billed spend.
+- Backend restarted with `--lifespan off` to activate the guard without automatic ingestion; normal startup re-enables scheduling.
+- Remaining: Malayalam human quality review, broader stories/mobile live-AI sampling, scheduler/full ingestion validation and submission checklist. Earlier no-key-only status below is historical.
 
 **Commit history (newest first):**
 
@@ -583,14 +576,14 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## J. Bugs, limitations and technical debt
 
-Perspective Lens limitations: real-key generation quality remains pending. Browser QA and production build pass; fresh generated cache and a port-capable environment resolved the prior build failure. At most eight distinct publisher hostnames; syndication/shared ownership are not detected. Comparison uses stored excerpts, and generated text is English only.
+Perspective Lens limitations: real-key sample verified on stored Jamia coverage; broader editorial quality remains pending. Browser QA and production build pass; fresh generated cache and a port-capable environment resolved the prior build failure. At most eight distinct publisher hostnames; syndication/shared ownership are not detected. Comparison uses stored excerpts, and generated text is English only.
 
 Ordered by impact on the demo and the product. *Hypothesis* marks a suspected cause that hasn't been confirmed.
 
 | Sev. | Issue | Where | Notes / workaround |
 | --- | --- | --- | --- |
 | High | **Resolved: JSON-mode request rejection.** Input now explicitly requests JSON; configured models succeeded in live sample tests. | `llm.py`, all prompts | Key supplied locally; generated output was verified in browser. Failures still fall back to extractive mode. |
-| High | **Limited automated coverage** | whole repo | Seven Perspective Lens tests exist; broader API regression coverage and CI remain pending |
+| High | **Limited automated coverage** | whole repo | Sixteen tests exist; broader API regression coverage and CI remain pending |
 | Med | TF-IDF clustering sometimes **splits one event into two stories** (e.g. two Jamia protest stories, from Mint and from Indian Express + Scroll) | `briefing._cluster` (threshold 0.32) | Embeddings (0.8) with a key should fix it (hypothesis); or tune the threshold |
 | Med | Keyword classification is approximate; Malayalam articles only get the `kerala` source hint, so they rank low | `ingest.keyword_classify` | LLM classification with a key |
 | Med | Generic Missing Piece and question templates without a key | `analysis._extractive` | Expected; AI mode tailors them |
@@ -617,12 +610,15 @@ No invented deadlines. The only external deadline is the 8:00 AM IST code freeze
 
 ### Immediate (hackathon)
 
+25 Oct update: live AI sample acceptance checks now pass, including unsupported-claim removal and translation rendering. Human Malayalam quality review, broader sampling and submission remain pending. The detailed rows retain the original acceptance criteria.
+
+
 | Task | Outcome | Depends on | Components | Acceptance criteria |
 | --- | --- | --- | --- | --- |
 | **Perspective Lens live AI validation** (backend/UI/build verified) | A "Perspectives" section on the story page showing how each outlet in the cluster frames the event. With a key: claims grouped as established, disputed or opinion, with supporting outlets and no false balance. Without a key: each outlet's headline and lead sentence side by side, labelled. | Clusters in `briefing.py` | new backend function and endpoint (or a field in the analysis), `story-view.tsx` | Backend fixtures and desktop/mobile browser checks pass; remaining: live-key quality and support verification |
 | Push feature checkpoint | Documentation checkpoint `9545897` and earlier event docs pushed; Perspective Lens checkpoint authorized | Owner approval received | git | Confirm clean tree and remote SHA after push |
 | Clustering and classification improvements without a key | Fewer duplicate stories; better topic tags | — | `briefing.py`, `taxonomy.py`, `ingest.py` | The Jamia-style duplicate merges; no regressions in the smoke test |
-| Curiosity Challenges | No-key implementation and browser QA complete | `47bedbd` plus QA checkpoint | Challenge/rabbit-hole/Passport UI | Prediction, skip, cancel, retry, ending and saved prediction verified; live AI deferred |
+| Curiosity Challenges | No-key implementation and browser QA complete | `47bedbd` plus QA checkpoint | Challenge/rabbit-hole/Passport UI | Prediction, skip, cancel, retry, ending and saved prediction verified; live AI sample passed |
 | Verify AI mode | Run with the owner's key; fix any problems with the Responses API, JSON output or prompts; owner checks Malayalam quality | Owner's key | `llm.py`, prompts | Analysis and explore return `mode: "ai"`; verification drops at least one unsupported claim in a test; translation works |
 | Manual UI walkthrough | Onboarding, briefing, story, rabbit hole, ending and passport walked through on a phone | — | frontend | No console errors; ending screens reached |
 | Submission | `SUBMISSION.md` finished; final SHA recorded; demo script | — | docs | Checklist complete before 8:00 AM |
@@ -700,7 +696,7 @@ No invented deadlines. The only external deadline is the 8:00 AM IST code freeze
 
 **Outstanding questions:**
 
-- When will the owner provide the OpenAI key?
+- Key supplied locally; do not expose it. Malayalam editorial review remains pending.
 - What is the exact venue name?
 - Should the AI evaluators be pointed to anything specific? (The owner noted that the first round of judging is done by AI, which is why the CHANGELOG timeline is explicit.)
 
@@ -719,7 +715,8 @@ This document is a **map, not the territory**. Always verify against the code.
 7. **Review the known bugs** in [J](#j-bugs-limitations-and-technical-debt) before debugging.
 8. **Preserve the non-negotiables:** the feed stays finite, rabbit holes stay depth-limited, claims stay cited, the app works without a key, no secrets are committed.
 9. **Ask the owner** when requirements conflict or a decision is essential (for example product direction, pushing, or destructive git operations).
-10. **Continue from the verified state.** Run the checks in [G](#g-setup-execution-testing-and-deployment) before and after your change. When you finish, update this file (feature inventory, architecture, bugs, roadmap, maintenance log), plus `CHANGELOG.md`, `README.md` and `AI_USAGE.md` as applicable.
+10. Preserve `backend/data/ai_budget.sqlite3`; do not reset the allowance or perform extra live requests without checking remaining reservations.
+11. **Continue from the verified state.** Run the checks in [G](#g-setup-execution-testing-and-deployment) before and after your change. When you finish, update this file (feature inventory, architecture, bugs, roadmap, maintenance log), plus `CHANGELOG.md`, `README.md` and `AI_USAGE.md` as applicable.
 
 If this document conflicts with the repository, **investigate and fix the documentation, or flag the discrepancy**. Do not silently assume either one is correct.
 
@@ -746,3 +743,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T00:08:44+05:30 | `feat: add persistent one-dollar AI budget guard`, based on `64884e3` | C, D, I; README, changelog, AI usage | Four guard tests and backend import pass; live testing pending |
 
 | 2026-10-25T00:15:26+05:30 | `fix: repair JSON requests and refresh extractive analyses`, based on `42a7b54` | 0, I, J; README | Live classification, embeddings and story browser checks; 15 backend tests/import pass |
+
+| 2026-10-25T00:17:27+05:30 | `fix: enforce AI verification and validate translations`, based on `0d88ce0` | C, D, I, J, K, M; README, submission, changelog, AI usage | 16 tests/import, tsc/ESLint/build; live AI browser sample; $0.776700 reserved |
