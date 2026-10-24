@@ -145,3 +145,7 @@ Live signup exposed readonly-database errors: host-user online backups created W
 ## 2026-10-25T03:52:52+05:30 — Show non-JSON API failures
 
 The live signup 500 response had an empty HTTP status text and a non-JSON body, leaving the form without an error. API helper now supplies nonempty server/request fallback messages while preserving useful API validation errors. Verified mocked empty-status 500/403, JSON validation and empty-detail responses; frontend TypeScript and zero-warning ESLint pass.
+
+## 2026-10-25T03:55:47+05:30 — Make source exclusions match checkbox state
+
+Live onboarding showed every source checked under Exclude sources even though none was excluded. Changed the checkbox to checked=excluded and added explicit helper text. Stored exclusions and filtering are unchanged. TypeScript and zero-warning ESLint pass; live verification follows deployment.

@@ -131,6 +131,7 @@ export function Exclusions({ meta, profile, onChange, sources }: Props & { sourc
       {sources && (
         <div>
           <Eyebrow>Exclude sources</Eyebrow>
+          <p className="mt-2 text-xs text-muted">Check a source to leave it out of future briefings.</p>
           <div className="mt-3 divide-y divide-line rounded-2xl border border-line bg-card">
             {sources.sources
               .filter((s) => langs.has(s.lang))
@@ -141,7 +142,7 @@ export function Exclusions({ meta, profile, onChange, sources }: Props & { sourc
                     <span className={off ? "text-muted line-through" : ""}>
                       {s.name} <TierBadge tier={s.tier} label={sources.tiers[s.tier]?.label} />
                     </span>
-                    <input type="checkbox" className="h-4 w-4 accent-[#1f5c50]" checked={!off} onChange={() => toggle("excluded_sources", s.id)} />
+                    <input type="checkbox" className="h-4 w-4 accent-[#1f5c50]" checked={off} onChange={() => toggle("excluded_sources", s.id)} />
                   </label>
                 );
               })}
