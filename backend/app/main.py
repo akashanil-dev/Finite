@@ -12,7 +12,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from . import analysis, briefing, db, ingest, perspectives, rabbithole, translate
+from . import analysis, briefing, budget, db, ingest, perspectives, rabbithole, translate
 from .config import APP_NAME, FAST_MODEL, INGEST_INTERVAL_MIN, MAX_DEPTH, MOCK_MODE, PREPARE_BEFORE_MIN, SMART_MODEL
 from .sources import public_sources
 from .taxonomy import SUBFIELDS, public_taxonomy
@@ -87,6 +87,11 @@ def meta():
                         {"id": "evening", "label": "Evening", "range": "5–7 PM", "time": "17:30"}, {"id": "night", "label": "Night", "range": "9–11 PM", "time": "21:30"}],
             "depths": [{"id": "quick", "label": "Quick", "desc": "30-second summaries"}, {"id": "standard", "label": "Standard", "desc": "2-minute explanations"},
                        {"id": "deep", "label": "Deep", "desc": "5-minute analysis"}]}
+
+
+@app.get("/api/ai-budget")
+def ai_budget():
+    return budget.status()
 
 
 @app.get("/api/sources")

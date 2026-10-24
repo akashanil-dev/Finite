@@ -4,6 +4,7 @@ import hashlib
 import json
 import logging
 
+from . import budget
 from .config import EMBED_MODEL, FAST_MODEL, LLM_CACHE_DIR, MOCK_MODE, OPENAI_API_KEY
 
 log = logging.getLogger("finite.llm")
@@ -14,7 +15,7 @@ def _get_client():
     global _client
     if _client is None:
         from openai import OpenAI
-        _client = OpenAI(api_key=OPENAI_API_KEY)
+        _client = OpenAI(api_key=OPENAI_API_KEY, max_retries=0, timeout=60.0)
     return _client
 
 
@@ -31,16 +32,19 @@ def chat_json(system: str, user: str, model: str = FAST_MODEL, max_output_tokens
     if path.exists():
         return json.loads(path.read_text())
     try:
+        instructions = system + "\n\nRespond with a single valid JSON object only."
+        budget.reserve(model, [instructions, user], max_output_tokens)
         resp = _get_client().responses.create(
             model=model,
-            instructions=system + "\n\nRespond with a single valid JSON object only.",
+            instructions=instructions,
+            service_tier="default",
             input=user,
             text={"format": {"type": "json_object"}},
             max_output_tokens=max_output_tokens,
         )
         data = json.loads(resp.output_text)
     except Exception as e:  # network, quota, malformed JSON: degrade gracefully
-        log.warning("LLM call failed (%s): %s", model, e)
+        log.warning("LLM call unavailable (%s): %s", model, type(e).__name__)
         return None
     path.write_text(json.dumps(data, ensure_ascii=False))
     return data
@@ -55,11 +59,13 @@ def embed(texts: list[str]):
         return json.loads(path.read_text())
     try:
         out = []
-        for i in range(0, len(texts), 256):
-            resp = _get_client().embeddings.create(model=EMBED_MODEL, input=[t[:2000] for t in texts[i:i + 256]])
+        for i in range(0, len(texts), 16):
+            batch = [t[:2000] for t in texts[i:i + 16]]
+            budget.reserve(EMBED_MODEL, batch)
+            resp = _get_client().embeddings.create(model=EMBED_MODEL, input=batch)
             out.extend(d.embedding for d in resp.data)
     except Exception as e:
-        log.warning("Embedding call failed: %s", e)
+        log.warning("Embedding call unavailable: %s", type(e).__name__)
         return None
     path.write_text(json.dumps(out))
     return out

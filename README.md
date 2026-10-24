@@ -93,3 +93,9 @@ If a restricted agent run fails with a Turbopack CSS-worker `binding to a port: 
 ## Data and attribution
 
 Publisher RSS feeds are listed in `backend/app/sources.py`. Finite shows short summaries with attribution and always links to the original article. Background passages come from the [Wikipedia API](https://www.mediawiki.org/wiki/API:Main_page) (CC BY-SA), and each citation links to the article used. Fonts are Inter, Newsreader and Noto Sans Malayalam (Google Fonts).
+
+### Local AI testing allowance
+
+Finite reserves a conservative cost before every uncached OpenAI request, up to **$1 total** or 100 requests for this installation. The ledger lives in gitignored `backend/data/ai_budget.sqlite3`; it persists across restarts and does not reset monthly. Do not delete it to retry. `GET /api/ai-budget` reports reserved allowance, not actual billed usage. Cache hits cost no allowance; failures retain their reservation. When a request cannot fit, generation falls back to extractive mode and translation is unavailable.
+
+Only the three default models have reviewed rates; unknown model overrides are blocked. Rates deliberately exceed standard published prices, input is conservatively counted by UTF-8 bytes plus framing, outputs are capped at 12,000 tokens, and SDK retries are disabled. Review rates against [OpenAI pricing](https://developers.openai.com/api/docs/pricing) before changing models. This guards this installation only: other apps, other checkouts, existing processes running older code, provider price changes and deleted ledgers are outside its scope. Restart the backend to load it.

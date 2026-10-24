@@ -227,6 +227,8 @@ Status meanings:
 
 ---
 
+AI budget guard: persistent $1 conservative reservation allowance in `backend/data/ai_budget.sqlite3`; atomic across local workers, no refunds/reset, 100 requests maximum, reviewed models only. Four guard tests and backend import pass; live testing follows. `GET /api/ai-budget` exposes reservations, not billing.
+
 ## D. System architecture
 
 ### D1. High level
@@ -543,6 +545,9 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## I. Current development state
 
+2026-10-25T00:08:44+05:30 — Owner supplied a local key and authorized $1 guarded live AI testing. Guard implemented and unit-tested; live/browser validation remains pending. Checkpoint `feat: add persistent one-dollar AI budget guard` (based on `64884e3`).
+
+
 *Current verification: 2026-10-24T23:32:53+05:30, based on pushed `47bedbd` plus Curiosity Challenges QA fixes (`fix: handle challenge journey retries and focus`; SHA assigned at commit). No key used; stop before live AI validation.*
 
 | Item | Current state |
@@ -734,3 +739,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-24T23:28:09+05:30 | Curiosity Challenges implementation checkpoint `feat: add curiosity challenges`, based on `a1e06b5` | C, D, H, I, J, K and user docs | Nine backend tests/import pass; core frontend checks pass; browser QA next; no key used |
 
 | 2026-10-24T23:32:53+05:30 | Curiosity Challenges browser QA checkpoint `fix: handle challenge journey retries and focus`, based on `47bedbd` | C, D, E, F, I, K, README, changelog, AI usage | Desktop/mobile no-key browser flows verified; nine tests/import and final tsc/ESLint/build pass; STOP before live AI validation |
+
+| 2026-10-25T00:08:44+05:30 | `feat: add persistent one-dollar AI budget guard`, based on `64884e3` | C, D, I; README, changelog, AI usage | Four guard tests and backend import pass; live testing pending |
