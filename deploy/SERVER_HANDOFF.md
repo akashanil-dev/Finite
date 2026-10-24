@@ -1,0 +1,10 @@
+# Server-side Finite deployment handoff
+
+The owner wants Finite at finite.akashanil.dev on the same Oracle Ampere machine as Tuxos. Read AGENTS.md, RULES.md, PROJECT_CONTEXT.md and deploy/README.md first. The code and deployment files are prepared; no Oracle deployment has been claimed.
+
+1. Inspect the running services, available resources, existing Caddy Compose/network/config and existing Tuxos site. Confirm live paths instead of relying on the laptop snapshot.
+2. Preserve every existing site, Caddy mount/network and unrelated container. Do not replace the full Caddyfile or run `docker compose down` on the shared stack.
+3. Set up the finite-deploy account, `/opt/finite`, data ownership (container UID 10001), `/etc/finite/backend.env`, external finite-edge network and dedicated SSH key as described. Secrets stay on the server/GitHub, never in reports.
+4. Start with no OpenAI key and scheduler disabled. The laptop has a nearly exhausted persistent $1 ledger; preserve it if moving the key. Do not reset the ledger. Ask the owner whether to transfer legacy data before any server registrations.
+5. Confirm GitHub ARM64 builds/smoke tests pass; configure production secrets and enable deployment only after the host/network/config is ready. Deploy the exact approved main commit. Check container health, HTTPS, account registration/sign-in/sign-out, persistence after restart and isolation between test users. Verify Tuxos and other sites still respond.
+6. Report the deployed SHA, image tags, health/HTTPS results, backup location, what changed on the server, and unresolved items. Do not claim success based only on files existing. Update shared project documentation with verified deployment facts. Do not edit application code concurrently with the laptop agent; use a separate branch if a fix is needed.

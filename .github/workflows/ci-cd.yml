@@ -1,0 +1,107 @@
+name: Finite CI/CD
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ''
+      FINITE_SCHEDULER_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.12.23'
+      - run: uv sync --frozen
+        working-directory: backend
+      - run: uv run python -m unittest discover -s tests -v
+        working-directory: backend
+      - run: uv run python -c 'import app.main'
+        working-directory: backend
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+        working-directory: frontend
+      - run: npx next typegen && npx tsc --noEmit && npx eslint src --max-warnings=0 && npm run build
+        working-directory: frontend
+      - run: bash -n deploy/deploy.sh
+  images:
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Image name
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/finite-${{ matrix.service }}:${GITHUB_SHA}" >> "$GITHUB_ENV"
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service }}
+          platforms: linux/arm64
+          load: true
+          tags: ${{ env.IMAGE }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+      - name: Smoke-test image without AI
+        run: |
+          docker run -d --name smoke -e OPENAI_API_KEY= -e FINITE_SCHEDULER_ENABLED=false "$IMAGE"
+          trap 'docker logs smoke; docker rm -f smoke' EXIT
+          for attempt in $(seq 1 30); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' smoke)
+            if [ "$status" = healthy ]; then exit 0; fi
+            if [ "$status" = unhealthy ]; then break; fi
+            sleep 5
+          done
+          exit 1
+      - run: docker push "$IMAGE"
+  deploy:
+    needs: images
+    if: github.ref == 'refs/heads/main' && vars.FINITE_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://finite.akashanil.dev
+    concurrency:
+      group: finite-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/finite_key
+          chmod 600 ~/.ssh/finite_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Install release
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          opts=(-i ~/.ssh/finite_key -o StrictHostKeyChecking=yes -o BatchMode=yes)
+          scp "${opts[@]}" deploy/compose.yml deploy/deploy.sh "finite-deploy@$HOST:/opt/finite/"
+          ssh "${opts[@]}" "finite-deploy@$HOST" bash /opt/finite/deploy.sh "$GITHUB_SHA"
+      - name: Verify public site
+        run: |
+          curl --retry 5 --retry-delay 5 --retry-all-errors --fail https://finite.akashanil.dev/api/health
+          curl --retry 5 --retry-delay 5 --retry-all-errors --fail -o /dev/null https://finite.akashanil.dev/login

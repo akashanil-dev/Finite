@@ -1,0 +1,40 @@
+name: finite
+services:
+  backend:
+    image: ${FINITE_IMAGE_PREFIX:-ghcr.io/akashanil-dev/finite}-backend:${FINITE_IMAGE_TAG:?Set the release commit SHA}
+    restart: unless-stopped
+    env_file: /etc/finite/backend.env
+    volumes:
+      - /opt/finite/data:/data
+    networks:
+      edge:
+        aliases: [finite-backend]
+    mem_limit: 3g
+    cpus: 1.5
+    pids_limit: 256
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  frontend:
+    image: ${FINITE_IMAGE_PREFIX:-ghcr.io/akashanil-dev/finite}-frontend:${FINITE_IMAGE_TAG:?Set the release commit SHA}
+    restart: unless-stopped
+    networks:
+      edge:
+        aliases: [finite-frontend]
+    depends_on:
+      backend:
+        condition: service_healthy
+    mem_limit: 1g
+    cpus: 1
+    pids_limit: 128
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+networks:
+  edge:
+    external: true
+    name: finite-edge

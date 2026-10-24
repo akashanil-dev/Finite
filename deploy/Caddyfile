@@ -1,0 +1,19 @@
+# Add this block to the EXISTING Caddy config, preserving all other sites.
+# Attach that Caddy service to the external finite-edge Docker network first.
+finite.akashanil.dev {
+    encode zstd gzip
+    request_body {
+        max_size 64KB
+    }
+    handle /api/* {
+        reverse_proxy finite-backend:8000
+    }
+    handle {
+        reverse_proxy finite-frontend:3000
+    }
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        X-Frame-Options DENY
+    }
+}

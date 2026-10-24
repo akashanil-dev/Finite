@@ -190,7 +190,7 @@ Status meanings:
 - **BLOCKED:** waiting on a dependency or decision.
 - **DEPRECATED:** no longer part of the product.
 
-Verification includes extractive checks on 24 Oct and a real-key AI sample/browser walkthrough on 25 Oct. Sixteen backend tests now exist. Live checks are sample coverage, not a full editorial audit.
+Verification includes extractive checks on 24 Oct and a real-key AI sample/browser walkthrough on 25 Oct. 34 backend tests now exist. Live checks are sample coverage, not a full editorial audit.
 
 | Feature | Description | Status | Relevant files | Remaining work |
 | --- | --- | --- | --- | --- |
@@ -231,6 +231,8 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 AI budget guard: persistent $1 conservative reservation allowance in `backend/data/ai_budget.sqlite3`; atomic across local workers, no refunds/reset, 100 requests maximum, reviewed models only. Four guard tests and backend import pass; live testing follows. `GET /api/ai-budget` exposes reservations, not billing.
 
 ## D. System architecture
+
+Deployment target: two ARM64 containers (Node standalone frontend and single-worker FastAPI backend), shared existing Caddy TLS proxy via external finite-edge network. No app ports published. `/opt/finite/data` persists all SQLite/cache/budget state. GitHub builds immutable SHA tags; deployment requires repository enable variable and production environment. See `deploy/README.md`; Oracle execution is not yet verified.
 
 Accounts add `users`, `sessions`, `auth_attempts` and nullable `user_id` ownership columns on briefings/journeys. Profiles use `kv.profile:<id>`. Legacy rows remain unassigned. Story/source caches are shared. API auth is a global dependency; only health and registration/login bypass it. Local CLI commands claim legacy data or grant/revoke admin. Scheduler is configurable and builds per-user briefings; it still requires a single backend worker.
 
@@ -329,18 +331,23 @@ All OpenAI requests pass through the persistent budget reservation guard. SDK re
 
 ### D4. Database (SQLite, `backend/app/db.py`)
 
-There are no migrations. The `SCHEMA` uses `CREATE TABLE IF NOT EXISTS`, and changing it requires a manual migration or deleting `backend/data/finite.db`.
+Startup uses idempotent additive migrations for accounts and ownership columns, preserving legacy data. Back up before schema changes; do not delete the database or budget ledger. A general migration framework remains future work.
 
 | Table | Key columns | Notes |
 | --- | --- | --- |
 | `articles` | `id` (hash of URL), `source_id`, `lang`, `title`, `url`, `description`, `content`, `published_at`, `updated_at`, `subfields` (JSON), `story_type`, `classified` (0 = no, 1 = keyword, 2 = LLM) | Upserted on each ingest |
 | `stories` | `id` (`s` + hash of sorted article ids), `article_ids` (JSON), `title`, `lang`, `subfields`, `story_type`, `analysis` (JSON), `translations` (JSON) | A cluster of articles |
-| `briefings` | `id`, `created_at`, `window_start/end`, `config` (snapshot of the profile), `story_ids`, `read_ids`, `completed_at` | Frozen once built |
+| `briefings` | `id`, `user_id`, `created_at`, `window_start/end`, `config` (snapshot of the profile), `story_ids`, `read_ids`, `completed_at` | Frozen once built |
 | `explorations` | `key`, `story_id`, `payload` (JSON) | Shared cache of rabbit-hole steps |
-| `journeys` | `story_id`, `story_title`, `path`, `concepts` | Knowledge Passport entries |
+| `journeys` | `user_id`, `story_id`, `story_title`, `path`, `concepts` | Knowledge Passport entries |
+| `users` | `id`, `username`, `password_hash`, `is_admin`, `created_at` | Registered accounts; admin is local-only explicit grant |
+| `sessions` | `token_hash`, `user_id`, `expires_at` | Revocable cookie sessions |
+| `auth_attempts` | `key`, `started_at`, `attempts` | Persistent login rate buckets |
 | `kv` | `key`, `value` | Holds `profile:<user_id>`, preserved legacy `profile`, and shared `last_ingest` |
 
-### D5. API (all JSON; base URL `http://<host>:8000`)
+### D5. API (JSON; local port 8000, production same-origin `/api`)
+
+Auth: POST `/api/auth/register`, `/api/auth/login`, `/api/auth/logout`; GET `/api/auth/me`. GET `/api/health` is public. Other endpoints require a session; ingestion/budget administration requires local admin grant.
 
 | Method and path | Purpose |
 | --- | --- |
@@ -531,6 +538,8 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+D26 — Reuse the existing Oracle host/Caddy entry point from Tuxos, but package Finite as separate ARM64 containers. Keep API same-origin, data outside images, scheduler off initially, and deployment gated until server setup. Pin uv to the locally used version for lockfile compatibility.
+
 D25 — Username/password accounts with simple 8-character minimum, no reset/email flow. Opaque revocable cookie sessions; use scrypt from the standard library. Do not give legacy data or admin rights to the first registrant. Preserve unowned history for explicit owner migration.
 
 D24 — Use a finite responsive tree map with native buttons and a list alternative, rather than a free-panning canvas. Nodes reveal evidence without fetching or recursive expansion.
@@ -565,6 +574,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 ---
 
 ## I. Current development state
+
+2026-10-25T01:39:40+05:30 — Auth checkpoint `be6ab58` committed. Oracle container/CI/CD files and server handoff prepared for finite.akashanil.dev. 34 tests and frontend checks pass; local Docker build blocked by daemon permissions; CI/container/Oracle verification pending. Deployment remains gated.
 
 2026-10-25T01:37:34+05:30 — Accounts implemented and locally verified in API tests and desktop browser. No AI calls. Deployment scaffolding is being prepared separately; Oracle remains unverified.
 
@@ -624,7 +635,7 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 | Sev. | Issue | Where | Notes / workaround |
 | --- | --- | --- | --- |
 | High | **Resolved: JSON-mode request rejection.** Input now explicitly requests JSON; configured models succeeded in live sample tests. | `llm.py`, all prompts | Key supplied locally; generated output was verified in browser. Failures still fall back to extractive mode. |
-| High | **Limited automated coverage** | whole repo | Sixteen tests exist; broader API regression coverage and CI remain pending |
+| High | **Limited automated coverage** | whole repo | 34 tests exist; broader regression coverage remains pending; CI workflow prepared |
 | Med | TF-IDF clustering sometimes **splits one event into two stories** (e.g. two Jamia protest stories, from Mint and from Indian Express + Scroll) | `briefing._cluster` (threshold 0.32) | Embeddings (0.8) with a key should fix it (hypothesis); or tune the threshold |
 | Med | Keyword classification is approximate; Malayalam articles only get the `kerala` source hint, so they rank low | `ingest.keyword_classify` | LLM classification with a key |
 | Med | Generic Missing Piece and question templates without a key | `analysis._extractive` | Expected; AI mode tailors them |
@@ -672,8 +683,8 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 - Accounts/auth implemented and locally verified; production HTTPS and broader security/UX review remain.
 - Postgres + pgvector, and migrations.
 - Rate limiting for ask-your-own, plus matching similar questions to a cached answer.
-- Pytest API tests and CI.
-- Hosted deployment.
+- 34 unittest regressions and GitHub CI workflow prepared; verify first hosted CI/container run.
+- Oracle ARM64 hosted deployment prepared in `deploy/`; server configuration, secrets, CI image checks and HTTPS go-live remain pending.
 
 ### Longer term
 
@@ -748,6 +759,8 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ## M. Instructions for Incoming AI Agents
 
+For Oracle work, read `deploy/README.md` and `deploy/SERVER_HANDOFF.md`. Verify live Caddy paths/networks; preserve Tuxos and other services. No server deployment has been verified. Do not enable auto-deploy before configuration and secrets are ready; keep the API key absent until the persistent budget ledger is migrated.
+
 Accounts now gate data APIs. Create a test account on a DB copy with AI disabled; never automatically claim legacy data. Back up before migrations. Registration grants no admin role; local CLI controls ownership/admin changes. Production cookies must be Secure with exact HTTPS origin.
 
 Knowledge graph v1 is complete inside Connection Explorer; defaults to map with a list alternative. Uses existing stored data and makes no new AI requests. Preserve the nearly exhausted budget ledger.
@@ -809,3 +822,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T01:16:43+05:30 | `fix: connect knowledge graph branches`, based on `63b57a8` | C, I, J, K, M; changelog, AI usage, submission | Desktop browser QA, 25 backend tests, tsc/ESLint/build; no API calls |
 
 | 2026-10-25T01:37:34+05:30 | `feat: add accounts and isolate user data` | C, D, H, I, J, K, M; README, changelog, AI usage | Auth/isolation regression suite and production desktop browser checks; no AI calls |
+
+| 2026-10-25T01:39:40+05:30 | `build: prepare oracle containers and github deployment` | C/D/H/I/K/M reconciliation; deployment guide/handoff, README, submission, changelog, AI usage | 34 tests, import, tsc/ESLint/standalone build, Compose config, shell syntax; CI/Oracle pending |

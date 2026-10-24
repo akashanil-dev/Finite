@@ -126,3 +126,7 @@ Profiles, briefings/read progress and Passport journeys belong to each account; 
 `FINITE_ALLOWED_ORIGINS` must list the exact frontend origin; `FINITE_SECURE_COOKIES=true` is required behind HTTPS in production. Use `FINITE_SCHEDULER_ENABLED=false` when testing to avoid automatic ingestion. `FINITE_DATA_DIR` optionally relocates persistent state. Accounts require no OpenAI key.
 
 Existing local data is preserved, but not given to the first registrant. After creating your own account and backing up the SQLite database, explicitly assign legacy history with `cd backend && uv run python -m app.claim_legacy YOUR_USERNAME`. This never overwrites an already-saved account profile. Administrative ingestion/budget access is granted locally with `uv run python -m app.manage_user YOUR_USERNAME --admin` (or `--revoke-admin`); registration never grants admin privileges.
+
+### Oracle containers and GitHub deployment
+
+Target: `finite.akashanil.dev` on Oracle Ampere. See [server setup and deployment](deploy/README.md) and [server-side Codex handoff](deploy/SERVER_HANDOFF.md). Two ARM64 containers sit behind the existing Caddy; persistent data stays outside images. The workflow checks code, builds and smoke-tests images, then deploys only when `FINITE_DEPLOY_ENABLED=true` and production secrets are configured. Server deployment is pending.
