@@ -28,12 +28,12 @@ class ExplorationDepthTests(unittest.TestCase):
                 self.assertTrue(first['next_questions'])
 
     def test_journey_preserves_optional_prediction(self):
-        from fastapi.testclient import TestClient
+        from auth_helpers import authenticated_client
         from app.main import app
         with tempfile.TemporaryDirectory() as folder, patch.object(db, 'DB_PATH', Path(folder) / 'test.db'):
             db.init()
             with db.tx() as conn:
                 conn.execute("INSERT INTO stories(id,article_ids,title,lang,subfields,story_type,created_at) VALUES(?,?,?,?,?,?,?)", ('s', '[]', 'QA story', 'en', '{}', 'general', 0))
-            response = TestClient(app).post('/api/journeys', json={'story_id': 's', 'path': [{'question': 'Why?'}, {'question': 'Connection?', 'prediction': 'A shared history'}], 'concepts': []})
+            response = authenticated_client(self).post('/api/journeys', json={'story_id': 's', 'path': [{'question': 'Why?'}, {'question': 'Connection?', 'prediction': 'A shared history'}], 'concepts': []})
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response.json()['journeys'][0]['path'][1]['prediction'], 'A shared history')

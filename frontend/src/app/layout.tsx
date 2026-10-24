@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Newsreader, Noto_Sans_Malayalam } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
+import { AuthGate } from "@/components/auth-gate";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const newsreader = Newsreader({ variable: "--font-newsreader", subsets: ["latin"], style: ["normal", "italic"] });
@@ -22,7 +24,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} ${newsreader.variable} ${malayalam.variable} h-full antialiased`}>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full"><Suspense fallback={<p className="p-8 text-center">Opening Finite…</p>}><AuthGate>{children}</AuthGate></Suspense></body>
     </html>
   );
 }

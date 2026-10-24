@@ -48,10 +48,10 @@ class ConnectionTests(unittest.TestCase):
         self.assertEqual(connections.explore('s')['connections'], [])
 
     def test_connections_endpoint_no_spending(self):
-        from fastapi.testclient import TestClient
+        from auth_helpers import authenticated_client
         from app.main import app
         self.add_story(1)
         with patch('app.llm.chat_json', side_effect=AssertionError('No AI')), patch('app.budget.reserve', side_effect=AssertionError('No spending')):
-            client = TestClient(app)
+            client = authenticated_client(self)
             self.assertEqual(client.get('/api/stories/s/connections').status_code, 200)
             self.assertEqual(client.get('/api/stories/missing/connections').status_code, 404)

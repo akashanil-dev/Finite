@@ -35,12 +35,12 @@ def _evidence(articles, concept):
     return None
 
 
-def explore(story_id):
+def explore(story_id, user_id=None):
     rows = db.query('SELECT * FROM stories WHERE id=?', (story_id,))
     if not rows:
         return None
     origin = rows[0]
-    profile = briefing.get_profile()
+    profile = briefing.get_profile(user_id)
     excluded = set(profile['excluded_sources'])
 
     def articles(story):

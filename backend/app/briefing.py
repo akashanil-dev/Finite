@@ -30,18 +30,18 @@ DEFAULT_PROFILE = {
 }
 
 
-def get_profile():
-    return {**DEFAULT_PROFILE, **(db.kv_get("profile") or {})}
+def get_profile(user_id=None):
+    return {**DEFAULT_PROFILE, **(db.kv_get(f"profile:{user_id}" if user_id is not None else "profile") or {})}
 
 
-def save_profile(p):
-    p = {**get_profile(), **p}
+def save_profile(p, user_id=None):
+    p = {**get_profile(user_id), **p}
     p["interests"] = {k: int(v) for k, v in p["interests"].items() if k in SUBFIELDS and int(v) in PRIORITY_WEIGHT}
     p["lookback_hours"] = max(6, min(72, int(p["lookback_hours"])))
     p["stories_per_briefing"] = max(3, min(25, int(p["stories_per_briefing"])))
     if "en" not in p["languages"]:
         p["languages"] = ["en", *p["languages"]]
-    db.kv_set("profile", p)
+    db.kv_set(f"profile:{user_id}" if user_id is not None else "profile", p)
     return p
 
 
@@ -81,15 +81,15 @@ def _cluster(arts):
     return clusters
 
 
-def build_briefing(profile=None):
-    profile = profile or get_profile()
+def build_briefing(profile=None, user_id=None):
+    profile = profile or get_profile(user_id)
     now = time.time()
     start = now - profile["lookback_hours"] * 3600
     excluded_src = set(profile["excluded_sources"])
     langs = set(profile["languages"])
 
     prev_ids = set()
-    for b in db.query("SELECT story_ids FROM briefings"):
+    for b in db.query("SELECT story_ids FROM briefings WHERE user_id IS ?", (user_id,)):
         for sid in json.loads(b["story_ids"]):
             for s in db.query("SELECT article_ids FROM stories WHERE id=?", (sid,)):
                 prev_ids.update(json.loads(s["article_ids"]))
@@ -151,14 +151,14 @@ def build_briefing(profile=None):
                          VALUES(?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING""",
                       (sid, json.dumps([a["id"] for a in cl]), rep["title"], rep["lang"], json.dumps(dict(subs.most_common(3))), st, now))
             story_ids.append(sid)
-        cur = c.execute("INSERT INTO briefings(created_at, window_start, window_end, config, story_ids) VALUES(?,?,?,?,?)",
-                        (now, start, now, json.dumps(profile), json.dumps(story_ids)))
+        cur = c.execute("INSERT INTO briefings(created_at, window_start, window_end, config, story_ids, user_id) VALUES(?,?,?,?,?,?)",
+                        (now, start, now, json.dumps(profile), json.dumps(story_ids), user_id))
         bid = cur.lastrowid
     return bid
 
 
-def briefing_payload(bid):
-    rows = db.query("SELECT * FROM briefings WHERE id=?", (bid,))
+def briefing_payload(bid, user_id=None):
+    rows = db.query("SELECT * FROM briefings WHERE id=? AND user_id IS ?", (bid, user_id))
     if not rows:
         return None
     b = rows[0]
@@ -190,14 +190,16 @@ def story_card(s):
     }
 
 
-def mark_read(bid, story_id):
-    rows = db.query("SELECT story_ids, read_ids FROM briefings WHERE id=?", (bid,))
+def mark_read(bid, story_id, user_id=None):
+    rows = db.query("SELECT story_ids, read_ids FROM briefings WHERE id=? AND user_id IS ?", (bid, user_id))
     if not rows:
         return None
     read = set(json.loads(rows[0]["read_ids"]))
+    if story_id not in json.loads(rows[0]["story_ids"]):
+        return None
     read.add(story_id)
     all_ids = set(json.loads(rows[0]["story_ids"]))
     completed = time.time() if all_ids <= read else None
     with db.tx() as c:
         c.execute("UPDATE briefings SET read_ids=?, completed_at=COALESCE(completed_at, ?) WHERE id=?", (json.dumps(sorted(read)), completed, bid))
-    return briefing_payload(bid)
+    return briefing_payload(bid, user_id)

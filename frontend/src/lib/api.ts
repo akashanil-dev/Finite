@@ -107,25 +107,33 @@ export type SourcesIndex = {
 };
 
 function base() {
+  if (process.env.NEXT_PUBLIC_API_URL === "same-origin") return "";
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
   if (typeof window !== "undefined") return `${window.location.protocol}//${window.location.hostname}:8000`;
   return "http://localhost:8000";
+}
+
+export class ApiError extends Error {
+  constructor(message: string, public status: number) { super(message); }
 }
 
 export async function api<T>(path: string, init?: RequestInit & { json?: unknown }): Promise<T> {
   const { json, ...rest } = init ?? {};
   const res = await fetch(base() + path, {
     ...rest,
-    headers: { "Content-Type": "application/json", ...(rest.headers ?? {}) },
+    credentials: "include",
+    headers: { "Content-Type": "application/json", "X-Finite-Request": "1", ...(rest.headers ?? {}) },
     body: json !== undefined ? JSON.stringify(json) : rest.body,
     cache: "no-store",
   });
   if (!res.ok) {
     let detail = res.statusText;
     try {
-      detail = (await res.json()).detail ?? detail;
+      const value = (await res.json()).detail;
+      detail = typeof value === "string" ? value : "Please check the entered values.";
     } catch {}
-    throw new Error(detail);
+    if (res.status === 401 && !path.startsWith("/api/auth/") && typeof window !== "undefined") window.location.replace("/login");
+    throw new ApiError(detail, res.status);
   }
   return res.json();
 }

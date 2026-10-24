@@ -56,10 +56,10 @@ class TimeMachineTests(unittest.TestCase):
         self.assertIsNone(tm.timeline('absent'))
 
     def test_endpoint_never_calls_ai(self):
-        from fastapi.testclient import TestClient
+        from auth_helpers import authenticated_client
         from app.main import app
         self.seed(['The committee was founded in 2001 to oversee elections.'])
         with patch('app.llm.chat_json', side_effect=AssertionError('No AI permitted')), patch('app.budget.reserve', side_effect=AssertionError('No spending permitted')):
-            client = TestClient(app)
+            client = authenticated_client(self)
             self.assertEqual(client.get('/api/stories/s/timeline').status_code, 200)
             self.assertEqual(client.get('/api/stories/absent/timeline').status_code, 404)

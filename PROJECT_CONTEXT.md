@@ -165,7 +165,7 @@ Legend: **[M]** mandatory, approved by the owner · **[O]** optional enhancement
   - Ingesting all feeds takes about 4s.
   - Story analysis and rabbit holes take a few seconds in extractive mode; AI-mode latency has not been measured.
 - **Security:**
-  - There is no auth and CORS is `*`, which is acceptable only for local or hackathon use.
+  - Data APIs require cookie authentication; exact credentialed CORS and browser-write origin/header checks replace the former local-only open API.
   - Secrets live only in `backend/.env` (gitignored).
 
 ### B4. Design constraints (do not reverse without the owner's approval)
@@ -223,7 +223,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | Connection Explorer | Three finite source-backed cross-story comparisons | COMPLETE (v1; desktop browser verified) | `connections.py`, `connection-explorer.tsx` | Literal saved-concept matching; no causal inference |
 | Interactive knowledge graph | Selectable source-backed story map with list alternative | COMPLETE (v1; desktop browser verified) | `connection-explorer.tsx` | Literal shared mentions only; maximum three branches |
 | Push notifications | "Briefing ready" alert | PROPOSED | — | — |
-| Accounts and auth | Multiple users | PROPOSED | — | Needed before a public launch |
+| Accounts and auth | Username/password, cookie sessions and per-user profiles/briefings/Passport | COMPLETE (local desktop/API verified) | `auth.py`, `db.py`, `main.py`, login, auth gate | Production HTTPS and broader security/UX review pending; no reset |
 | Native mobile app | Expo app reusing the API | PROPOSED (owner wants it after the hackathon) | — | — |
 
 ---
@@ -231,6 +231,8 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 AI budget guard: persistent $1 conservative reservation allowance in `backend/data/ai_budget.sqlite3`; atomic across local workers, no refunds/reset, 100 requests maximum, reviewed models only. Four guard tests and backend import pass; live testing follows. `GET /api/ai-budget` exposes reservations, not billing.
 
 ## D. System architecture
+
+Accounts add `users`, `sessions`, `auth_attempts` and nullable `user_id` ownership columns on briefings/journeys. Profiles use `kv.profile:<id>`. Legacy rows remain unassigned. Story/source caches are shared. API auth is a global dependency; only health and registration/login bypass it. Local CLI commands claim legacy data or grant/revoke admin. Scheduler is configurable and builds per-user briefings; it still requires a single backend worker.
 
 Knowledge graph: client-only view of the existing connections endpoint. At most three selectable nodes reveal stored citations; no new endpoint, schema or provider calls.
 
@@ -336,7 +338,7 @@ There are no migrations. The `SCHEMA` uses `CREATE TABLE IF NOT EXISTS`, and cha
 | `briefings` | `id`, `created_at`, `window_start/end`, `config` (snapshot of the profile), `story_ids`, `read_ids`, `completed_at` | Frozen once built |
 | `explorations` | `key`, `story_id`, `payload` (JSON) | Shared cache of rabbit-hole steps |
 | `journeys` | `story_id`, `story_title`, `path`, `concepts` | Knowledge Passport entries |
-| `kv` | `key`, `value` | Holds `profile` (single user) and `last_ingest` |
+| `kv` | `key`, `value` | Holds `profile:<user_id>`, preserved legacy `profile`, and shared `last_ingest` |
 
 ### D5. API (all JSON; base URL `http://<host>:8000`)
 
@@ -344,7 +346,7 @@ There are no migrations. The `SCHEMA` uses `CREATE TABLE IF NOT EXISTS`, and cha
 | --- | --- |
 | `GET /api/meta` | App name, `mock_mode`, models, `max_depth`, taxonomy, languages, delivery periods, depths, last ingest |
 | `GET /api/sources` | Credibility index, tiers, methodology |
-| `GET / PUT /api/profile` | Read or save the single user profile (validated in `briefing.save_profile`) |
+| `GET / PUT /api/profile` | Read or save the authenticated user profile (validated by ProfileBody and `briefing.save_profile`) |
 | `POST /api/ingest` | Run ingestion now |
 | `POST /api/briefings?refresh=true` | Ingest if `refresh`, then build and freeze a briefing. Returns 404 if no stories match. |
 | `GET /api/briefings/latest`, `GET /api/briefings/{id}` | Briefing payload with story cards |
@@ -373,7 +375,7 @@ A client-side optional three-choice prediction precedes the existing Level 2 exp
 
 ### D9. Auth, deployment and observability
 
-- **Auth:** none. Single local user; CORS `*`.
+- **Auth:** username/password; salted scrypt, hashed opaque session tokens, HttpOnly/SameSite=Lax cookies (Secure on HTTPS). Data APIs require sessions; explicit ownership filters protect personal records. CORS allows configured origins only; write requests require a custom header and valid Origin when present.
 - **Deployment:** **none configured.** The demo runs locally. There is no Dockerfile, CI or hosting config.
 - **Observability:** stdout logs only.
 
@@ -529,6 +531,8 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+D25 — Username/password accounts with simple 8-character minimum, no reset/email flow. Opaque revocable cookie sessions; use scrypt from the standard library. Do not give legacy data or admin rights to the first registrant. Preserve unowned history for explicit owner migration.
+
 D24 — Use a finite responsive tree map with native buttons and a list alternative, rather than a free-panning canvas. Nodes reveal evidence without fetching or recursive expansion.
 
 D23 — Connection Explorer uses cited shared mentions from stored coverage, with inline comparisons and a three-result ending. This avoids unsupported causal claims, recursive story recommendations and new API spending.
@@ -550,7 +554,7 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 | D13 | Freeze the briefing 30 min before delivery time | A stable reading experience | — | Active |
 | D14 | Mobile-first **PWA** for the hackathon, with a separate API | Fast to demo on phones; the API can be reused by a future Expo app | An Expo app is slower to build tonight | Active |
 | D15 | Next.js client components plus direct browser→API calls (no proxy) | Avoids proxy timeouts on slow LLM calls; simpler with Cache Components | Server components with caching | Active |
-| D16 | SQLite with no migrations and a single user | Hackathon speed | Postgres + pgvector and auth are planned later | Active (technical debt) |
+| D16 | Original single-user SQLite model | Hackathon speed | Superseded by additive user/session/ownership migration; Postgres remains optional future work | Superseded for auth |
 | D17 | India first; Malayalam is the first regional language; Malayalam outlets are crawled only if chosen | Owner's market choice; Kochi audience | — | Active |
 | D19 | Perspective Lens uses existing excerpts and fails closed on verification failure | Avoid extra scraping and unchecked comparison claims | Coverage and AI quality remain limited; hostname deduplication cannot detect syndication | Active |
 | D20 | Ungraded connection hypotheses with skip and source-based reflection | Active learning without invented answers or scores; no extra AI calls | Generic choices rather than generated quizzes | Active |
@@ -561,6 +565,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 ---
 
 ## I. Current development state
+
+2026-10-25T01:37:34+05:30 — Accounts implemented and locally verified in API tests and desktop browser. No AI calls. Deployment scaffolding is being prepared separately; Oracle remains unverified.
 
 2026-10-25T01:16:43+05:30 — Knowledge graph v1 complete. Implementation `63b57a8`; connector fix and QA checkpoint follows. Desktop browser checks and 25 backend tests/frontend checks pass; no additional AI calls.
 
@@ -603,6 +609,8 @@ Current verification: 2026-10-25T00:17:27+05:30; `0d88ce0` plus checkpoint `fix:
 
 ## J. Bugs, limitations and technical debt
 
+Auth v1 has no password recovery, email verification or MFA (reset excluded by owner). Production HTTPS/cookie and mobile validation pending. Login throttling behind an untrusted proxy uses a shared peer-IP bucket; trusted proxy configuration is intentionally not guessed. Legacy data is preserved but must be explicitly assigned by the owner.
+
 Knowledge graph is a finite selectable tree view of literal shared mentions, not a semantic or causal graph. Desktop verified; mobile-specific QA and full assistive-technology audit remain pending.
 
 Connection Explorer requires saved concepts and literal mentions in both stories. It misses synonyms/translations and does not infer causality; source excerpts retain original language.
@@ -621,7 +629,7 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 | Med | Keyword classification is approximate; Malayalam articles only get the `kerala` source hint, so they rank low | `ingest.keyword_classify` | LLM classification with a key |
 | Med | Generic Missing Piece and question templates without a key | `analysis._extractive` | Expected; AI mode tailors them |
 | Med | Odd extractive follow-up questions ("How does Heinlein connect to this?"), because the proper-noun heuristic picks noise | `rabbithole._extractive`, `analysis.proper_nouns` | Filter by frequency or the story's concepts |
-| Med | No auth; CORS `*`; single user stored in `kv.profile` | `main.py`, `briefing.py` | Fine for a local demo only |
+| Resolved | Former single-user/open-API limitation | `auth.py`, `main.py`, `briefing.py` | Session auth and per-user ownership added; production verification pending |
 | Resolved | Exploration cache previously ignored depth | `rabbithole.explore` | v2 cache separates depth and retrieval inputs; request path refreshed on cache hits. Translation remains applied after lookup. |
 | Low | `POST /api/briefings` ingests synchronously (about 4–10s) before building | `main.create_briefing` | The UI shows a "Preparing…" state |
 | Low | A story is marked read when it is **opened**, not when finished | `story-view.tsx` | Product decision not documented |
@@ -661,7 +669,7 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ### Short term (after the hackathon)
 
-- Accounts and auth, with per-user profiles, briefings and passports.
+- Accounts/auth implemented and locally verified; production HTTPS and broader security/UX review remain.
 - Postgres + pgvector, and migrations.
 - Rate limiting for ask-your-own, plus matching similar questions to a cached answer.
 - Pytest API tests and CI.
@@ -740,6 +748,8 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ## M. Instructions for Incoming AI Agents
 
+Accounts now gate data APIs. Create a test account on a DB copy with AI disabled; never automatically claim legacy data. Back up before migrations. Registration grants no admin role; local CLI controls ownership/admin changes. Production cookies must be Secure with exact HTTPS origin.
+
 Knowledge graph v1 is complete inside Connection Explorer; defaults to map with a list alternative. Uses existing stored data and makes no new AI requests. Preserve the nearly exhausted budget ledger.
 
 Connection Explorer and Time Machine v1 are implemented and desktop-browser verified. Preserve the $1 persistent ledger ($0.223300 remaining at this checkpoint); both features use stored evidence without new AI calls. Semantic connections and broader historical retrieval remain extensions.
@@ -797,3 +807,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T01:14:28+05:30 | `feat: add interactive knowledge graph` | C, D, H, I, K; README, changelog, AI usage | tsc, ESLint, production build; browser QA pending |
 
 | 2026-10-25T01:16:43+05:30 | `fix: connect knowledge graph branches`, based on `63b57a8` | C, I, J, K, M; changelog, AI usage, submission | Desktop browser QA, 25 backend tests, tsc/ESLint/build; no API calls |
+
+| 2026-10-25T01:37:34+05:30 | `feat: add accounts and isolate user data` | C, D, H, I, J, K, M; README, changelog, AI usage | Auth/isolation regression suite and production desktop browser checks; no AI calls |

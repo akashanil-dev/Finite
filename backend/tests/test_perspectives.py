@@ -48,9 +48,9 @@ class PerspectiveTests(unittest.TestCase):
 
 class PerspectiveRouteTests(unittest.TestCase):
     def test_route_success_and_missing_story(self):
-        from fastapi.testclient import TestClient
+        from auth_helpers import authenticated_client
         from app.main import app
-        client = TestClient(app)  # No lifespan: no scheduler or live ingestion in tests.
+        client = authenticated_client(self)  # No lifespan: no scheduler or live ingestion in tests.
         payload = {"mode": "extractive", "status": "source_comparison", "outlets": [], "total_outlets": 2, "claims": []}
         with patch('app.main.perspectives.compare', return_value=payload):
             response = client.get('/api/stories/test/perspectives')

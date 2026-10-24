@@ -116,3 +116,13 @@ This feature reads stored text only and makes no AI calls. It recognizes English
 Open **Connection Explorer** on a story to compare up to three other stored stories sharing a saved concept. Expand **Compare source evidence** for quotations and original-source citations on both sides. This is literal shared-mention discovery, not causal inference; synonyms/translations may be missed. It respects language/source/topic exclusions and needs no additional AI calls.
 
 Connection Explorer opens in **Knowledge map** view. Select a story node to reveal quoted evidence and citations from both stories; **List view** retains the original comparison cards. The map has at most three branches and uses no additional AI calls.
+
+### Accounts
+
+Open `/login` to create an account or sign in. Usernames are case-insensitive (3–32 letters, numbers or underscores). Passwords need 8–128 characters, with no character-composition rules. No password reset or email verification is included. **Settings → Sign out** ends the current session.
+
+Profiles, briefings/read progress and Passport journeys belong to each account; article coverage and source-backed AI caches remain shared. Cookies are HttpOnly and expire after 30 days; logout revokes the server-side session. Passwords use salted scrypt ([OWASP guidance](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)); plaintext passwords/tokens are not stored. Login is throttled by username and peer IP. All data APIs require sign-in; only health and login/registration are public. Browser writes require the `X-Finite-Request: 1` header and an allowed origin.
+
+`FINITE_ALLOWED_ORIGINS` must list the exact frontend origin; `FINITE_SECURE_COOKIES=true` is required behind HTTPS in production. Use `FINITE_SCHEDULER_ENABLED=false` when testing to avoid automatic ingestion. `FINITE_DATA_DIR` optionally relocates persistent state. Accounts require no OpenAI key.
+
+Existing local data is preserved, but not given to the first registrant. After creating your own account and backing up the SQLite database, explicitly assign legacy history with `cd backend && uv run python -m app.claim_legacy YOUR_USERNAME`. This never overwrites an already-saved account profile. Administrative ingestion/budget access is granted locally with `uv run python -m app.manage_user YOUR_USERNAME --admin` (or `--revoke-admin`); registration never grants admin privileges.

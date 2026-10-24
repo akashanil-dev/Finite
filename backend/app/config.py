@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
 
 APP_NAME = "Finite"
-DATA_DIR = ROOT / "data"
+DATA_DIR = Path(os.getenv("FINITE_DATA_DIR", str(ROOT / "data")))
 DATA_DIR.mkdir(exist_ok=True)
 DB_PATH = DATA_DIR / "finite.db"
 LLM_CACHE_DIR = DATA_DIR / "llm_cache"

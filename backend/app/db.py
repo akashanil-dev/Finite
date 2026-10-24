@@ -8,6 +8,24 @@ from .config import DB_PATH
 _lock = threading.Lock()
 
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    is_admin INTEGER NOT NULL DEFAULT 0,
+    created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS sessions (
+    token_hash TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    expires_at REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS sessions_user ON sessions(user_id);
+CREATE TABLE IF NOT EXISTS auth_attempts (
+    key TEXT PRIMARY KEY,
+    started_at REAL NOT NULL,
+    attempts INTEGER NOT NULL
+);
 CREATE TABLE IF NOT EXISTS articles (
     id TEXT PRIMARY KEY,
     source_id TEXT NOT NULL,
@@ -100,6 +118,14 @@ def query(sql, params=()):
 def init():
     with tx() as c:
         c.executescript(SCHEMA)
+        if 'is_admin' not in {row['name'] for row in c.execute('PRAGMA table_info(users)')}:
+            c.execute('ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0')
+        # Additive migration: legacy local data stays unassigned until explicitly claimed.
+        for table in ('briefings', 'journeys'):
+            columns = {row['name'] for row in c.execute(f'PRAGMA table_info({table})')}
+            if 'user_id' not in columns:
+                c.execute(f'ALTER TABLE {table} ADD COLUMN user_id INTEGER REFERENCES users(id)')
+            c.execute(f'CREATE INDEX IF NOT EXISTS {table}_user ON {table}(user_id)')
 
 
 def kv_get(key, default=None):
