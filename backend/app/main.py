@@ -12,7 +12,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from . import analysis, briefing, budget, db, ingest, perspectives, rabbithole, time_machine, translate
+from . import analysis, briefing, budget, connections, db, ingest, perspectives, rabbithole, time_machine, translate
 from .config import APP_NAME, FAST_MODEL, INGEST_INTERVAL_MIN, MAX_DEPTH, MOCK_MODE, PREPARE_BEFORE_MIN, SMART_MODEL
 from .sources import public_sources
 from .taxonomy import SUBFIELDS, public_taxonomy
@@ -172,6 +172,14 @@ def story_perspectives(story_id: str):
 @app.get("/api/stories/{story_id}/timeline")
 def story_timeline(story_id: str):
     out = time_machine.timeline(story_id)
+    if out is None:
+        raise HTTPException(404, "Story not found")
+    return out
+
+
+@app.get("/api/stories/{story_id}/connections")
+def story_connections(story_id: str):
+    out = connections.explore(story_id)
     if out is None:
         raise HTTPException(404, "Story not found")
     return out

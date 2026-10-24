@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { api, fmtTime, type Analysis, type Depth, type Meta, type Profile, type StoryCard } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { CitationChips } from "@/components/citations";
+import { ConnectionExplorer } from "@/components/connection-explorer";
 import { TimeMachine } from "@/components/time-machine";
 import { PerspectiveLens } from "@/components/perspective-lens";
 import { RabbitHole, type HoleStart } from "@/components/rabbit-hole";
@@ -141,6 +142,7 @@ export default function StoryView() {
           </section>
 
           <PerspectiveLens key={id} storyId={id} />
+          <ConnectionExplorer key={`connections-${id}`} storyId={id} />
           <TimeMachine key={`timeline-${id}`} storyId={id} />
 
           {a.missing_piece.length > 0 && (
