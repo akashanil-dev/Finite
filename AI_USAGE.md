@@ -179,3 +179,8 @@ Actions run 40141543544 passed checks, both ARM64 builds/publishing and automati
 - Extracted the shared auth form, added `/signup`, and moved profile-based account routing to protected `/start`. Authentication success now goes to `/start`; `/` remains public. Backend authorization is unchanged.
 - Validation: TypeScript, ESLint and production build passed. Browser checked desktop and 320px layouts (no horizontal overflow), section anchor, signup form, login form and home navigation. Production deployment pending at commit time. Full auth submission regression and accessibility audit were not repeated for this change.
 Human requested the page; visual review by the owner remains pending. Codex implemented and checked the change.
+
+
+### 2026-10-25T05:29:16+05:30 — Landing release verification
+
+Release `b7ed394` passed GitHub Actions run `40144672691`: checks, both container builds/smoke tests and automatic deployment. Live browser verified the public homepage, protected `/start` redirect to login while signed out, and return-home link. Local 320px/desktop checks passed; authenticated form submission was not repeated. No AI calls.

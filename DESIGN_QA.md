@@ -39,3 +39,8 @@ This is sampled browser QA, not a frame-rate benchmark, full accessibility audit
 - `a9628be`: playful editorial design system.
 - `f64b943`: explicit interest priorities and settings interactions.
 - [Actions run 40141543544](https://github.com/akashanil-dev/Finite/actions/runs/40141543544) passed checks, both ARM64 image jobs and automatic deployment for `f64b9431b6a3f0b9ab4558c764d136c0e8d0c0d2`. The live HTTPS login page was visually verified with the new design. Authenticated feature QA above was local, not repeated against production.
+
+
+### 2026-10-25T05:29:16+05:30 — Landing release verification
+
+Release `b7ed394` passed GitHub Actions run `40144672691`: checks, both container builds/smoke tests and automatic deployment. Live browser verified the public homepage, protected `/start` redirect to login while signed out, and return-home link. Local 320px/desktop checks passed; authenticated form submission was not repeated. No AI calls.

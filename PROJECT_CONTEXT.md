@@ -194,7 +194,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 
 | Feature | Description | Status | Relevant files | Remaining work |
 | --- | --- | --- | --- | --- |
-| Public landing page | Public product introduction, journey and feature cards; dedicated signup and login links | COMPLETE (local browser/build verified) | `frontend/src/app/page.tsx`, `signup/page.tsx`, `start/page.tsx`, `components/auth-form.tsx` | Production check after push; full accessibility audit pending |
+| Public landing page | Public product introduction, journey and feature cards; dedicated signup and login links | COMPLETE (local browser/build verified) | `frontend/src/app/page.tsx`, `signup/page.tsx`, `start/page.tsx`, `components/auth-form.tsx` | Live homepage verified; full accessibility audit pending |
 | Visual system and motion | Responsive rail/dock, colored exploration panels, spring card lifts, gliding depth control, folding panels and completion flower | VERIFIED local browser sample | `frontend/src/app/globals.css`, `frontend/src/components/ui.tsx`, reader/briefing/login/Passport components | Physical-device, reduced-motion runtime and cross-browser audit pending |
 | RSS ingestion | 29 feeds (English and Malayalam), language detection by script, upsert into SQLite | COMPLETE | `backend/app/ingest.py`, `backend/app/sources.py` | Add more Malayalam outlets; some publisher feeds block bots (see J) |
 | Full-text extraction | Fetched lazily with trafilatura, cached in `articles.content` | COMPLETE | `backend/app/ingest.py` (`extract_article`) | None for the MVP |
@@ -589,7 +589,7 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
-2026-10-25T05:25:18+05:30 — Public landing page implemented and locally verified at desktop/320px. Signup/login links and section navigation work; tsc, ESLint and production build pass. Deployment verification follows push. No API spend.
+2026-10-25T05:25:18+05:30 — Public landing page implemented and locally verified at desktop/320px. Signup/login links and section navigation work; tsc, ESLint and production build pass. Release `b7ed394` deployed successfully via Actions run `40144672691`; live public homepage and signed-out `/start` redirect verified. No API spend.
 
 
 2026-10-25T04:43:14+05:30 — Redesign release `f64b943` is live: Actions 40141543544 passed all jobs, including deploy. Live HTTPS login visually verified. Local production-preview authenticated QA passed; full verification scope is in DESIGN_QA.md. No new AI usage.
@@ -896,3 +896,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T04:43:14+05:30 | Deployment QA (this commit); release `f64b943` | CI/CD success and live visual check recorded in DESIGN_QA.md. |
 
 | 2026-10-25T05:25:18+05:30 | feat: add public landing page (this commit) | C/D/H/I/K; README, changelog, AI usage | Local desktop/mobile browser, tsc, ESLint and build pass; deployment pending |
+
+| 2026-10-25T05:29:16+05:30 | docs: record landing page deployment; release `b7ed394` | I/C and DESIGN_QA | CI/CD passed; live public homepage and protected-entry redirect verified |
