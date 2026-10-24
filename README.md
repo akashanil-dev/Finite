@@ -105,3 +105,9 @@ AI mode now recovers from previously cached extractive story summaries after a k
 Live AI QA (25 October): summaries, Missing Piece, Perspective Lens, two-level rabbit holes, unsupported-claim removal, challenges/Passport and Malayalam rendering were exercised in the browser. Rabbit-hole claims and dated timeline events require an explicit positive support verdict; verification failure removes them. Malformed translations fall back to the original payload. The sample is not a comprehensive editorial audit; Malayalam quality needs human review.
 
 For controlled local demos without scheduled/background ingestion, use `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --lifespan off` **after the database has already been initialized**. Normal startup retains scheduling. This session restarted the existing backend in this controlled mode to activate the guard without spending the remaining allowance on automatic ingestion.
+
+### Time Machine
+
+Open a story and select **Time Machine → Trace +**. **Events in the sources** shows up to 12 dated source quotations, separating earlier background, current developments and dates needing context. Missing years and conflicting dates are not guessed. **Coverage history** shows article publication/update timestamps separately from event dates. Citations open the supporting publisher links.
+
+This feature reads stored text only and makes no AI calls. It recognizes English date expressions and keeps excerpts in their original language; it is not a complete archive or independently verified account. Browser QA is pending at the implementation checkpoint.

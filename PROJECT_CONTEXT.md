@@ -212,7 +212,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | Rabbit holes (AI) | `SMART_MODEL` writes only from passages, then `FAST_MODEL` checks each claim; uncited or unsupported claims dropped | IMPLEMENTED / UNVERIFIED | VERIFIED live sample | Live sample passed; broaden coverage |
 | Depth limit and ending | `MAX_DEPTH = 2`, journey map, "Expedition complete", end at any point | IMPLEMENTED / UNVERIFIED (API verified; UI not walked through) | VERIFIED live sample | Manual walkthrough |
 | Ask your own question | Free-text question scoped to the story; off-topic check (word overlap without a key, LLM with one) | IMPLEMENTED / UNVERIFIED | VERIFIED live sample | Rate limiting; matching similar questions to a cached answer |
-| Time Machine (basic) | Timeline inside rabbit holes for origin and history questions | IN PROGRESS | `backend/app/rabbithole.py`, `frontend/src/components/rabbit-hole.tsx` | A dedicated timeline needs an archive of past stories |
+| Time Machine | Dedicated source-extractive story timeline and separate coverage history; rabbit-hole timelines retained | IMPLEMENTED / browser QA pending | `time_machine.py`, `time-machine.tsx`, story page | English date patterns; broader archive and semantic date interpretation deferred |
 | Malayalam translation | Translates generated content; cached per story | IMPLEMENTED / UNVERIFIED (returns "unavailable" without a key) | Rendering verified; human quality review pending | Live rendering passed; owner to judge quality |
 | Malayalam crawl | Choosing Malayalam adds Malayalam feeds to briefings | COMPLETE | `backend/app/sources.py`, `backend/app/briefing.py` | Malayalam stories rank low without a key |
 | Knowledge Passport | Saved journeys, concept cloud, fields explored, counts | IMPLEMENTED / UNVERIFIED (API verified) | VERIFIED live sample | Manual walkthrough |
@@ -288,6 +288,9 @@ sequenceDiagram
 ```
 
 ### D3. Backend
+
+Time Machine: `GET /api/stories/{id}/timeline` reads stored article content/descriptions without network or LLM calls. It returns a finite cited event list, unresolved dates and separate publication/update history. No schema change.
+
 
 All OpenAI requests pass through the persistent budget reservation guard. SDK retries are disabled. Timeline and node verification fail closed. Extractive story caches can upgrade to AI when a key is present.
 
@@ -542,12 +545,16 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 | D17 | India first; Malayalam is the first regional language; Malayalam outlets are crawled only if chosen | Owner's market choice; Kochi audience | — | Active |
 | D19 | Perspective Lens uses existing excerpts and fails closed on verification failure | Avoid extra scraping and unchecked comparison claims | Coverage and AI quality remain limited; hostname deduplication cannot detect syndication | Active |
 | D20 | Ungraded connection hypotheses with skip and source-based reflection | Active learning without invented answers or scores; no extra AI calls | Generic choices rather than generated quizzes | Active |
+| D22 | Time Machine uses complete dated source quotations; publication timestamps stay separate | Preserve remaining AI allowance and avoid invented chronology | English patterns can miss dates; no complete archive | Active |
 | D21 | Persistent $1 conservative reservation guard, no automatic refunds or resets | Owner-approved testing allowance; reserve before calls, including failed calls | Installation-local only; not an account billing cap | Active |
 | D18 | Name **"Finite"** | Owner's choice from the suggestions | Warren, Undercurrent, Kaaranam, Fathom, Sutra were considered | Active |
 
 ---
 
 ## I. Current development state
+
+2026-10-25T00:32:15+05:30 — Time Machine implementation checkpoint `feat: add source-backed time machine`, based on `df14c54`. Backend 21 tests/import and frontend checks pass; browser QA next. No new AI calls.
+
 
 Current verification: 2026-10-25T00:17:27+05:30; `0d88ce0` plus checkpoint `fix: enforce AI verification and validate translations` (SHA assigned at commit).
 
@@ -634,7 +641,7 @@ No invented deadlines. The only external deadline is the 8:00 AM IST code freeze
 ### Longer term
 
 - Native app (Expo, reusing the API) with push notifications.
-- A dedicated Time Machine built on an archive of past stories.
+- Extend the dedicated Time Machine with an archive of past stories (current version uses the story’s stored coverage).
 - Connection Explorer across stories.
 - More regional languages.
 - Licensed news feeds, and legal review.
@@ -745,3 +752,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T00:15:26+05:30 | `fix: repair JSON requests and refresh extractive analyses`, based on `42a7b54` | 0, I, J; README | Live classification, embeddings and story browser checks; 15 backend tests/import pass |
 
 | 2026-10-25T00:17:27+05:30 | `fix: enforce AI verification and validate translations`, based on `0d88ce0` | C, D, I, J, K, M; README, submission, changelog, AI usage | 16 tests/import, tsc/ESLint/build; live AI browser sample; $0.776700 reserved |
+
+| 2026-10-25T00:32:15+05:30 | `feat: add source-backed time machine`, based on `df14c54` | C, D, H, I, K; README, submission, changelog, AI usage | 21 backend tests/import; tsc/ESLint/build; browser QA pending |

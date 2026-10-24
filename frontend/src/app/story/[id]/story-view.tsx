@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { api, fmtTime, type Analysis, type Depth, type Meta, type Profile, type StoryCard } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { CitationChips } from "@/components/citations";
+import { TimeMachine } from "@/components/time-machine";
 import { PerspectiveLens } from "@/components/perspective-lens";
 import { RabbitHole, type HoleStart } from "@/components/rabbit-hole";
 import { ErrorNote, Eyebrow, Shell, Skeleton, TierBadge, WeightBar } from "@/components/ui";
@@ -140,6 +141,7 @@ export default function StoryView() {
           </section>
 
           <PerspectiveLens key={id} storyId={id} />
+          <TimeMachine key={`timeline-${id}`} storyId={id} />
 
           {a.missing_piece.length > 0 && (
             <section className="mt-4 rounded-3xl border border-warm/25 bg-warm-soft/60 p-5">
