@@ -32,7 +32,7 @@ jobs:
         working-directory: frontend
       - run: npx next typegen && npx tsc --noEmit && npx eslint src --max-warnings=0 && npm run build
         working-directory: frontend
-      - run: bash -n deploy/deploy.sh
+      - run: bash -n deploy/deploy.sh deploy/ssh-dispatch.sh
   images:
     needs: check
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -77,9 +77,6 @@ jobs:
     needs: images
     if: github.ref == 'refs/heads/main' && vars.FINITE_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://finite.akashanil.dev
     concurrency:
       group: finite-production
       cancel-in-progress: false
@@ -99,8 +96,7 @@ jobs:
           HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
           opts=(-i ~/.ssh/finite_key -o StrictHostKeyChecking=yes -o BatchMode=yes)
-          scp "${opts[@]}" deploy/compose.yml deploy/deploy.sh "finite-deploy@$HOST:/opt/finite/"
-          ssh "${opts[@]}" "finite-deploy@$HOST" bash /opt/finite/deploy.sh "$GITHUB_SHA"
+          ssh "${opts[@]}" "finite-deploy@$HOST" "deploy $GITHUB_SHA"
       - name: Verify public site
         run: |
           curl --retry 5 --retry-delay 5 --retry-all-errors --fail https://finite.akashanil.dev/api/health

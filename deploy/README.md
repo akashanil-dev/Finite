@@ -1,8 +1,16 @@
 # Finite on Oracle Ampere
 
-Target: `https://finite.akashanil.dev`, on the existing Tuxos Oracle server (ARM64, 4 cores, 24 GB RAM).
+## Automatic deployment
 
-Status: **ARM64 images built, smoke-tested and published by [GitHub CI](https://github.com/akashanil-dev/Finite/actions/runs/40128562535) for `9d246ab5172e9eab681eb213a276aba2b0b8e2f0`; not deployed or verified on Oracle**. Local Docker daemon access was unavailable, so hosted CI performed container validation. Deployment was skipped because FINITE_DEPLOY_ENABLED is unset. Authentication/browser tests ran locally with no AI key.
+The owner approved automatic deployment on pushes to main. Checks run on pushes/PRs; main builds and smoke-tests ARM64 images, publishes commit-SHA tags, and deploys over SSH when `FINITE_DEPLOY_ENABLED=true`. No production environment or paid reviewer gate is required. Unrelated server changes still require explicit approval.
+
+Repository Actions secrets: `DEPLOY_HOST` (Oracle SSH address), `DEPLOY_SSH_KEY` (dedicated private key), `DEPLOY_KNOWN_HOSTS` (verified host key). Never commit values. The configured Ed25519 fingerprint matches `SHA256:l0cKgYBY5QHSzkHs0jpyiGtKQUvfO+8hspwpBpf2/tM`.
+
+The key uses `restrict,command="/usr/local/lib/finite/ssh-dispatch.sh"` and permits only `deploy <40-character lowercase SHA>`. Deployment scripts and Compose live in root-owned `/usr/local/lib/finite`; SSH configuration is root-owned. Scripts are 0755, Compose/authorized_keys 0644, directories 0755. The workflow cannot upload files or obtain a shell. The deploy account retains root-equivalent Docker access; the forced command limits the key interface, not the privilege of malicious application images.
+
+Protected script/Compose changes require a separately approved server installation; normal releases update only application images. The existing `/opt/finite` copies are historical and are not used by the Actions dispatcher. Set `FINITE_DEPLOY_ENABLED=false` to disable automated releases.
+
+Verified setup: restricted shell/file-transfer commands rejected; deployment of the existing release through the dedicated key passed backup/health checks. First push-triggered deployment verification is pending. Finite is already live at https://finite.akashanil.dev; AI and scheduler remain disabled.
 
 ## Architecture and reference
 
@@ -21,7 +29,7 @@ Tuxos (`../tuxos/deploy` and its GitHub workflow) supplied the existing-host pat
 First inspect existing services, disk space, Docker version and Caddy's Compose file. Do not stop Tuxos or replace the existing Caddyfile. The Tuxos checkout records `/home/ubuntu/Perlite/Caddyfile`; confirm this path on the live server.
 
 1. Create a DNS A record for `finite.akashanil.dev` pointing to the same Oracle public IPv4 as Tuxos. Only add AAAA if IPv6 is actually configured. Keep the existing 80/443 ingress rules; do not open 3000/8000. With Cloudflare, use Full (strict) TLS.
-2. Ensure Docker Engine and Compose v2.20+ (supports `up --wait`), Git, Python 3, curl and util-linux/flock are installed. Reuse the existing Docker installation. Check `uname -m` reports `aarch64`.
+2. Ensure Docker Engine and Compose v2.20+ (supports `up --wait`), Python 3, curl and util-linux/flock are installed. Reuse the existing Docker installation. Check `uname -m` reports `aarch64`.
 3. Create a dedicated deploy account and directories (as the server administrator):
 
 ```bash
@@ -55,18 +63,13 @@ networks:
 
 Append the site block from `deploy/Caddyfile` to the existing mounted Caddyfile. Validate the composed configuration (`docker compose config`) and Caddy syntax (`docker compose exec caddy caddy validate --config /etc/caddy/Caddyfile`). Once Finite images are running, recreate only Caddy with `docker compose up -d --no-deps caddy` to apply the new network. Verify all existing sites afterward. No new Caddy instance should bind ports 80/443.
 
-## GitHub setup and first deployment
+## GitHub setup and release verification
 
-1. Use a dedicated Ed25519 deployment SSH key. Put its public key in `/home/finite-deploy/.ssh/authorized_keys` (directory 700, file 600, owner finite-deploy). Prefix the key with `restrict` to disable forwarding and PTY. Keep the private key only in GitHub's production environment secret.
-2. Create a GitHub environment named **production** in the Finite repository. Add:
-   - `DEPLOY_HOST`: Oracle SSH hostname/IP.
-   - `DEPLOY_SSH_KEY`: dedicated private deployment key.
-   - `DEPLOY_KNOWN_HOSTS`: the server's SSH host-key line, verified against the server console. Do not disable host verification.
-3. The workflow tests on every push/PR. Main builds and smoke-tests native ARM64 images, then pushes `ghcr.io/akashanil-dev/finite-backend:<sha>` and `finite-frontend:<sha>`. It uses the repository `GITHUB_TOKEN`, with package write permission only in the image job.
-4. If GHCR packages are private, run `docker login ghcr.io` **as finite-deploy** on the server using a token with `read:packages`. Alternatively make these code-only images public. No `.env`, databases or cache data enter the images.
-5. Leave repository variable `FINITE_DEPLOY_ENABLED` absent/false until the server setup, environment and verified host key are ready. Then set it to `true` and run the workflow manually on main. Configure environment approval if you want to approve each release.
-6. Deployment pulls both images before changes, backs up SQLite with its online backup API, starts the Compose project and waits for both health checks. On failure it restores the previous image tag when one exists. The final workflow step checks the public HTTPS health and login pages. First deployment has no previous image to roll back to.
-7. On the website, create your account and sign in. Registration never grants administrator privileges. After you verify your own account, grant access to ingestion/budget administration from the server only: `FINITE_IMAGE_TAG=$(cat /opt/finite/current-release) docker compose -f /opt/finite/compose.yml exec backend python -m app.manage_user YOUR_USERNAME --admin`. Username: 3–32 letters/numbers/underscores, case-insensitive; password: 8–128 characters, no complexity rules. There is no reset or email verification.
+The automatic deployment setup above is installed. Server GHCR credentials belong to finite-deploy; private-image pulls require a valid read:packages token. Renew it before expiry. Images are built on GitHub, never on Oracle; no server checkout is required.
+
+The deploy script pulls images, backs up existing SQLite databases, starts containers and waits for health. It restores previous images after a Compose health failure when a prior release exists. It does not restore databases. A public HTTPS failure in the later workflow check does not automatically trigger rollback. Review migrations before reverting releases.
+
+Confirm successful Actions deployment, `/opt/finite/current-release`, container health, public `/api/health` and `/login`. A backup test passed on Oracle; the budget ledger is absent while AI is disabled. Fresh production data was selected. No laptop account/history migration was performed.
 
 ## Existing laptop data and budget
 
@@ -91,7 +94,7 @@ docker compose -f compose.yml ps
 docker compose -f compose.yml logs --tail=100 backend frontend
 ```
 
-To roll back, run `bash /opt/finite/deploy.sh PREVIOUS_FULL_COMMIT_SHA`. Backups are in `/opt/finite/backups`; retain recent backups and copy them off-server. Image rollback does not restore the database automatically. Current migrations are additive; review future migrations before rolling back. Restrict backup permissions because they contain password hashes and personal history.
+To roll back, run `bash /usr/local/lib/finite/deploy.sh PREVIOUS_FULL_COMMIT_SHA`. Backups are in `/opt/finite/backups`; retain recent backups and copy them off-server. Image rollback does not restore the database automatically. Current migrations are additive; review future migrations before rolling back. Restrict backup permissions because they contain password hashes and personal history.
 
 Enable the scheduler only after verifying ingestion and reviewing the remaining AI allowance. One scheduler can build briefings for each onboarded account. The $1 application ledger is shared by all accounts in the installation; it is not an account-wide OpenAI billing cap.
 
@@ -102,10 +105,9 @@ Yes: a server-side Codex CLI can inspect the live Docker/Caddy setup and perform
 ```bash
 npm install -g @openai/codex
 codex login --device-auth
-cd /path/to/Finite
 codex
 ```
 
 Complete the device-code login yourself. Use your ChatGPT login, not Finite's nearly exhausted API key. Official references: [Codex installation](https://github.com/openai/codex), [headless authentication](https://learn.chatgpt.com/docs/auth).
 
-This laptop chat and a separately installed server CLI do not automatically share messages or state. Coordinate through the same Git repository and `PROJECT_CONTEXT.md`; give the server CLI `deploy/SERVER_HANDOFF.md`, then bring its results back here (or provide an authorized SSH host alias for direct server work). Keep application edits on the laptop and server configuration work on the server to avoid conflicting changes.
+This laptop chat and a separately installed server CLI do not automatically share messages or state. Provide the server CLI with the current deployment files, `PROJECT_CONTEXT.md` and `deploy/SERVER_HANDOFF.md`, then bring its results back here (or provide an authorized SSH host alias for direct server work). Keep application edits on the laptop and server configuration work on the server to avoid conflicting changes.

@@ -538,6 +538,10 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+D28 — Owner now requests automatic deployment on main pushes after CI, superseding D27 only for routine workflow releases. Forced-command SSH with root-owned deployment code/configuration is prepared; general-command key installation was rejected by automatic approval review. Owner approved protected installation, secrets and enablement; these are installed and the restricted-key deployment passed. Push-triggered end-to-end verification remains pending.
+
+D27 — Owner requires independent live verification of containerized Caddy and explicit approval before every server change or precisely scoped batch, including deployment, rollback, data-writing tests and documentation/Git mutations. Read-only discovery comes first; setup instructions are not authorization. See `deploy/SERVER_HANDOFF.md`.
+
 D26 — Reuse the existing Oracle host/Caddy entry point from Tuxos, but package Finite as separate ARM64 containers. Keep API same-origin, data outside images, scheduler off initially, and deployment gated until server setup. Pin uv to the locally used version for lockfile compatibility.
 
 D25 — Username/password accounts with simple 8-character minimum, no reset/email flow. Opaque revocable cookie sessions; use scrypt from the standard library. Do not give legacy data or admin rights to the first registrant. Preserve unowned history for explicit owner migration.
@@ -574,6 +578,10 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 ---
 
 ## I. Current development state
+
+2026-10-25T03:43:06+05:30 — Owner-provided Oracle results confirm fresh deployment of 9d246ab, healthy containers, public HTTPS and successful SQLite online backup. Direct laptop SSH confirmed current-release and host fingerprint. Automatic main deployment authorized; protected SSH dispatch installed, repository secrets configured and deploy variable enabled. Restricted-key existing-release deployment passed; push-triggered verification pending.
+
+2026-10-25T01:56:00+05:30 — Server handoff updated with mandatory live Caddy-container verification and owner approval gates. Documentation-only change; Oracle deployment remains unverified.
 
 2026-10-25T01:45:05+05:30 — Hosted GitHub CI run 40128562535 passed code checks and both ARM64 image build/smoke/publish jobs at `9d246ab`. Deploy skipped (enable variable unset). Auth `be6ab58` locally verified with 34 tests and browser registration/sign-in/sign-out/isolation. Local ports 3000/8000 restored; Oracle/Caddy/HTTPS work remains pending.
 
@@ -761,6 +769,8 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ## M. Instructions for Incoming AI Agents
 
+Server agents must follow `deploy/SERVER_HANDOFF.md`: inspect containerized Caddy read-only first, then ask explicit owner permission before every change or precisely scoped batch. Do not treat deployment instructions as authorization.
+
 For Oracle work, read `deploy/README.md` and `deploy/SERVER_HANDOFF.md`. Verify live Caddy paths/networks; preserve Tuxos and other services. No server deployment has been verified. Do not enable auto-deploy before configuration and secrets are ready; keep the API key absent until the persistent budget ledger is migrated.
 
 Accounts now gate data APIs. Create a test account on a DB copy with AI disabled; never automatically claim legacy data. Back up before migrations. Registration grants no admin role; local CLI controls ownership/admin changes. Production cookies must be Secure with exact HTTPS origin.
@@ -828,3 +838,9 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T01:39:40+05:30 | `build: prepare oracle containers and github deployment` | C/D/H/I/K/M reconciliation; deployment guide/handoff, README, submission, changelog, AI usage | 34 tests, import, tsc/ESLint/standalone build, Compose config, shell syntax; CI/Oracle pending |
 
 | 2026-10-25T01:45:05+05:30 | `docs: record hosted auth and container validation`, based on `9d246ab` | I/K; deployment guide/handoff, changelog, AI usage, submission | GitHub code + ARM64 image checks/publish passed; deploy intentionally skipped; mocked rollback/backup simulation passed |
+
+| 2026-10-25T01:56:00+05:30 | Local documentation update; commit pending | H/I/M; server handoff approval and Caddy verification rules | Documentation review and whitespace check; no server changes |
+
+| 2026-10-25T03:43:06+05:30 | Working tree; commit pending | H/I; automatic deployment authorization and restricted SSH proposal | Shell syntax and six rejected command cases pass; server installation blocked pending explicit scope approval |
+
+| 2026-10-25T03:45:14+05:30 | build: enable automatic oracle deployment | H/I and deployment docs; protected SSH setup and repository Actions secrets | Real restricted-key deployment and rejected shell/file commands pass; push run pending |

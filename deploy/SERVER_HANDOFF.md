@@ -1,10 +1,25 @@
-# Server-side Finite deployment handoff
+# Finite server handoff
 
-The owner wants Finite at finite.akashanil.dev on the same Oracle Ampere machine as Tuxos. Read AGENTS.md, RULES.md, PROJECT_CONTEXT.md and deploy/README.md first. The code and deployment files are prepared. [GitHub CI](https://github.com/akashanil-dev/Finite/actions/runs/40128562535) passed code checks and both ARM64 container build/health-smoke/publish jobs for `9d246ab5172e9eab681eb213a276aba2b0b8e2f0`. Deployment was skipped; no Oracle deployment has been claimed.
+Finite is live at https://finite.akashanil.dev on Oracle ARM64, alongside Faber, Tuxos and Notes. Fresh production data was selected. AI and scheduling remain disabled; do not enable the laptop key without preserving its existing budget ledger.
 
-1. Inspect the running services, available resources, existing Caddy Compose/network/config and existing Tuxos site. Confirm live paths instead of relying on the laptop snapshot.
-2. Preserve every existing site, Caddy mount/network and unrelated container. Do not replace the full Caddyfile or run `docker compose down` on the shared stack.
-3. Set up the finite-deploy account, `/opt/finite`, data ownership (container UID 10001), `/etc/finite/backend.env`, external finite-edge network and dedicated SSH key as described. Secrets stay on the server/GitHub, never in reports.
-4. Start with no OpenAI key and scheduler disabled. The laptop has a nearly exhausted persistent $1 ledger; preserve it if moving the key. Do not reset the ledger. Ask the owner whether to transfer legacy data before any server registrations.
-5. Confirm GitHub ARM64 builds/smoke tests pass; configure production secrets and enable deployment only after the host/network/config is ready. Deploy the exact approved main commit. Check container health, HTTPS, account registration/sign-in/sign-out, persistence after restart and isolation between test users. Verify Tuxos and other sites still respond.
-6. Report the deployed SHA, image tags, health/HTTPS results, backup location, what changed on the server, and unresolved items. Do not claim success based only on files existing. Update shared project documentation with verified deployment facts. Do not edit application code concurrently with the laptop agent; use a separate branch if a fix is needed.
+## Authorization
+
+The owner explicitly approved automatic deployment on every main push after successful checks and ARM64 image publication. This supersedes earlier instructions requiring approval for each routine release. All other server/configuration changes require a concrete proposal and explicit approval before execution.
+
+## Installed deployment path
+
+GitHub builds and publishes images; Oracle does not clone source or build it. The workflow uses repository secrets DEPLOY_HOST, DEPLOY_SSH_KEY and DEPLOY_KNOWN_HOSTS, and variable FINITE_DEPLOY_ENABLED=true. Set the variable false to disable deployment. No production environment reviewer gate is used.
+
+The dedicated key permits only `deploy <full lowercase SHA>` through /usr/local/lib/finite/ssh-dispatch.sh. That directory, deploy.sh, compose.yml and the SSH authorization files are root-owned. Shell and file-transfer commands are rejected. Runtime data/backups/release markers remain in /opt/finite; environment is /etc/finite/backend.env. Protected script/config updates need separate approval and installation; do not replace them from Actions. The account has root-equivalent Docker access; command restrictions do not sandbox deployed images.
+
+## Preserve shared infrastructure
+
+Caddy runs in a container managed by /home/ubuntu/Perlite/docker-compose.caddy.yml. /home/ubuntu/Perlite/Caddyfile is mounted at /etc/caddy/Caddyfile. Independently reverify live mounts, networks and configuration before changes. Preserve perlite-net, finite-edge, Caddy volumes, /opt/tuxos and /run/tuxos mounts and every existing site. Never bring down the shared stack to deploy Finite.
+
+Owner-supplied HTTPS results: Finite origin/public homepage and health returned 200; Faber/Tuxos retained 200; Notes retained its prior 401. This does not resolve Notes authentication/application issues. Caddy backup: /var/backups/finite-caddy-20261024T220242234822Z.
+
+## Verification and recovery
+
+The dedicated key successfully redeployed the existing 9d246ab release; backups and container health passed. First push-triggered workflow verification is pending. A prior database online-backup integrity check passed. Image rollback does not restore data, first deployments have no previous image, and post-deploy public HTTP check failures do not automatically roll back. Report actual CI, release SHA, container and HTTPS evidence; never infer live success solely from published images.
+
+Read AGENTS.md, RULES.md, PROJECT_CONTEXT.md and deploy/README.md. Coordinate application changes with the laptop; no server repository clone is required. Never expose private keys, credential files or environment values.
