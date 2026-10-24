@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-paper: #f5f1ea;
+  --color-card: #fffdf9;
+  --color-ink: #1d1b18;
+  --color-muted: #6f6a62;
+  --color-line: #e3ddd2;
+  --color-accent: #1f5c50;
+  --color-accent-soft: #e2eeea;
+  --color-warm: #b5562f;
+  --color-warm-soft: #f6e6dc;
+  --color-gold: #a77b1f;
+  --font-sans: var(--font-inter), var(--font-malayalam), system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), var(--font-malayalam), Georgia, serif;
+}
+
+html,
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.45s ease both;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.skeleton {
+  background: var(--color-line);
+  border-radius: 6px;
+  animation: pulse-soft 1.4s ease-in-out infinite;
+}
