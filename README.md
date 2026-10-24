@@ -8,6 +8,7 @@ Built solo by Akash A ([@akashanil-dev](https://github.com/akashanil-dev)) with 
 
 | Event document | Purpose |
 | --- | --- |
+| [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | Canonical architecture, requirements, current state and handoff |
 | [RULES.md](RULES.md) | Devin Hacks Kochi event details and rules |
 | [SUBMISSION.md](SUBMISSION.md) | Submission details and checklist |
 | [CHANGELOG.md](CHANGELOG.md) | Timestamped development log |

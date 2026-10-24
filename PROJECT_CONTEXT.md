@@ -1,0 +1,717 @@
+# PROJECT_CONTEXT.md — Finite
+
+> **Canonical, agent-agnostic project memory.** Read this first, then verify against the code. If this document and the repository disagree, investigate the discrepancy; do not silently trust either. Maintenance rules: [AGENTS.md](AGENTS.md#persistent-project-context-and-documentation-maintenance) and [RULES.md](RULES.md#persistent-project-context-and-documentation-maintenance).
+>
+> **Last verified against repository:** 2026-10-24T22:49:59+05:30 at commit `c589d96` (branch `main`). See the [Context Maintenance Log](#context-maintenance-log).
+
+## Contents
+
+- [0. One-minute overview](#0-one-minute-overview)
+- [A. Project identity](#a-project-identity)
+- [B. Product vision and requirements](#b-product-vision-and-requirements)
+- [C. Feature inventory and implementation status](#c-feature-inventory-and-implementation-status)
+- [D. System architecture](#d-system-architecture)
+- [E. Technology stack](#e-technology-stack)
+- [F. Repository structure and code navigation](#f-repository-structure-and-code-navigation)
+- [G. Setup, execution, testing and deployment](#g-setup-execution-testing-and-deployment)
+- [H. Design decisions and rationale](#h-design-decisions-and-rationale)
+- [I. Current development state](#i-current-development-state)
+- [J. Bugs, limitations and technical debt](#j-bugs-limitations-and-technical-debt)
+- [K. Roadmap and pending tasks](#k-roadmap-and-pending-tasks)
+- [L. Important historical context](#l-important-historical-context)
+- [M. Instructions for incoming AI agents](#m-instructions-for-incoming-ai-agents)
+- [Context Maintenance Log](#context-maintenance-log)
+
+---
+
+## 0. One-minute overview
+
+**Finite** is a *finite*, personalised daily news briefing for Indian readers, in English and optionally Malayalam. Most news apps answer only *"What happened?"* and are designed for endless scrolling. Finite answers four questions:
+
+1. What happened?
+2. Why did it happen?
+3. How did we get here?
+4. What does it connect to?
+
+It also **always ends**:
+
+- **The briefing:** once a day, the user receives a frozen list of N stories, ranked by their weighted interests and a public source credibility index.
+- **Rabbit holes:** any story can be opened into a "rabbit hole" that is cited and depth-limited. Level 0 is the event, Level 1 is context, Level 2 is connections, and then comes *Expedition complete*.
+- **Knowledge Passport:** records what the user explored, with no streaks.
+
+**Stack:**
+
+- **Backend** (`backend/`): Python 3.13, FastAPI and SQLite. It reads RSS feeds, classifies and clusters articles, builds briefings, and generates cited explanations.
+- **Frontend** (`frontend/`): a mobile-first Next.js 16 PWA.
+- **OpenAI is optional.** Without `OPENAI_API_KEY` the app runs in *extractive mode*: it quotes source passages directly and uses no AI at runtime.
+
+**Status:**
+
+- **Verified without a key:** the MVP works end-to-end in extractive mode.
+- **Not yet run:** the AI paths have never been run with a real key.
+- **Context:** built solo by Akash A, with Devin, at Devin Hacks Kochi (24–25 Oct 2026; code freeze 8:00 AM IST, 25 Oct).
+
+---
+
+## A. Project identity
+
+| Item | Value |
+| --- | --- |
+| Name | **Finite**. Earlier working names were "CuriosityOS" and "signal50"; neither is used now. |
+| Tagline | "News that ends. Understanding that doesn't." |
+| Repository | https://github.com/akashanil-dev/Finite |
+| Owner | Akash A ([@akashanil-dev](https://github.com/akashanil-dev)); solo participant |
+| Context | Devin Hacks Kochi 2026 hackathon entry; intended to continue afterwards as a real product, including a mobile app |
+
+**Vision.** A platform that turns current events into journeys of understanding. It combines (1) a personalised finite news briefing, (2) an interactive knowledge graph, and (3) an exploration engine driven by curiosity. The user decides how far down the rabbit hole to go, and every path has a visible end.
+
+**Problem.** News apps optimise for engagement through infinite feeds and only report *what happened*. Readers who want to understand causes, history and connections must research on their own, or end up doomscrolling.
+
+**Target audience.** Curious readers in India, initially English and Malayalam speakers (Kerala first, all India later), who want depth without compulsive consumption.
+
+**Primary use cases.**
+
+1. Read a short daily briefing at a chosen time and finish it.
+2. Understand why a story happened, or how it came about, without leaving the app.
+3. See what coverage left unexplained (the "Missing Piece").
+4. Read Malayalam news, or read English news in Malayalam.
+5. Look back at what you've learned over time.
+
+**Expected user experience.** A calm, editorial dashboard (serif headlines, warm paper palette) that becomes an interactive map of knowledge as the user goes deeper. There are no streaks, no autoplay and no "recommended for you" loops.
+
+**Differentiators.**
+
+- **Finiteness:** the feed ends and the rabbit holes end.
+- **Multiple dimensions of understanding:** a reader can choose origins, stakeholders, the dispute, place or next steps, instead of just "more articles".
+- **Grounding:** every claim is cited and labelled established, reported or disputed.
+- **Transparency:** the public source credibility index.
+- **The Missing Piece.**
+- **Malayalam support.**
+
+**Definition of success (final product).**
+
+- A user receives a correct, deduplicated briefing at their chosen time.
+- Every generated claim is traceable to a source.
+- Rabbit holes are useful and never fabricated.
+- The experience ends cleanly.
+- The product works on mobile, with a native app eventually.
+
+---
+
+## B. Product vision and requirements
+
+Legend: **[M]** mandatory, approved by the owner · **[O]** optional enhancement · **[X]** exploratory idea, not approved.
+
+### B1. User journey (five stages) [M]
+
+1. **Define interests:** a two-level taxonomy of fields and subfields. Each selected subfield has a priority: occasional (1), moderate (2) or high (3). Users can exclude subjects and sources.
+2. **Set the daily briefing:**
+   - **Delivery:** periods are Morning, Noon, Evening and Night, and the user can also set an exact time and timezone.
+   - **Lookback:** 24, 30 or **48 hours (default 30)**.
+   - **Stories per briefing:** default 12.
+   - **Default depth:** Quick (30s), Standard (2 min) or Deep (5 min).
+3. **Receive a finite feed:**
+   - The briefing is a fixed set of recent, source-backed stories, frozen when prepared, with no infinite scroll.
+   - It is deduplicated against earlier briefings.
+   - It shows both the original publish time and the latest update time.
+4. **Open a rabbit hole:** causes, history, stakeholders, consequences and connections.
+5. **Reach an ending:** finish the briefing, or save the journey to the Knowledge Passport. There are no further recommendations.
+
+### B2. Functional requirements
+
+| ID | Requirement | Class |
+| --- | --- | --- |
+| R1 | Two-level interest taxonomy with per-subfield priority weights | M |
+| R2 | Exclude subjects and sources | M |
+| R3 | Briefing prepared before delivery time, then **frozen** | M |
+| R4 | 30h default lookback; dedupe against previous briefings | M |
+| R5 | Finite feed with explicit ending; nothing more loads | M |
+| R6 | Rabbit-hole questions are **generated for each story based on its type**, not hard-coded. The four core questions are common but not guaranteed. | M |
+| R7 | Rabbit holes branch but have a fixed depth (`MAX_DEPTH = 2`) and a visible endpoint | M |
+| R8 | Every rabbit-hole claim is cited. When sources are insufficient, say so instead of inventing an answer. | M |
+| R9 | Users can ask their own question. It is scoped to the story, answered only from sources, uses up journey depth, and is rate-limited later. | M (owner left it to the agent; the agent recommended yes) |
+| R10 | Language choice at onboarding. Choosing Malayalam crawls Malayalam outlets and enables Malayalam output. | M |
+| R11 | Public, confidence-weighted index of every outlet and website used, for transparency | M |
+| R12 | Perspective Lens: show how credible sources describe a contested event, separating fact, disputed claim and opinion, with no false balance | M (planned) |
+| R13 | Time Machine: a timeline of how an event developed | M (partly delivered via rabbit-hole timelines) |
+| R14 | Connection Explorer: surprising, source-backed links *between* stories | O |
+| R15 | Curiosity Challenges: the user predicts a connection before it is revealed (active learning, not trivia) | O |
+| R16 | Knowledge Passport: map of explored concepts. **No streaks or pressure to return.** | M |
+| R17 | Missing Piece: identify important questions the coverage didn't answer | M |
+| R18 | Distinguish the article's original publish time from its update time | M |
+| R19 | Native mobile app (Expo/React Native reusing the API) | X (owner wants it eventually; out of scope for the hackathon) |
+| R20 | Regional languages beyond Malayalam (e.g. Hindi) | X |
+| R21 | Push notifications when the briefing is ready | O |
+| R22 | Multi-user accounts and authentication | O (required before any public launch) |
+
+### B3. Non-functional requirements
+
+- **Accuracy and grounding (top priority):** the LLM may only use retrieved passages. Claims are checked one by one, and unsupported claims are dropped.
+- **Cost:** the owner has about **$50 of OpenAI credit**. Generation is per story, cached and shared by all users, never per user. Cheap models do bulk work and the stronger model is used only for rabbit-hole writing. Responses are cached on disk.
+- **Neutrality:**
+  - Credibility tiers are written down.
+  - Claims are grouped by claim, not by outlet.
+  - There are no left/right bias meters.
+  - The methodology is published.
+- **Legal and ethical content use:**
+  - Show only short, original summaries with attribution and a link to the original.
+  - Do not republish article text and do not bypass paywalls.
+  - Respect robots.txt and rate limits.
+  - **This remains a legal grey area, especially for AI processing. Get legal advice before a public launch.**
+- **Mobile-first UI:** installable PWA, readable on phones, calm editorial style.
+- **Accessibility:** **not yet assessed.** No audit has been done. Basic semantic HTML is used.
+- **Performance:**
+  - Briefing build is about 0.05s once articles are stored.
+  - Ingesting all feeds takes about 4s.
+  - Story analysis and rabbit holes take a few seconds in extractive mode; AI-mode latency has not been measured.
+- **Security:**
+  - There is no auth and CORS is `*`, which is acceptable only for local or hackathon use.
+  - Secrets live only in `backend/.env` (gitignored).
+
+### B4. Design constraints (do not reverse without the owner's approval)
+
+- The feed must stay **finite**. The owner's words: "it should be finite otherwise people won't use".
+- No streaks or engagement pressure.
+- Rabbit holes must stay depth-limited and end with "Expedition complete".
+- Never present AI-generated text as fact without a citation.
+- The app must keep working without an OpenAI key, in extractive mode, and must label which mode produced the content.
+
+---
+
+## C. Feature inventory and implementation status
+
+Status meanings:
+
+- **COMPLETE:** implemented and verified.
+- **IMPLEMENTED / UNVERIFIED:** code exists but hasn't been fully tested.
+- **IN PROGRESS:** partially implemented.
+- **PLANNED:** approved but not built.
+- **PROPOSED:** discussed but not approved.
+- **BLOCKED:** waiting on a dependency or decision.
+- **DEPRECATED:** no longer part of the product.
+
+"Verified" here means it was exercised via the API smoke test and/or page loads in **extractive (no-key) mode** on 2026-10-24. No automated tests exist, and no full manual browser walkthrough has been recorded.
+
+| Feature | Description | Status | Relevant files | Remaining work |
+| --- | --- | --- | --- | --- |
+| RSS ingestion | 29 feeds (English and Malayalam), language detection by script, upsert into SQLite | COMPLETE | `backend/app/ingest.py`, `backend/app/sources.py` | Add more Malayalam outlets; some publisher feeds block bots (see J) |
+| Full-text extraction | Fetched lazily with trafilatura, cached in `articles.content` | COMPLETE | `backend/app/ingest.py` (`extract_article`) | None for the MVP |
+| Keyword classification | Subfield and story-type scoring with phrase keywords plus source hints | COMPLETE (approximate quality) | `backend/app/ingest.py`, `backend/app/taxonomy.py` | Better quality; Malayalam articles default to `kerala` |
+| LLM classification | Batches of 40 headlines sent to `FAST_MODEL` | IMPLEMENTED / UNVERIFIED | `backend/app/ingest.py` (`llm_classify`) | Run with a real key |
+| Source credibility index | Tier, weight and rationale per outlet; public page | COMPLETE | `backend/app/sources.py`, `frontend/src/app/sources/page.tsx` | Weights are editorial (methodology v0) |
+| Onboarding | Languages, weighted interests, exclusions, schedule | IMPLEMENTED / UNVERIFIED (page returns 200; API save verified; full click-through not recorded) | `frontend/src/app/onboarding/page.tsx`, `frontend/src/components/profile-editor.tsx` | Manual walkthrough on a phone |
+| Settings | Edit the same profile after onboarding | IMPLEMENTED / UNVERIFIED | `frontend/src/app/settings/page.tsx` | Manual walkthrough |
+| Briefing builder | Lookback window, dedupe vs earlier briefings, clustering, weighted ranking, diversity cap, freeze | COMPLETE | `backend/app/briefing.py` | Clustering sometimes splits one event (see J) |
+| Embedding clustering | Clusters by cosine similarity (0.8) when a key is set | IMPLEMENTED / UNVERIFIED | `backend/app/briefing.py` (`_cluster`), `backend/app/llm.py` (`embed`) | Run with a key |
+| Finite feed UI | Numbered list, progress bar, read state, "You're done for today" | IMPLEMENTED / UNVERIFIED (API mark-read verified) | `frontend/src/app/briefing/page.tsx` | Manual walkthrough |
+| Scheduler | Ingests every 60 min; freezes the briefing 30 min before delivery time | IMPLEMENTED / UNVERIFIED (never seen firing at a real delivery time) | `backend/app/main.py` (`scheduler`) | Observe one real trigger |
+| Story analysis (extractive) | Lead-sentence summaries at 3 depths, cited facts, template questions and Missing Piece | COMPLETE | `backend/app/analysis.py` | Missing Piece is generic without a key |
+| Story analysis (AI) | Summaries, facts, story type, Missing Piece, 4–6 tailored questions, concepts | IMPLEMENTED / UNVERIFIED | `backend/app/analysis.py` (`ANALYSIS_SYSTEM`) | Run with a key; tune prompts |
+| Missing Piece | What the coverage didn't explain; each item opens a rabbit hole | IMPLEMENTED / UNVERIFIED (generic templates without a key) | `backend/app/analysis.py`, `frontend/src/app/story/[id]/story-view.tsx` | AI-generated version needs testing |
+| Rabbit holes (extractive) | Passages from articles and Wikipedia, ranked by TF-IDF; nodes, timeline, follow-ups | COMPLETE | `backend/app/rabbithole.py`, `backend/app/retrieval.py` | Follow-up questions can be odd, e.g. "How does Heinlein connect…" |
+| Rabbit holes (AI) | `SMART_MODEL` writes only from passages, then `FAST_MODEL` checks each claim; uncited or unsupported claims dropped | IMPLEMENTED / UNVERIFIED | `backend/app/rabbithole.py` (`SYNTH_SYSTEM`, `_verify`) | Run with a key |
+| Depth limit and ending | `MAX_DEPTH = 2`, journey map, "Expedition complete", end at any point | IMPLEMENTED / UNVERIFIED (API verified; UI not walked through) | `backend/app/config.py`, `frontend/src/components/rabbit-hole.tsx` | Manual walkthrough |
+| Ask your own question | Free-text question scoped to the story; off-topic check (word overlap without a key, LLM with one) | IMPLEMENTED / UNVERIFIED | `backend/app/rabbithole.py`, `frontend/src/app/story/[id]/story-view.tsx` | Rate limiting; matching similar questions to a cached answer |
+| Time Machine (basic) | Timeline inside rabbit holes for origin and history questions | IN PROGRESS | `backend/app/rabbithole.py`, `frontend/src/components/rabbit-hole.tsx` | A dedicated timeline needs an archive of past stories |
+| Malayalam translation | Translates generated content; cached per story | IMPLEMENTED / UNVERIFIED (returns "unavailable" without a key) | `backend/app/translate.py` | Run with a key; owner to judge quality |
+| Malayalam crawl | Choosing Malayalam adds Malayalam feeds to briefings | COMPLETE | `backend/app/sources.py`, `backend/app/briefing.py` | Malayalam stories rank low without a key |
+| Knowledge Passport | Saved journeys, concept cloud, fields explored, counts | IMPLEMENTED / UNVERIFIED (API verified) | `backend/app/main.py` (`/api/passport`), `frontend/src/app/passport/page.tsx` | Manual walkthrough |
+| Citations UI | Citation chips with popovers (source, weight, link); confidence badges | IMPLEMENTED / UNVERIFIED | `frontend/src/components/citations.tsx` | Manual walkthrough |
+| PWA manifest | Installable app manifest and icon | IMPLEMENTED / UNVERIFIED | `frontend/src/app/manifest.ts`, `frontend/public/icon.svg` | No service worker or offline support |
+| Perspective Lens | How each outlet in a story cluster frames it; fact vs disputed vs opinion | PLANNED (next task) | Clusters already exist in `briefing.py` | Build it (see K) |
+| Curiosity Challenges | Predict the connection before it is revealed | PLANNED | — | Build it (see K) |
+| Connection Explorer | Links across stories | PROPOSED | — | Needs design |
+| Push notifications | "Briefing ready" alert | PROPOSED | — | — |
+| Accounts and auth | Multiple users | PROPOSED | — | Needed before a public launch |
+| Native mobile app | Expo app reusing the API | PROPOSED (owner wants it after the hackathon) | — | — |
+
+---
+
+## D. System architecture
+
+### D1. High level
+
+```mermaid
+flowchart LR
+  subgraph Sources
+    RSS[29 publisher RSS feeds\nEN + ML]
+    WIKI[Wikipedia API]
+    OAI[(OpenAI API\noptional)]
+  end
+  subgraph Backend["backend/ (FastAPI, port 8000)"]
+    SCHED[scheduler thread]
+    ING[ingest.py]
+    BRF[briefing.py]
+    ANA[analysis.py]
+    RH[rabbithole.py]
+    RET[retrieval.py]
+    TR[translate.py]
+    LLM[llm.py + disk cache]
+    DB[(SQLite\nbackend/data/finite.db)]
+  end
+  subgraph Frontend["frontend/ (Next.js PWA, port 3000)"]
+    UI[client components]
+  end
+  RSS --> ING --> DB
+  SCHED --> ING
+  SCHED --> BRF
+  BRF --> DB
+  ANA --> RET
+  RH --> RET
+  RET --> WIKI
+  RET --> DB
+  ANA & RH & TR & ING & BRF --> LLM --> OAI
+  UI -- "fetch http://host:8000/api/*" --> Backend
+```
+
+### D2. Briefing and exploration data flow
+
+```mermaid
+sequenceDiagram
+  participant U as User (PWA)
+  participant API as FastAPI
+  participant DB as SQLite
+  U->>API: PUT /api/profile (interests, schedule, langs)
+  U->>API: POST /api/briefings (ingest + build)
+  API->>DB: articles in lookback window, minus already-briefed
+  API->>API: relevance x source weight x recency -> cluster -> coverage bonus -> diversity cap
+  API->>DB: insert stories + frozen briefing
+  API-->>U: briefing (stories); background prefetch of analysis
+  U->>API: GET /api/stories/{id}?lang=
+  API->>API: analyze() (cached in stories.analysis)
+  U->>API: POST /api/stories/{id}/explore {question, depth}
+  API->>API: gather passages (articles + Wikipedia) -> synth (AI) or extractive -> verify
+  API->>DB: cache in explorations (shared by all users)
+  U->>API: POST /api/journeys -> GET /api/passport
+```
+
+### D3. Backend
+
+- **Entry point:** `backend/app/main.py`, served by `uvicorn app.main:app`. The lifespan hook calls `db.init()` and starts a daemon `scheduler()` thread. A `ThreadPoolExecutor(4)` prefetches story analysis after each briefing is built. A non-blocking lock (`_ingest_lock`) prevents ingests from running at the same time.
+- **Ranking** (`briefing.py`):
+  - Per article: `score = relevance × (0.5 + 0.5 × source_weight) × exp(−hours/26)`.
+  - Relevance is the user's priority weight times classification confidence. Priority weights are 1.0 for high, 0.6 for moderate and 0.3 for occasional.
+  - Clustering is greedy, by cosine similarity: TF-IDF at threshold 0.32, or embeddings at 0.8 when a key is set.
+  - Per cluster: the score is multiplied by `1 + 0.3·log2(#sources)`, and by 0.6 if the cluster comes only from aggregators.
+  - Diversity cap: at most `ceil(n/4)` stories (minimum 2) per lead subfield.
+  - A cluster is dropped if more than half its articles appeared in earlier briefings.
+- **Grounding** (`retrieval.py`): passages are labelled `A{article}.{chunk}` for news and `W{page}.{chunk}` for Wikipedia background, then ranked by TF-IDF against the question. The top 10 go to the model.
+- **AI pipeline:**
+  - `analysis.analyze` uses `FAST_MODEL`.
+  - `rabbithole.explore` uses `SMART_MODEL` for writing, then `_verify` uses `FAST_MODEL` to check claims.
+  - Citations not found among the retrieved passages are removed, and nodes left without citations are dropped.
+- **Caching:**
+  - `stories.analysis`: once per story, permanently.
+  - `stories.translations`: per language.
+  - `explorations`: keyed by `hash(story_id, normalized question, "en")` and shared by everyone.
+  - `backend/data/llm_cache/*.json`: each response stored under a hash of its exact prompt.
+  - An in-memory cache for Wikipedia lookups.
+- **Error handling:**
+  - LLM failures are logged and return `None`, so callers fall back to extractive output.
+  - Feed and extraction failures are logged and skipped.
+  - API errors are returned as `HTTPException` with a `detail` message.
+- **Logging:** Python `logging` at INFO, to stdout. There is no metrics or tracing setup.
+
+### D4. Database (SQLite, `backend/app/db.py`)
+
+There are no migrations. The `SCHEMA` uses `CREATE TABLE IF NOT EXISTS`, and changing it requires a manual migration or deleting `backend/data/finite.db`.
+
+| Table | Key columns | Notes |
+| --- | --- | --- |
+| `articles` | `id` (hash of URL), `source_id`, `lang`, `title`, `url`, `description`, `content`, `published_at`, `updated_at`, `subfields` (JSON), `story_type`, `classified` (0 = no, 1 = keyword, 2 = LLM) | Upserted on each ingest |
+| `stories` | `id` (`s` + hash of sorted article ids), `article_ids` (JSON), `title`, `lang`, `subfields`, `story_type`, `analysis` (JSON), `translations` (JSON) | A cluster of articles |
+| `briefings` | `id`, `created_at`, `window_start/end`, `config` (snapshot of the profile), `story_ids`, `read_ids`, `completed_at` | Frozen once built |
+| `explorations` | `key`, `story_id`, `payload` (JSON) | Shared cache of rabbit-hole steps |
+| `journeys` | `story_id`, `story_title`, `path`, `concepts` | Knowledge Passport entries |
+| `kv` | `key`, `value` | Holds `profile` (single user) and `last_ingest` |
+
+### D5. API (all JSON; base URL `http://<host>:8000`)
+
+| Method and path | Purpose |
+| --- | --- |
+| `GET /api/meta` | App name, `mock_mode`, models, `max_depth`, taxonomy, languages, delivery periods, depths, last ingest |
+| `GET /api/sources` | Credibility index, tiers, methodology |
+| `GET / PUT /api/profile` | Read or save the single user profile (validated in `briefing.save_profile`) |
+| `POST /api/ingest` | Run ingestion now |
+| `POST /api/briefings?refresh=true` | Ingest if `refresh`, then build and freeze a briefing. Returns 404 if no stories match. |
+| `GET /api/briefings/latest`, `GET /api/briefings/{id}` | Briefing payload with story cards |
+| `POST /api/briefings/{id}/read` `{story_id}` | Mark a story read; sets `completed_at` once all are read |
+| `GET /api/stories/{id}?lang=en\|ml` | Story card plus analysis (translated if `ml`) |
+| `POST /api/stories/{id}/explore` `{question, angle, search[], depth, custom, path[], lang}` | One rabbit-hole step |
+| `POST /api/journeys` `{story_id, path[], concepts[]}` | Save to the Passport |
+| `GET /api/passport` | Journeys, concepts, areas, counts |
+
+### D6. Frontend
+
+- **Framework:** Next.js 16 App Router with **Cache Components and Partial Prefetching enabled** (`frontend/next.config.ts`).
+- **Data fetching:** every screen is a **client component** that fetches from the API using `useApi` (`frontend/src/lib/hooks.ts`). There are no server-side data fetches.
+- **API base URL:** `NEXT_PUBLIC_API_URL` if set, otherwise `${location.protocol}//${location.hostname}:8000`. This lets a phone on the same Wi-Fi reach the laptop's backend. Requests are not proxied through Next, because LLM calls can be slow.
+- **Dynamic route:** `/story/[id]`. `page.tsx` is a server component that wraps `story-view.tsx` in `<Suspense>`. This is required because `useParams`, `useSearchParams` and `usePathname` suspend under Cache Components.
+- **Lint constraint:** the react-hooks lint rule `set-state-in-effect` is active. Avoid calling setState synchronously inside effects; derive state, or set it from promise callbacks.
+- **Styling:** Tailwind v4 theme tokens in `frontend/src/app/globals.css` (`paper`, `card`, `ink`, `accent` and others). Fonts are Inter, Newsreader and Noto Sans Malayalam.
+
+### D7. Auth, deployment and observability
+
+- **Auth:** none. Single local user; CORS `*`.
+- **Deployment:** **none configured.** The demo runs locally. There is no Dockerfile, CI or hosting config.
+- **Observability:** stdout logs only.
+
+---
+
+## E. Technology stack
+
+| Layer | Technology (version from manifests) | Rationale (as decided in-session) |
+| --- | --- | --- |
+| Backend language | Python 3.13 (`backend/.python-version`), uv 0.12 | Best ecosystem for scraping and extraction (feedparser, trafilatura) and ML utilities |
+| API | FastAPI ≥0.162, Uvicorn ≥0.54 | Simple async API; Rationale not documented beyond simplicity |
+| Storage | SQLite (stdlib `sqlite3`, WAL mode) | Simplest option for the hackathon; planned move to Postgres + pgvector later |
+| Feeds and extraction | feedparser ≥6.0.14, trafilatura ≥2.3.1, httpx ≥0.28 | trafilatura handles Malayalam pages; Playwright was considered only for sites that need JavaScript (not used) |
+| ML utilities | scikit-learn ≥1.9 (TF-IDF), NumPy ≥2.5 | Clustering and passage ranking without a key |
+| LLM | OpenAI Python SDK ≥3.37, Responses API with `json_object` format | The owner has $50 of OpenAI credit |
+| Models | `gpt-6-luna` (fast, cheap), `gpt-6.1-sol` (rabbit-hole writing), `text-embedding-3-small` | Chosen from the OpenAI pricing page on 2026-10-24 (luna $0.10/$0.50, sol $2/$10, embeddings $0.02 per 1M tokens). Overridable via env vars. |
+| Frontend | Next.js 16.4.3, React 19.3.0, TypeScript 5, Tailwind CSS 4, ESLint 9 (`eslint-config-next`) | Mobile-first PWA; quickest way to demo on a phone; the API is reusable by a future native app |
+| Node | Node 20+ required (dev machine: v26.7.0), npm | — |
+| Background data | Wikipedia (MediaWiki API, CC BY-SA) | Open background source for history and context |
+| Tests | **None** | — |
+| Hosting | **None** (local demo) | — |
+
+---
+
+## F. Repository structure and code navigation
+
+```
+.
+├── PROJECT_CONTEXT.md        ← this file (canonical project memory)
+├── AGENTS.md                 ← agent workflow rules + project commands
+├── RULES.md                  ← event rules (Devin Hacks Kochi) + context-maintenance rules
+├── README.md                 ← human-facing overview, setup, status
+├── CHANGELOG.md              ← timestamped dev log (update with every meaningful change)
+├── AI_USAGE.md               ← record of AI tool contributions
+├── SUBMISSION.md             ← hackathon submission details/checklist
+├── .github/pull_request_template.md
+├── .gitignore                ← ignores .env, node_modules, .venv, .next, backend/data/, …
+├── backend/
+│   ├── pyproject.toml, uv.lock, .python-version, .env.example
+│   ├── data/                 ← runtime state (gitignored): finite.db, llm_cache/
+│   └── app/
+│       ├── main.py           ← FastAPI app, routes, scheduler, prefetch pool  (ENTRY POINT)
+│       ├── config.py         ← env vars, paths, models, MAX_DEPTH, MOCK_MODE
+│       ├── db.py             ← SQLite schema, connection helpers, kv store
+│       ├── taxonomy.py       ← FIELDS/SUBFIELDS (+ keyword hints), STORY_TYPES
+│       ├── sources.py        ← SOURCES credibility index, TIERS, methodology text
+│       ├── ingest.py         ← feed fetch, lang detect, keyword/LLM classify, extract_article
+│       ├── briefing.py       ← profile defaults/validation, build_briefing, payloads, mark_read
+│       ├── retrieval.py      ← story articles, Wikipedia search, passage ranking (gather)
+│       ├── analysis.py       ← ANGLES/TYPE_ANGLES, Missing Piece templates, analyze()
+│       ├── rabbithole.py     ← explore(): synth prompt, verification, extractive fallback, cache
+│       ├── translate.py      ← Malayalam translation of payload string leaves
+│       ├── llm.py            ← chat_json(), embed(), disk cache, mock-mode None
+│       └── textutil.py       ← hashing, HTML cleaning, lang detection, sentence/chunk utils
+└── frontend/
+    ├── package.json, next.config.ts, tsconfig.json, eslint.config.mjs
+    ├── AGENTS.md             ← Next.js-managed note: read node_modules/next/dist/docs first
+    ├── public/icon.svg
+    └── src/
+        ├── lib/api.ts        ← API types, api() fetch helper, base URL, formatters
+        ├── lib/hooks.ts      ← useApi() hook
+        ├── components/ui.tsx           ← Shell (bottom nav), Button, badges, Skeleton, ErrorNote
+        ├── components/profile-editor.tsx ← LanguagePicker, InterestPicker, Exclusions, ScheduleForm
+        ├── components/rabbit-hole.tsx  ← RabbitHole, JourneyMap, StepView
+        ├── components/citations.tsx    ← CitationChips, ConfidenceBadge
+        └── app/
+            ├── layout.tsx, globals.css, manifest.ts, favicon.ico
+            ├── page.tsx                ← redirects to /onboarding or /briefing
+            ├── onboarding/page.tsx     ← intro + 4-step wizard
+            ├── settings/page.tsx       ← tabbed profile editor
+            ├── briefing/page.tsx       ← finite feed + ending
+            ├── story/[id]/page.tsx     ← Suspense wrapper
+            ├── story/[id]/story-view.tsx ← story, Missing Piece, questions, ask-your-own, rabbit hole
+            ├── passport/page.tsx       ← Knowledge Passport
+            └── sources/page.tsx        ← credibility index
+```
+
+**Where to change things:**
+
+| To change… | Edit… |
+| --- | --- |
+| Outlets or weights | `backend/app/sources.py` |
+| Interest categories or keywords | `backend/app/taxonomy.py` |
+| Ranking | `backend/app/briefing.py` |
+| Prompts | `ANALYSIS_SYSTEM` in `analysis.py`; `SYNTH_SYSTEM` and `VERIFY_SYSTEM` in `rabbithole.py`; `SYSTEM` in `translate.py`; `LLM_CLASSIFY_SYSTEM` in `ingest.py` |
+| Depth limit | `MAX_DEPTH` in `config.py` |
+| Theme | `frontend/src/app/globals.css` |
+
+**Tests:** none exist.
+
+---
+
+## G. Setup, execution, testing and deployment
+
+**Prerequisites:** Python 3.13 with uv; Node.js 20+ with npm; internet access (feeds and Wikipedia).
+
+```bash
+# 1. Backend (verified 2026-10-24)
+cd backend
+uv sync
+cp .env.example .env          # optional; set OPENAI_API_KEY to enable AI mode
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+# 2. Frontend (verified 2026-10-24), second terminal
+cd frontend
+npm install
+npm run dev -- -H 0.0.0.0 -p 3000
+# open http://localhost:3000  (phone on same Wi-Fi: http://<laptop-ip>:3000)
+```
+
+**Environment variables** (names only, never commit values; `backend/.env` is gitignored):
+
+| Variable | Where | Purpose | Default |
+| --- | --- | --- | --- |
+| `OPENAI_API_KEY` | backend | Enables AI mode. If empty, `MOCK_MODE = True` (extractive mode). | empty |
+| `FINITE_FAST_MODEL` | backend | Classification, analysis, verification, translation | `gpt-6-luna` |
+| `FINITE_SMART_MODEL` | backend | Rabbit-hole writing | `gpt-6.1-sol` |
+| `FINITE_EMBED_MODEL` | backend | Clustering embeddings | `text-embedding-3-small` |
+| `FINITE_INGEST_INTERVAL_MIN` | backend | Scheduler ingest interval | `60` |
+| `NEXT_PUBLIC_API_URL` | frontend | Override the API base URL | `<same host>:8000` |
+
+**Checks** (all passed on 2026-10-24 at `6612103`; no application code has changed since):
+
+```bash
+cd frontend && npx tsc --noEmit && npx eslint src && npx next build
+cd backend && uv run python -c "import app.main"
+```
+
+There is **no automated test suite**. The API smoke test used was:
+
+- `PUT /api/profile`
+- `POST /api/briefings?refresh=false`
+- `GET /api/stories/{id}`
+- `POST /api/stories/{id}/explore`
+- `POST /api/briefings/{id}/read`
+- `POST /api/journeys`
+
+**Production build:** `cd frontend && npx next build && npm start`. Verified to build; `npm start` has not been verified. Deployment is not configured.
+
+**Resetting state:** delete `backend/data/finite.db` to clear everything; the schema is recreated on startup. Clearing only the profile and briefings via SQL also works (see `db.kv_set` and `db.tx`). Do this only with the owner's consent if the data matters.
+
+**Troubleshooting:**
+
+| Symptom | Cause / fix |
+| --- | --- |
+| UI shows "Can't reach the Finite API" | Backend isn't running on port 8000, or the phone can't reach the laptop's IP. Set `NEXT_PUBLIC_API_URL`. |
+| `POST /api/briefings` returns 404 "No stories matched" | No interests selected, or nothing in the lookback window. Widen the lookback or add interests. |
+| Build error "blocking-prerender … client hook" | A URL hook (`useParams`/`useSearchParams`/`usePathname`) or `new Date()` was rendered outside `<Suspense>`. See D6. |
+| Lint error `set-state-in-effect` | Move setState into a promise callback or derive the value (see `useApi`). |
+| Malayalam shows "translation unavailable" | No `OPENAI_API_KEY`; expected in extractive mode. |
+
+---
+
+## H. Design decisions and rationale
+
+| # | Decision | Why | Alternatives / trade-offs | Status |
+| --- | --- | --- | --- | --- |
+| D1 | **The feed is finite**, with an explicit ending | The core product idea; the owner insists | An infinite feed would retain users better but contradicts the product | Active, non-negotiable |
+| D2 | Rabbit holes have **two levels** (context, then connections) and then end | Curiosity without compulsive consumption | Deeper graphs would cost more and risk endlessness | Active |
+| D3 | **Retrieve sources first, then write.** Every claim is cited, then checked; uncited or unsupported claims are dropped; "insufficient" is an allowed answer. | Hallucination is the biggest risk to a product built on sources | Writing from the model's own knowledge is cheaper but untrustworthy | Active |
+| D4 | **Generate per story and share** (analysis and explorations cached for everyone) | Keeps cost tied to the number of stories, not users ($50 budget) | Personalised generation costs more | Active |
+| D5 | Use models in tiers (luna for bulk, sol for rabbit-hole writing); cache LLM responses on disk | Cost | — | Active |
+| D6 | **Extractive fallback without a key**, labelled in the UI | Works with no key and supports a no-cost demo | Lower quality without a key | Active |
+| D7 | Questions are **chosen per story type** (`TYPE_ANGLES`, or tailored by the LLM), not fixed | Owner: the questions "are not fixed… based on the type of news" | — | Active |
+| D8 | Missing Piece findings feed the rabbit-hole questions | One pipeline serves both features | — | Active |
+| D9 | Ask-your-own allowed, but scoped to the story, answered only from sources, and lower on the page than suggested questions | Prevents it turning into a general chatbot and controls cost | — | Active (rate limiting not built) |
+| D10 | Content: RSS first, then extraction for internal processing only; show own short summaries plus a link; no paywall bypass | Legal and ethical; the owner approved scraping where needed | Republishing full text is legally risky | Active; get legal review before launch |
+| D11 | Public **source credibility index** (tier, weight, rationale); claims grouped by claim, not outlet; no bias meters | Transparency and neutrality (owner's idea plus agent's suggestion) | Left/right bias meters are contested in India | Active; weights are v0 editorial judgements |
+| D12 | **30h default lookback** plus dedupe | 6h overlap so late stories aren't missed | 24h could miss stories; 48h brings in stale ones | Active |
+| D13 | Freeze the briefing 30 min before delivery time | A stable reading experience | — | Active |
+| D14 | Mobile-first **PWA** for the hackathon, with a separate API | Fast to demo on phones; the API can be reused by a future Expo app | An Expo app is slower to build tonight | Active |
+| D15 | Next.js client components plus direct browser→API calls (no proxy) | Avoids proxy timeouts on slow LLM calls; simpler with Cache Components | Server components with caching | Active |
+| D16 | SQLite with no migrations and a single user | Hackathon speed | Postgres + pgvector and auth are planned later | Active (technical debt) |
+| D17 | India first; Malayalam is the first regional language; Malayalam outlets are crawled only if chosen | Owner's market choice; Kochi audience | — | Active |
+| D18 | Name **"Finite"** | Owner's choice from the suggestions | Warren, Undercurrent, Kaaranam, Fathom, Sutra were considered | Active |
+
+---
+
+## I. Current development state
+
+*Snapshot information. Update or replace this section each session.*
+
+| Item | Value (2026-10-24T22:49:59+05:30) |
+| --- | --- |
+| Branch | `main` (tracks `origin/main`) |
+| HEAD | `c589d96 docs: add event docs updated for Devin Hacks Kochi 2026` |
+| Remote | `origin` = https://github.com/akashanil-dev/Finite. At checkpoint preparation, local is **1 commit ahead** (`c589d96`). Owner authorized separate documentation and feature commits and pushes. |
+| Working tree | Clean before this documentation task. This task adds `PROJECT_CONTEXT.md` and edits `AGENTS.md` and `RULES.md`, prepared for the owner-authorized `docs: add shared project context` checkpoint. |
+| Local runtime | `backend/data/finite.db` holds about 1,000 ingested articles and test stories; the passport and briefings were cleared and the profile was reset to not-onboarded. `backend/data/llm_cache/` is empty (no AI calls made). No `backend/.env`. |
+| Recently completed | MVP (8 commits, `b442edd`…`6612103`); event docs (`c589d96`) |
+| Current focus | Next feature: **Perspective Lens** |
+| Pending decisions | The owner's OpenAI key (needed to verify AI mode); the venue name for RULES.md (public pages say "Venue TBC") |
+| Known failures | None in the checks run; see J for quality issues |
+| Deadline | Code freeze **8:00 AM IST, 25 Oct 2026**; record the final SHA in `SUBMISSION.md` |
+
+**Commit history (newest first):**
+
+| SHA | Message |
+| --- | --- |
+| `c589d96` | docs: event docs for Devin Hacks Kochi |
+| `6612103` | feat(frontend): briefing, story, rabbit holes, passport, sources |
+| `6419912` | feat(frontend): design system, API client, onboarding, settings |
+| `4d35d9a` | feat(backend): API routes and scheduler |
+| `6cc040e` | feat(backend): analysis, rabbit holes, translation |
+| `07bba2c` | feat(backend): briefing builder |
+| `ce2936a` | feat(backend): ingestion and LLM wrapper |
+| `78fc50d` | feat(backend): taxonomy, sources, storage |
+| `b442edd` | chore: scaffold |
+
+---
+
+## J. Bugs, limitations and technical debt
+
+Ordered by impact on the demo and the product. *Hypothesis* marks a suspected cause that hasn't been confirmed.
+
+| Sev. | Issue | Where | Notes / workaround |
+| --- | --- | --- | --- |
+| High | **AI mode has never been run.** Calls to the Responses API with `text.format=json_object` and the configured model names are untested. | `llm.py`, all prompts | Needs a real key. Failures are logged and fall back to extractive mode, so the app degrades instead of crashing. |
+| High | **No automated tests** | whole repo | Add a pytest smoke test for the API, plus a frontend build in CI |
+| Med | TF-IDF clustering sometimes **splits one event into two stories** (e.g. two Jamia protest stories, from Mint and from Indian Express + Scroll) | `briefing._cluster` (threshold 0.32) | Embeddings (0.8) with a key should fix it (hypothesis); or tune the threshold |
+| Med | Keyword classification is approximate; Malayalam articles only get the `kerala` source hint, so they rank low | `ingest.keyword_classify` | LLM classification with a key |
+| Med | Generic Missing Piece and question templates without a key | `analysis._extractive` | Expected; AI mode tailors them |
+| Med | Odd extractive follow-up questions ("How does Heinlein connect to this?"), because the proper-noun heuristic picks noise | `rabbithole._extractive`, `analysis.proper_nouns` | Filter by frequency or the story's concepts |
+| Med | No auth; CORS `*`; single user stored in `kv.profile` | `main.py`, `briefing.py` | Fine for a local demo only |
+| Med | Exploration cache key ignores `depth` and `lang`: the same question at a different depth returns the cached payload (and its `depth`) | `rabbithole._key` | Include depth in the key if this matters |
+| Low | `POST /api/briefings` ingests synchronously (about 4–10s) before building | `main.create_briefing` | The UI shows a "Preparing…" state |
+| Low | A story is marked read when it is **opened**, not when finished | `story-view.tsx` | Product decision not documented |
+| Low | Story analysis is cached permanently and never refreshed when the story develops | `analysis.analyze` | Version analyses when new articles join the cluster |
+| Low | Building the dedupe set queries the database once per earlier story (N+1) | `briefing.build_briefing` | Fine at hackathon scale |
+| Low | `articles_seen` in ingest stats counts updates as well as new rows | `ingest.run_ingest` | Cosmetic |
+| Low | Some feeds are blocked or broken: PIB (403), Moneycontrol (403), BOOM (403), Manorama (404), Madhyamam and Mathrubhumi English (connection reset), News18 Malayalam (403), Kerala Kaumudi (403), ISRO (404), Reuters (404), Down To Earth (404), ThePrint and scroll.in direct (0 entries) | `sources.py` (excluded) | Retry, find other feeds, or license them |
+| Low | Google News (Malayalam) links are redirects, so full text isn't extracted (only descriptions) | `sources.py` (`extract=False`) | Accepted |
+| Low | Feed entries without dates are stamped with the fetch time | `ingest.fetch_feed` | — |
+| Info | No migrations; schema changes need a manual migration or a fresh DB | `db.py` | — |
+| Info | Accessibility not audited; no offline or service worker support | frontend | — |
+| Info | Legal grey area for AI processing of publisher content | content pipeline | Legal review before launch |
+
+---
+
+## K. Roadmap and pending tasks
+
+No invented deadlines. The only external deadline is the 8:00 AM IST code freeze on 25 Oct 2026.
+
+### Immediate (hackathon)
+
+| Task | Outcome | Depends on | Components | Acceptance criteria |
+| --- | --- | --- | --- | --- |
+| **Perspective Lens** (approved; next) | A "Perspectives" section on the story page showing how each outlet in the cluster frames the event. With a key: claims grouped as established, disputed or opinion, with supporting outlets and no false balance. Without a key: each outlet's headline and lead sentence side by side, labelled. | Clusters in `briefing.py` | new backend function and endpoint (or a field in the analysis), `story-view.tsx` | Visible for multi-source stories; every claim cited; mode labelled; checks pass |
+| Push pending commits | `origin/main` includes `c589d96` and the next feature | Owner approval | git | `git status` shows the branch up to date with origin |
+| Clustering and classification improvements without a key | Fewer duplicate stories; better topic tags | — | `briefing.py`, `taxonomy.py`, `ingest.py` | The Jamia-style duplicate merges; no regressions in the smoke test |
+| Curiosity Challenges | Before a Level 2 question is revealed, the user picks from 3 options, then it is revealed | — | `rabbit-hole.tsx`, explore payload | Works in both modes; skippable |
+| Verify AI mode | Run with the owner's key; fix any problems with the Responses API, JSON output or prompts; owner checks Malayalam quality | Owner's key | `llm.py`, prompts | Analysis and explore return `mode: "ai"`; verification drops at least one unsupported claim in a test; translation works |
+| Manual UI walkthrough | Onboarding, briefing, story, rabbit hole, ending and passport walked through on a phone | — | frontend | No console errors; ending screens reached |
+| Submission | `SUBMISSION.md` finished; final SHA recorded; demo script | — | docs | Checklist complete before 8:00 AM |
+
+### Short term (after the hackathon)
+
+- Accounts and auth, with per-user profiles, briefings and passports.
+- Postgres + pgvector, and migrations.
+- Rate limiting for ask-your-own, plus matching similar questions to a cached answer.
+- Pytest API tests and CI.
+- Hosted deployment.
+
+### Longer term
+
+- Native app (Expo, reusing the API) with push notifications.
+- A dedicated Time Machine built on an archive of past stories.
+- Connection Explorer across stories.
+- More regional languages.
+- Licensed news feeds, and legal review.
+
+### Optional and exploratory
+
+- An interactive knowledge-graph visualisation (the vision mentions an "interactive map of knowledge"; currently only a linear journey map exists).
+- Knowledge Passport tags concepts with Wikidata IDs. The agent recommended tagging nodes with Wikidata concept IDs from the start; this is not implemented, and concepts are plain strings.
+
+---
+
+## L. Important historical context
+
+**Origin.** The owner arrived with a concept doc for "CuriosityOS" covering the four questions, five stages, priority weights, a 30h lookback, rabbit holes in three levels, and six enhancements:
+
+1. Perspective Lens
+2. Time Machine
+3. Connection Explorer
+4. Curiosity Challenges
+5. Knowledge Passport
+6. The Missing Piece
+
+**Owner instructions and clarifications to preserve:**
+
+- Rabbit-hole questions are **not fixed**; they depend on the story type.
+- The feed **must be finite**.
+- Mobile-first; a native app comes later and is out of hackathon scope.
+- India first; Malayalam is especially wanted. Choosing Malayalam adds Malayalam outlets to the crawl.
+- Keep a confidence-weighted index of outlets, journals and websites, for transparency.
+- Scraping is acceptable where needed.
+- Budget: $50 of OpenAI credit.
+- Team: just the owner and the AI agent; the agent picks languages and frameworks.
+- Name: **Finite**.
+
+**Repository history and process decisions:**
+
+1. The code was first written in a local folder `signal50`, starting from 20:21 IST on 24 Oct. The owner reports starting the project around 20:00 IST during the event. Nothing in that folder was ever committed or pushed.
+2. The organizers shared a template repo (from an older event, "DevDay Exchange", which required Codex). The project was moved into `akashanil-dev/Finite`, created from that template.
+3. The organizers then said the template is optional. On the owner's instruction, the history was rewritten: template files were removed, the work was re-recorded as 8 logical commits with **real, current timestamps (nothing backdated)**, and the branch was force-pushed with the owner's explicit approval.
+4. The template docs were then brought back, **rewritten for Devin Hacks Kochi** (official sources: https://www.devinhacks.in/ and https://luma.com/3v8n74l1; the code freeze time comes from the owner).
+5. Two branches in the template repo (`codex/correct-devin-hack-kochi-*`) are edits by other participants, not the organizers, and were **not** used as a source.
+
+**Rejected or avoided approaches:**
+
+- Infinite feeds.
+- Fixed, hard-coded questions.
+- Per-user AI generation.
+- Bias meters.
+- Republishing full article text.
+- Bypassing paywalls.
+- Backdating or faking commit history.
+- Pushing without the owner's approval.
+
+**Previous implementation problems and how they were solved:**
+
+- **Next 16 Cache Components:** `new Date()` and URL hooks rendered outside `<Suspense>` broke prerendering. Fixed with `useSyncExternalStore` for client-only values, and a Suspense wrapper around `/story/[id]`.
+- **react-hooks `set-state-in-effect` lint:** fixed by rewriting `useApi` to set state only in promise callbacks, and by deriving profile drafts instead of syncing them in effects.
+- **Keyword false positives** ("French Open" matched open source): fixed by adding phrase keywords (underscore-joined n-grams) and requiring at least 2 keyword hits.
+
+**Outstanding questions:**
+
+- When will the owner provide the OpenAI key?
+- What is the exact venue name?
+- Should the AI evaluators be pointed to anything specific? (The owner noted that the first round of judging is done by AI, which is why the CHANGELOG timeline is explicit.)
+
+---
+
+## M. Instructions for Incoming AI Agents
+
+This document is a **map, not the territory**. Always verify against the code.
+
+1. **Read** this file (at least sections 0, C, I, J and K).
+2. **Read** [AGENTS.md](AGENTS.md) (workflow, commit and documentation rules, commands) and [RULES.md](RULES.md) (event rules and deadline).
+3. **Inspect the repository state:** `git status`, `git log --oneline -10`, and `git status -sb` for ahead/behind. **Preserve any uncommitted work.** Do not reset, discard, rewrite history or force-push without the owner's explicit instruction.
+4. **Examine the relevant source files** for your task, using [F](#f-repository-structure-and-code-navigation).
+5. **Verify the architecture** in [D](#d-system-architecture) against the code you touch. Before changing frontend routing or data fetching, read `frontend/node_modules/next/dist/docs/`; Next 16 differs from older versions.
+6. **Identify the current milestone** from [I](#i-current-development-state) and [K](#k-roadmap-and-pending-tasks).
+7. **Review the known bugs** in [J](#j-bugs-limitations-and-technical-debt) before debugging.
+8. **Preserve the non-negotiables:** the feed stays finite, rabbit holes stay depth-limited, claims stay cited, the app works without a key, no secrets are committed.
+9. **Ask the owner** when requirements conflict or a decision is essential (for example product direction, pushing, or destructive git operations).
+10. **Continue from the verified state.** Run the checks in [G](#g-setup-execution-testing-and-deployment) before and after your change. When you finish, update this file (feature inventory, architecture, bugs, roadmap, maintenance log), plus `CHANGELOG.md`, `README.md` and `AI_USAGE.md` as applicable.
+
+If this document conflicts with the repository, **investigate and fix the documentation, or flag the discrepancy**. Do not silently assume either one is correct.
+
+---
+
+## Context Maintenance Log
+
+**Last verified against repository:** 2026-10-24T22:49:59+05:30 · commit `c589d96` · branch `main`
+
+| Date | Change | Affected sections | Verification |
+| --- | --- | --- | --- |
+| 2026-10-24T22:49:59+05:30 | Created PROJECT_CONTEXT.md from a full repository inspection and the development-session history | All | Routes, env vars, schema, file tree, versions and git state checked against the repository at `c589d96`. Feature statuses come from the 2026-10-24 smoke test and checks (tsc, eslint, next build, backend import) without a key. AI mode not verified. |
+
+| 2026-10-24T23:08:19+05:30 | Reviewed and prepared shared-context checkpoint; owner authorized commit and push | I, README, changelog and AI usage | Source inspection and diff check; checkpoint commit: `docs: add shared project context` (SHA assigned on commit) |

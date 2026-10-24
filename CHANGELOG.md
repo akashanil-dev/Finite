@@ -2,6 +2,13 @@
 
 Meaningful project changes during Devin Hacks Kochi, newest first. Timestamps are IST (UTC+05:30).
 
+## 2026-10-24T23:08:19+05:30 — Shared project context
+
+- Changed: Added PROJECT_CONTEXT.md and maintenance rules in AGENTS.md and RULES.md; linked the context from README.md.
+- Why: Preserve requirements, architecture, verification limits and handoff instructions across agents.
+- Validation: Reviewed documentation against source files and Git state; git diff --check passed. No runtime checks in this documentation checkpoint.
+- Limitations: Prior test results remain historical; original assistant chat replies were unavailable through chat retrieval.
+
 ## 2026-10-24T22:43:23+05:30 — Event documentation for Devin Hacks Kochi
 
 - Changed: Added `RULES.md`, `AGENTS.md`, `CHANGELOG.md`, `AI_USAGE.md`, `SUBMISSION.md` and `.github/pull_request_template.md`, adapted from the community-hackathon template the organizers first shared. Updated for Devin Hacks Kochi: event name, 24–25 October 2026 dates, 5:00 PM start, 8:00 AM code freeze, 11:00 AM wrap-up, solo format, hosts, prizes and links. Replaced the Codex requirements with Devin. Merged the template's extra ignore rules into `.gitignore` and added an event section to `README.md`.
