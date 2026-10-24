@@ -80,3 +80,8 @@ Production desktop browser QA passed on an isolated database with the API key di
 
 25 backend tests/import and TypeScript/ESLint/production build passed at implementation checkpoint. No AI calls; ledger unchanged at $0.776700 reserved, $0.223300 remaining, 15 requests. Shared mentions are not causal relationships; richer semantic links remain future work.
 Codex performed browser verification and documentation reconciliation; human review pending.
+
+## 2026-10-25T01:14:28+05:30 — Interactive knowledge graph
+
+Added a finite selectable knowledge map to Connection Explorer with a starting story, labelled shared-mention branches, keyboard-operable story nodes, selection state and cited evidence on both sides. List view retained; no recursive expansion, new dependencies, backend changes or AI calls. Files: `connection-explorer.tsx`, `story-view.tsx`. TypeScript, ESLint and production build passed. Browser QA pending. Literal-mention discovery limitations remain.
+Codex implemented and validated the map; human review pending.

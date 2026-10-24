@@ -221,6 +221,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Seven backend/API tests, desktop/mobile browser QA and production build pass; real-key sample passed; broader quality review pending |
 | Curiosity Challenges | Optional three-hypothesis prediction before Level 2; reveal, skip, reflect and save | COMPLETE in extractive mode | `curiosity-challenge.tsx`, `rabbit-hole.tsx`, Passport | Desktop/mobile browser QA passed; live AI journey/Passport sample passed; no extra AI generation |
 | Connection Explorer | Three finite source-backed cross-story comparisons | COMPLETE (v1; desktop browser verified) | `connections.py`, `connection-explorer.tsx` | Literal saved-concept matching; no causal inference |
+| Interactive knowledge graph | Selectable source-backed story map with list alternative | IMPLEMENTED (browser QA pending) | `connection-explorer.tsx` | Literal shared mentions only; maximum three branches |
 | Push notifications | "Briefing ready" alert | PROPOSED | — | — |
 | Accounts and auth | Multiple users | PROPOSED | — | Needed before a public launch |
 | Native mobile app | Expo app reusing the API | PROPOSED (owner wants it after the hackathon) | — | — |
@@ -230,6 +231,8 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 AI budget guard: persistent $1 conservative reservation allowance in `backend/data/ai_budget.sqlite3`; atomic across local workers, no refunds/reset, 100 requests maximum, reviewed models only. Four guard tests and backend import pass; live testing follows. `GET /api/ai-budget` exposes reservations, not billing.
 
 ## D. System architecture
+
+Knowledge graph: client-only view of the existing connections endpoint. At most three selectable nodes reveal stored citations; no new endpoint, schema or provider calls.
 
 Connection Explorer: GET `/api/stories/{id}/connections` reads saved concepts and articles only; latest 200 candidates, maximum three cited inline comparisons. Profile exclusions/languages and overlapping articles/URLs are filtered. No schema changes or AI calls.
 
@@ -526,6 +529,8 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+D24 — Use a finite responsive tree map with native buttons and a list alternative, rather than a free-panning canvas. Nodes reveal evidence without fetching or recursive expansion.
+
 D23 — Connection Explorer uses cited shared mentions from stored coverage, with inline comparisons and a three-result ending. This avoids unsupported causal claims, recursive story recommendations and new API spending.
 
 | # | Decision | Why | Alternatives / trade-offs | Status |
@@ -556,6 +561,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 ---
 
 ## I. Current development state
+
+2026-10-25T01:14:28+05:30 — Knowledge graph implemented; frontend checks pass, browser QA pending. No API calls. Ledger baseline now $0.002888 remaining (32 requests), following owner testing.
 
 2026-10-25T00:46:14+05:30 — Connection Explorer v1 complete, implementation `2aa0da1` pushed; browser evidence/retry/empty/end-state checks passed. API allowance unchanged: $0.223300. Mobile-specific QA not performed.
 
@@ -666,7 +673,7 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ### Optional and exploratory
 
-- An interactive knowledge-graph visualisation (the vision mentions an "interactive map of knowledge"; currently only a linear journey map exists).
+- Interactive knowledge graph v1 implemented in Connection Explorer; browser QA pending. Semantic expansion remains future work.
 - Knowledge Passport tags concepts with Wikidata IDs. The agent recommended tagging nodes with Wikidata concept IDs from the start; this is not implemented, and concepts are plain strings.
 
 ---
@@ -780,3 +787,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T00:44:56+05:30 | `feat: add source-backed connection explorer` | C, D, H, I, J, K; README, submission, changelog, AI usage | 25 tests/import, tsc/ESLint/build; browser QA pending |
 
 | 2026-10-25T00:46:14+05:30 | `docs: record connection explorer browser validation`, based on `2aa0da1` | C, I, K, M; submission, changelog, AI usage | Production desktop browser matches/citations/retry/empty/end; no API spending |
+
+| 2026-10-25T01:14:28+05:30 | `feat: add interactive knowledge graph` | C, D, H, I, K; README, changelog, AI usage | tsc, ESLint, production build; browser QA pending |

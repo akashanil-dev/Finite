@@ -114,3 +114,5 @@ This feature reads stored text only and makes no AI calls. It recognizes English
 
 ### Connection Explorer
 Open **Connection Explorer** on a story to compare up to three other stored stories sharing a saved concept. Expand **Compare source evidence** for quotations and original-source citations on both sides. This is literal shared-mention discovery, not causal inference; synonyms/translations may be missed. It respects language/source/topic exclusions and needs no additional AI calls.
+
+Connection Explorer opens in **Knowledge map** view. Select a story node to reveal quoted evidence and citations from both stories; **List view** retains the original comparison cards. The map has at most three branches and uses no additional AI calls.

@@ -142,7 +142,7 @@ export default function StoryView() {
           </section>
 
           <PerspectiveLens key={id} storyId={id} />
-          <ConnectionExplorer key={`connections-${id}`} storyId={id} />
+          <ConnectionExplorer key={`connections-${id}`} storyId={id} storyTitle={s.card.title} />
           <TimeMachine key={`timeline-${id}`} storyId={id} />
 
           {a.missing_piece.length > 0 && (
