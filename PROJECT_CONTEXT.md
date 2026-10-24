@@ -190,7 +190,7 @@ Status meanings:
 - **BLOCKED:** waiting on a dependency or decision.
 - **DEPRECATED:** no longer part of the product.
 
-"Verified" here means it was exercised via the API smoke test and/or page loads in **extractive (no-key) mode** on 2026-10-24. The original MVP had no automated tests; Perspective Lens now has six focused tests. No full manual browser walkthrough has been recorded.
+"Verified" here means it was exercised via the API smoke test and/or page loads in **extractive (no-key) mode** on 2026-10-24. The original MVP had no automated tests; Perspective Lens now has seven focused tests. No full manual browser walkthrough has been recorded.
 
 | Feature | Description | Status | Relevant files | Remaining work |
 | --- | --- | --- | --- | --- |
@@ -218,7 +218,7 @@ Status meanings:
 | Knowledge Passport | Saved journeys, concept cloud, fields explored, counts | IMPLEMENTED / UNVERIFIED (API verified) | `backend/app/main.py` (`/api/passport`), `frontend/src/app/passport/page.tsx` | Manual walkthrough |
 | Citations UI | Citation chips with popovers (source, weight, link); confidence badges | IMPLEMENTED / UNVERIFIED | `frontend/src/components/citations.tsx` | Manual walkthrough |
 | PWA manifest | Installable app manifest and icon | IMPLEMENTED / UNVERIFIED | `frontend/src/app/manifest.ts`, `frontend/public/icon.svg` | No service worker or offline support |
-| Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Six backend/API tests pass; real-key quality, browser walkthrough and production build pending |
+| Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Seven backend/API tests, desktop/mobile browser QA and production build pass; real-key quality pending |
 | Curiosity Challenges | Predict the connection before it is revealed | PLANNED | — | Build it (see K) |
 | Connection Explorer | Links across stories | PROPOSED | — | Needs design |
 | Push notifications | "Briefing ready" alert | PROPOSED | — | — |
@@ -376,7 +376,7 @@ There are no migrations. The `SCHEMA` uses `CREATE TABLE IF NOT EXISTS`, and cha
 | Frontend | Next.js 16.4.3, React 19.3.0, TypeScript 5, Tailwind CSS 4, ESLint 9 (`eslint-config-next`) | Mobile-first PWA; quickest way to demo on a phone; the API is reusable by a future native app |
 | Node | Node 20+ required (dev machine: v26.7.0), npm | — |
 | Background data | Wikipedia (MediaWiki API, CC BY-SA) | Open background source for history and context |
-| Tests | Python unittest (six Perspective Lens tests) | Fixtures and API routing; no live AI calls |
+| Tests | Python unittest (seven Perspective Lens tests) | Fixtures and API routing; no live AI calls |
 | Hosting | **None** (local demo) | — |
 
 ---
@@ -538,20 +538,19 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## I. Current development state
 
-*Latest task update: 2026-10-24T23:12:02+05:30. Base documentation checkpoint `9545897` was pushed to origin/main. Perspective Lens is being committed as `feat: add perspective lens`; its SHA is assigned on commit. Six tests, backend import, TypeScript and ESLint pass. Build blocked by Turbopack CSS worker port binding even after elevated retry. Real-key AI and browser review pending. The table below retains the earlier handoff snapshot where not superseded by this update.*
+*Current verification: 2026-10-24T23:18:29+05:30, based on pushed feature commit `7777c34` plus the browser-QA fixes in this checkpoint (`fix: polish perspective lens after browser QA`; SHA assigned at commit).*
 
-| Item | Value (2026-10-24T22:49:59+05:30) |
+| Item | Current state |
 | --- | --- |
-| Branch | `main` (tracks `origin/main`) |
-| HEAD | `c589d96 docs: add event docs updated for Devin Hacks Kochi 2026` |
-| Remote | `origin` = https://github.com/akashanil-dev/Finite. At checkpoint preparation, local is **1 commit ahead** (`c589d96`). Owner authorized separate documentation and feature commits and pushes. |
-| Working tree | Clean before this documentation task. This task adds `PROJECT_CONTEXT.md` and edits `AGENTS.md` and `RULES.md`, prepared for the owner-authorized `docs: add shared project context` checkpoint. |
-| Local runtime | `backend/data/finite.db` holds about 1,000 ingested articles and test stories; the passport and briefings were cleared and the profile was reset to not-onboarded. `backend/data/llm_cache/` is empty (no AI calls made). No `backend/.env`. |
-| Recently completed | MVP (8 commits, `b442edd`…`6612103`); event docs (`c589d96`) |
-| Current focus | Perspective Lens implemented; live AI and browser validation pending, followed by remaining hackathon roadmap |
-| Pending decisions | The owner's OpenAI key (needed to verify AI mode); the venue name for RULES.md (public pages say "Venue TBC") |
-| Known failures | None in the checks run; see J for quality issues |
-| Deadline | Code freeze **8:00 AM IST, 25 Oct 2026**; record the final SHA in `SUBMISSION.md` |
+| Branch | `main`, tracks `origin/main`; owner authorized checkpoint commits and pushes |
+| Completed checkpoints | Event docs, shared context `9545897`, Perspective Lens `7777c34` pushed |
+| Current work | Browser-discovered excerpt/citation/mobile fixes verified and ready for checkpoint |
+| Verification | Seven unittest cases, backend import, TypeScript, ESLint and standard production build pass |
+| Browser | Production frontend checked on desktop and 390px mobile: loading, collapse, single publisher, error/retry, fixture AI claims/citations and existing Jamia coverage; final pages had no console warnings/errors |
+| Build resolution | Fresh `.next` cache in a port-capable environment; subsequent incremental builds pass. No build config changes |
+| Data | Browser QA used a temporary SQLite copy and labelled fixtures, with scheduler disabled; user database preserved |
+| Remaining | Real-key AI/translation quality; broader application walkthrough; Curiosity Challenges and remaining roadmap |
+| Deadline | Code freeze 8:00 AM IST, 25 October 2026; final submission SHA still pending |
 
 **Commit history (newest first):**
 
@@ -571,14 +570,14 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## J. Bugs, limitations and technical debt
 
-Perspective Lens limitations: real-key generation and browser review pending; build currently blocked by environment port permissions. At most eight distinct publisher hostnames; syndication/shared ownership are not detected. Comparison uses stored excerpts, and generated text is English only.
+Perspective Lens limitations: real-key generation quality remains pending. Browser QA and production build pass; fresh generated cache and a port-capable environment resolved the prior build failure. At most eight distinct publisher hostnames; syndication/shared ownership are not detected. Comparison uses stored excerpts, and generated text is English only.
 
 Ordered by impact on the demo and the product. *Hypothesis* marks a suspected cause that hasn't been confirmed.
 
 | Sev. | Issue | Where | Notes / workaround |
 | --- | --- | --- | --- |
 | High | **AI mode has never been run.** Calls to the Responses API with `text.format=json_object` and the configured model names are untested. | `llm.py`, all prompts | Needs a real key. Failures are logged and fall back to extractive mode, so the app degrades instead of crashing. |
-| High | **Limited automated coverage** | whole repo | Six Perspective Lens tests exist; broader API regression coverage and CI remain pending |
+| High | **Limited automated coverage** | whole repo | Seven Perspective Lens tests exist; broader API regression coverage and CI remain pending |
 | Med | TF-IDF clustering sometimes **splits one event into two stories** (e.g. two Jamia protest stories, from Mint and from Indian Express + Scroll) | `briefing._cluster` (threshold 0.32) | Embeddings (0.8) with a key should fix it (hypothesis); or tune the threshold |
 | Med | Keyword classification is approximate; Malayalam articles only get the `kerala` source hint, so they rank low | `ingest.keyword_classify` | LLM classification with a key |
 | Med | Generic Missing Piece and question templates without a key | `analysis._extractive` | Expected; AI mode tailors them |
@@ -607,7 +606,7 @@ No invented deadlines. The only external deadline is the 8:00 AM IST code freeze
 
 | Task | Outcome | Depends on | Components | Acceptance criteria |
 | --- | --- | --- | --- | --- |
-| **Perspective Lens validation** (implementation added) | A "Perspectives" section on the story page showing how each outlet in the cluster frames the event. With a key: claims grouped as established, disputed or opinion, with supporting outlets and no false balance. Without a key: each outlet's headline and lead sentence side by side, labelled. | Clusters in `briefing.py` | new backend function and endpoint (or a field in the analysis), `story-view.tsx` | Visible for multi-source stories; every claim cited; mode labelled; checks pass |
+| **Perspective Lens live AI validation** (backend/UI/build verified) | A "Perspectives" section on the story page showing how each outlet in the cluster frames the event. With a key: claims grouped as established, disputed or opinion, with supporting outlets and no false balance. Without a key: each outlet's headline and lead sentence side by side, labelled. | Clusters in `briefing.py` | new backend function and endpoint (or a field in the analysis), `story-view.tsx` | Backend fixtures and desktop/mobile browser checks pass; remaining: live-key quality and support verification |
 | Push feature checkpoint | Documentation checkpoint `9545897` and earlier event docs pushed; Perspective Lens checkpoint authorized | Owner approval received | git | Confirm clean tree and remote SHA after push |
 | Clustering and classification improvements without a key | Fewer duplicate stories; better topic tags | — | `briefing.py`, `taxonomy.py`, `ingest.py` | The Jamia-style duplicate merges; no regressions in the smoke test |
 | Curiosity Challenges | Before a Level 2 question is revealed, the user picks from 3 options, then it is revealed | — | `rabbit-hole.tsx`, explore payload | Works in both modes; skippable |
@@ -724,3 +723,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-24T23:08:19+05:30 | Reviewed and prepared shared-context checkpoint; owner authorized commit and push | I, README, changelog and AI usage | Source inspection and diff check; checkpoint commit: `docs: add shared project context` (SHA assigned on commit) |
 
 | 2026-10-24T23:12:02+05:30 | Implemented Perspective Lens; checkpoint `feat: add perspective lens` (SHA assigned on commit), based on pushed `9545897` | C, D, E, F, G, H, I, J, K; README, submission, changelog and AI usage | Six tests, import, tsc and ESLint pass; build environment-blocked; live AI/UI pending |
+
+| 2026-10-24T23:18:29+05:30 | Browser QA and fixes; checkpoint `fix: polish perspective lens after browser QA`, based on `7777c34` | C, E, G, I, J, K; README, changelog, AI usage | Seven tests/import/tsc/ESLint/build pass; production UI checked desktop/mobile with fixtures and stored news; live AI pending |

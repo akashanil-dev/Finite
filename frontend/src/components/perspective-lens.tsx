@@ -21,7 +21,7 @@ export function PerspectiveLens({ storyId }: { storyId: string }) {
     <section className="mt-4 rounded-3xl border border-line bg-card p-5">
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="perspective-content" className="flex w-full items-center justify-between gap-3 text-left">
         <span><span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">Perspective Lens</span><span className="mt-1 block font-serif text-xl">How is this story being covered?</span></span>
-        <span className="text-sm text-accent">{open ? "Hide −" : "Compare +"}</span>
+        <span className="shrink-0 whitespace-nowrap text-sm text-accent">{open ? "Hide −" : "Compare +"}</span>
       </button>
       {open && <div id="perspective-content" className="mt-4">
         {loading && <div role="status"><p className="mb-3 text-xs text-muted">Comparing the available coverage…</p><Skeleton lines={5} /></div>}

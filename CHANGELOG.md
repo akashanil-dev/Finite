@@ -2,6 +2,14 @@
 
 Meaningful project changes during Devin Hacks Kochi, newest first. Timestamps are IST (UTC+05:30).
 
+## 2026-10-24T23:18:29+05:30 — Perspective Lens browser QA and fixes
+
+- Changed: Preserve short opening sentences in perspectives.py; regression test added. Citation chips show full publisher names and expose expanded state/accessibility labels. Keep the Lens toggle on one line on mobile. README documents recovery from a cached Turbopack port-permission failure.
+- Why: Browser QA exposed skipped short lead sentences, ambiguous “The” citation labels and a wrapping Hide control.
+- Validation: Seven backend/API tests and backend import passed; TypeScript, ESLint and standard production build passed. Fresh generated .next cache plus a port-capable execution environment resolved the earlier build failure; subsequent incremental builds passed too. No dependency or framework config changes.
+- Browser checks: Production frontend with isolated temporary SQLite copy and labelled QA fixtures. Verified loading, expand/collapse, single-publisher explanation, injected HTTP 503 and successful retry, AI claim rendering with controlled responses, citation popovers/links, existing multi-publisher Jamia coverage, desktop and 390px mobile layout, and no horizontal overflow. Final AI and real-news pages had no console warnings/errors.
+- Limitations: AI responses were fixtures, not real-key calls; live generation quality remains unverified. User database was not used for QA writes. Temporary QA API/frontend used ports 8100/3101; final build restored the default API configuration.
+
 ## 2026-10-24T23:12:02+05:30 — Perspective Lens
 
 - Changed: Added backend/app/perspectives.py, GET /api/stories/{story_id}/perspectives, and the on-demand story-page Perspective Lens component. Added backend/tests/test_perspectives.py; updated README, submission demo and project context.

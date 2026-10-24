@@ -36,6 +36,12 @@ class PerspectiveTests(unittest.TestCase):
         for override in [{"citations": ["fake"]}, {"citations": []}, {"category": "established"}, {"category": "disputed"}, {"category": "bias"}, {"category": []}, {"text": None}]:
             self.assertEqual(p._claims({"claims": [{**base, **override}]}, {"P1"}), [])
 
+    def test_short_lead_sentence_is_preserved(self):
+        a = article("1", "indianexpress")
+        a["description"] = "The vote passed. Residents welcomed the proposal after a long debate."
+        out = self.compare([a], [])
+        self.assertEqual(out["outlets"][0]["excerpt"], "The vote passed.")
+
     def test_missing_story(self):
         with patch.object(p.db, "query", return_value=[]):
             self.assertIsNone(p.compare("missing"))

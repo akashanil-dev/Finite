@@ -74,6 +74,10 @@ cd backend && uv run python -c "import app.main"
 uv run python -m unittest discover -s tests -v
 ```
 
+### Build troubleshooting
+
+If a restricted agent run fails with a Turbopack CSS-worker `binding to a port: Operation not permitted` error, run the build in an environment that permits local ports. If the same error persists after permissions are restored, move the generated `frontend/.next` directory aside and rebuild. A fresh cache resolved this failure during browser QA; no framework/configuration changes were needed. Do not move `.next` while serving the production build.
+
 ## Status
 
 - **Working, tested without an AI key:** reading 29 English and Malayalam feeds, sorting stories into topics, grouping duplicates, weighted ranking, frozen briefings with read progress and completion, story summaries and questions, rabbit holes with a depth limit, ask-your-own, Knowledge Passport, the sources page, and the scheduler.
@@ -83,7 +87,7 @@ uv run python -m unittest discover -s tests -v
   - Topic sorting without a key is approximate.
   - Duplicate grouping without a key sometimes splits one event into two stories.
   - Source weights are editorial judgements.
-  - Perspective Lens is implemented with fixture-tested AI handling; real-key quality and browser review remain pending. Curiosity Challenges are planned.
+  - Perspective Lens is implemented with fixture-tested AI handling; desktop/mobile browser checks pass; real-key quality remains pending. Curiosity Challenges are planned.
 
 ## Data and attribution
 

@@ -16,11 +16,13 @@ export function CitationChips({ refs, lookup }: { refs: string[]; lookup: (ref: 
           <button
             key={r}
             onClick={() => setOpen(open === r ? null : r)}
+            aria-expanded={open === r}
+            aria-label={`Citation: ${i?.name ?? r}`}
             className={`ml-1 inline-flex translate-y-[-1px] items-center rounded-md px-1.5 py-0.5 align-middle text-[10px] font-semibold ${
               i?.kind === "background" ? "bg-[#e7e3f1] text-[#3d3570]" : "bg-accent-soft text-accent"
             }`}
           >
-            {i?.name ? i.name.split(" ")[0] : r}
+            {i?.name ? i.name : r}
           </button>
         );
       })}
