@@ -219,7 +219,7 @@ Status meanings:
 | Citations UI | Citation chips with popovers (source, weight, link); confidence badges | IMPLEMENTED / UNVERIFIED | `frontend/src/components/citations.tsx` | Manual walkthrough |
 | PWA manifest | Installable app manifest and icon | IMPLEMENTED / UNVERIFIED | `frontend/src/app/manifest.ts`, `frontend/public/icon.svg` | No service worker or offline support |
 | Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Seven backend/API tests, desktop/mobile browser QA and production build pass; real-key quality pending |
-| Curiosity Challenges | Optional three-hypothesis prediction before Level 2; reveal, skip, reflect and save | IMPLEMENTED / browser QA pending | `curiosity-challenge.tsx`, `rabbit-hole.tsx`, Passport | Browser checks next; no extra AI generation |
+| Curiosity Challenges | Optional three-hypothesis prediction before Level 2; reveal, skip, reflect and save | COMPLETE in extractive mode | `curiosity-challenge.tsx`, `rabbit-hole.tsx`, Passport | Desktop/mobile browser QA passed; live AI integration validation deferred; no extra AI generation |
 | Connection Explorer | Links across stories | PROPOSED | — | Needs design |
 | Push notifications | "Briefing ready" alert | PROPOSED | — | — |
 | Accounts and auth | Multiple users | PROPOSED | — | Needed before a public launch |
@@ -356,7 +356,7 @@ There are no migrations. The `SCHEMA` uses `CREATE TABLE IF NOT EXISTS`, and cha
 
 ### D8. Curiosity Challenges
 
-A client-side optional three-choice prediction precedes the existing Level 2 explore request. Choices are hypotheses (shared history, similar mechanism, wider impact), not scored claims. Reveal/skip makes the normal request; cancel makes none. The prediction is kept through retries, shown beside Level 2, and saved as an optional `prediction` string in the existing journey path JSON. Passport displays it. No schema change or added AI call. Exploration cache v2 includes depth and retrieval inputs to preserve the final endpoint.
+A client-side optional three-choice prediction precedes the existing Level 2 explore request. Choices are hypotheses (shared history, similar mechanism, wider impact), not scored claims. Reveal/skip makes the normal request; cancel makes none. The prediction is kept through retries, shown beside Level 2, and saved as an optional `prediction` string in the existing journey path JSON. Passport displays it. No schema change or added AI call. Challenge heading receives keyboard focus. Save failures show a retry action and preserve the prediction; saving disables repeat clicks. Exploration cache v2 includes depth and retrieval inputs to preserve the final endpoint.
 
 ### D9. Auth, deployment and observability
 
@@ -380,7 +380,7 @@ A client-side optional three-choice prediction precedes the existing Level 2 exp
 | Frontend | Next.js 16.4.3, React 19.3.0, TypeScript 5, Tailwind CSS 4, ESLint 9 (`eslint-config-next`) | Mobile-first PWA; quickest way to demo on a phone; the API is reusable by a future native app |
 | Node | Node 20+ required (dev machine: v26.7.0), npm | — |
 | Background data | Wikipedia (MediaWiki API, CC BY-SA) | Open background source for history and context |
-| Tests | Python unittest (seven Perspective Lens tests) | Fixtures and API routing; no live AI calls |
+| Tests | Python unittest (seven Perspective Lens tests plus two depth-cache/journey tests) | Fixtures and API routing; no live AI calls |
 | Hosting | **None** (local demo) | — |
 
 ---
@@ -449,7 +449,7 @@ A client-side optional three-choice prediction precedes the existing Level 2 exp
 | Depth limit | `MAX_DEPTH` in `config.py` |
 | Theme | `frontend/src/app/globals.css` |
 
-**Tests:** `backend/tests/test_perspectives.py` covers Perspective Lens and its API route.
+**Tests:** `backend/tests/test_perspectives.py` covers Perspective Lens and its API route; `test_exploration_depth.py` covers depth-safe caching and saved predictions.
 
 ---
 
@@ -543,18 +543,18 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## I. Current development state
 
-*Current verification: 2026-10-24T23:18:29+05:30, based on pushed feature commit `7777c34` plus the browser-QA fixes in this checkpoint (`fix: polish perspective lens after browser QA`; SHA assigned at commit).*
+*Current verification: 2026-10-24T23:32:53+05:30, based on pushed `47bedbd` plus Curiosity Challenges QA fixes (`fix: handle challenge journey retries and focus`; SHA assigned at commit). No key used; stop before live AI validation.*
 
 | Item | Current state |
 | --- | --- |
 | Branch | `main`, tracks `origin/main`; owner authorized checkpoint commits and pushes |
 | Completed checkpoints | Event docs, shared context `9545897`, Perspective Lens `7777c34` pushed |
-| Current work | Curiosity Challenges implemented; browser QA next. Prior QA checkpoint `a1e06b5` pushed |
-| Verification | Seven unittest cases, backend import, TypeScript, ESLint and standard production build pass |
+| Current work | Curiosity Challenges `47bedbd` pushed; browser QA fixes verified in `fix: handle challenge journey retries and focus` checkpoint |
+| Verification | Nine unittest cases, backend import, TypeScript, ESLint and standard production build pass |
 | Browser | Production frontend checked on desktop and 390px mobile: loading, collapse, single publisher, error/retry, fixture AI claims/citations and existing Jamia coverage; final pages had no console warnings/errors |
 | Build resolution | Fresh `.next` cache in a port-capable environment; subsequent incremental builds pass. No build config changes |
 | Data | Browser QA used a temporary SQLite copy and labelled fixtures, with scheduler disabled; user database preserved |
-| Remaining | Curiosity Challenges browser QA; stop before real-key AI/translation validation as instructed; broader application walkthrough |
+| Remaining | STOP before real-key AI/translation validation until owner provides a key; broader application walkthrough and roadmap remain |
 | Deadline | Code freeze 8:00 AM IST, 25 October 2026; final submission SHA still pending |
 
 **Commit history (newest first):**
@@ -614,7 +614,7 @@ No invented deadlines. The only external deadline is the 8:00 AM IST code freeze
 | **Perspective Lens live AI validation** (backend/UI/build verified) | A "Perspectives" section on the story page showing how each outlet in the cluster frames the event. With a key: claims grouped as established, disputed or opinion, with supporting outlets and no false balance. Without a key: each outlet's headline and lead sentence side by side, labelled. | Clusters in `briefing.py` | new backend function and endpoint (or a field in the analysis), `story-view.tsx` | Backend fixtures and desktop/mobile browser checks pass; remaining: live-key quality and support verification |
 | Push feature checkpoint | Documentation checkpoint `9545897` and earlier event docs pushed; Perspective Lens checkpoint authorized | Owner approval received | git | Confirm clean tree and remote SHA after push |
 | Clustering and classification improvements without a key | Fewer duplicate stories; better topic tags | — | `briefing.py`, `taxonomy.py`, `ingest.py` | The Jamia-style duplicate merges; no regressions in the smoke test |
-| Curiosity Challenges QA | Three optional hypotheses before revealing Level 2; ungraded reflection, saved prediction | Implementation ready | Challenge/rabbit-hole/Passport UI | Verify prediction, skip, cancel, retry, two-level ending and saved prediction in browser; live AI deferred |
+| Curiosity Challenges | No-key implementation and browser QA complete | `47bedbd` plus QA checkpoint | Challenge/rabbit-hole/Passport UI | Prediction, skip, cancel, retry, ending and saved prediction verified; live AI deferred |
 | Verify AI mode | Run with the owner's key; fix any problems with the Responses API, JSON output or prompts; owner checks Malayalam quality | Owner's key | `llm.py`, prompts | Analysis and explore return `mode: "ai"`; verification drops at least one unsupported claim in a test; translation works |
 | Manual UI walkthrough | Onboarding, briefing, story, rabbit hole, ending and passport walked through on a phone | — | frontend | No console errors; ending screens reached |
 | Submission | `SUBMISSION.md` finished; final SHA recorded; demo script | — | docs | Checklist complete before 8:00 AM |
@@ -732,3 +732,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-24T23:18:29+05:30 | Browser QA and fixes; checkpoint `fix: polish perspective lens after browser QA`, based on `7777c34` | C, E, G, I, J, K; README, changelog, AI usage | Seven tests/import/tsc/ESLint/build pass; production UI checked desktop/mobile with fixtures and stored news; live AI pending |
 
 | 2026-10-24T23:28:09+05:30 | Curiosity Challenges implementation checkpoint `feat: add curiosity challenges`, based on `a1e06b5` | C, D, H, I, J, K and user docs | Nine backend tests/import pass; core frontend checks pass; browser QA next; no key used |
+
+| 2026-10-24T23:32:53+05:30 | Curiosity Challenges browser QA checkpoint `fix: handle challenge journey retries and focus`, based on `47bedbd` | C, D, E, F, I, K, README, changelog, AI usage | Desktop/mobile no-key browser flows verified; nine tests/import and final tsc/ESLint/build pass; STOP before live AI validation |

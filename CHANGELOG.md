@@ -2,6 +2,14 @@
 
 Meaningful project changes during Devin Hacks Kochi, newest first. Timestamps are IST (UTC+05:30).
 
+## 2026-10-24T23:32:53+05:30 — Curiosity Challenges browser QA
+
+- Changed: Focus the challenge heading when it opens; show saving/error/retry states for Passport saves while retaining the prediction; prevent repeat clicks while saving. Clarify the no-connections state and remove an inaccurate fact-checking claim from the no-key loading message.
+- Why: Browser QA found focus lost when the selected connection button disappeared and an unhandled save failure with no user feedback.
+- Validation: Production frontend against an isolated SQLite database and deterministic retrieved passages; OPENAI_API_KEY forced empty. Verified desktop and 390px mobile prediction selection, disabled reveal until selection, back/cancel, skip with no prediction, Level 2 endpoint, exploration error/retry retaining prediction, failed save/retry, saved prediction in Passport, insufficient sources and early ending. No horizontal overflow; no new unhandled console errors after fixes. Earlier injected save failure reproduced the corrected issue.
+- Checks: Nine backend/API tests and import passed in implementation checkpoint; final frontend TypeScript, ESLint and production build pass. QA servers stopped and standard API configuration restored in the final build.
+- Limitations: No live OpenAI calls or AI quality claims. Hypotheses are generic, ungraded and currently English. Live AI validation is the explicit stopping point until the owner supplies a key.
+
 ## 2026-10-24T23:28:09+05:30 — Curiosity Challenges implementation
 
 - Changed: Optional three-choice prediction before Level 2, reveal/skip/back controls, reflection alongside the cited answer and optional prediction in saved Passport journeys. Added curiosity-challenge.tsx; updated rabbit-hole.tsx, passport page and API types.

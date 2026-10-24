@@ -88,7 +88,7 @@ If a restricted agent run fails with a Turbopack CSS-worker `binding to a port: 
   - Topic sorting without a key is approximate.
   - Duplicate grouping without a key sometimes splits one event into two stories.
   - Source weights are editorial judgements.
-  - Perspective Lens is implemented with fixture-tested AI handling; desktop/mobile browser checks pass; real-key quality remains pending. Curiosity Challenges are implemented; browser QA is the next checkpoint.
+  - Perspective Lens is implemented with fixture-tested AI handling; desktop/mobile browser checks pass; real-key quality remains pending. Curiosity Challenges pass no-key desktop/mobile browser QA, including skip, retry, endpoint and saved prediction. Live AI validation remains deferred.
 
 ## Data and attribution
 

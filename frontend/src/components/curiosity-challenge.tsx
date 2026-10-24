@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Eyebrow } from "./ui";
 
 const predictions = [
@@ -14,11 +14,13 @@ export function CuriosityChallenge({ question, onReveal, onCancel }: {
   onReveal: (prediction?: string) => void;
   onCancel: () => void;
 }) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { heading.current?.focus(); }, []);
   const [selected, setSelected] = useState<string | null>(null);
   return (
     <section className="mt-8 rounded-3xl border border-accent/30 bg-accent-soft/50 p-5" aria-label="Curiosity challenge">
       <Eyebrow>Curiosity challenge · optional</Eyebrow>
-      <h3 className="mt-2 font-serif text-2xl">Predict the connection</h3>
+      <h3 ref={heading} tabIndex={-1} className="mt-2 font-serif text-2xl">Predict the connection</h3>
       <p className="mt-2 text-sm leading-relaxed">{question}</p>
       <fieldset className="mt-5">
         <legend className="text-sm font-medium">What kind of connection do you expect?</legend>

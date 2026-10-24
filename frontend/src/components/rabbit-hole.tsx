@@ -25,6 +25,8 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
   const [error, setError] = useState<string | null>(null);
   const [ended, setEnded] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [challenge, setChallenge] = useState<NextQuestion | null>(null);
   const [prediction, setPrediction] = useState<string | undefined>();
 
@@ -69,11 +71,20 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
   };
 
   const save = async () => {
-    await api("/api/journeys", {
-      method: "POST",
-      json: { story_id: storyId, path: steps.map((s) => ({ question: s.question, key: s.key, ...(s.depth === 2 && prediction ? { prediction } : {}) })), concepts },
-    });
-    setSaved(true);
+    if (saving || saved) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await api("/api/journeys", {
+        method: "POST",
+        json: { story_id: storyId, path: steps.map((s) => ({ question: s.question, key: s.key, ...(s.depth === 2 && prediction ? { prediction } : {}) })), concepts },
+      });
+      setSaved(true);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Could not save your journey");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const levels = Array.from({ length: maxDepth }, (_, i) => steps[i]?.question ?? (i === steps.length && pending ? pending.question : null));
@@ -100,7 +111,7 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
         <div className="mt-6 rounded-3xl border border-line bg-card p-5">
           <Eyebrow>Digging into</Eyebrow>
           <h2 className="mt-1 font-serif text-xl">{pending.question}</h2>
-          <p className="mt-2 text-xs text-muted">Gathering sources, writing with citations, then checking every claim…</p>
+          <p className="mt-2 text-xs text-muted">Gathering source passages and preparing the exploration…</p>
           <Skeleton lines={5} />
         </div>
       )}
@@ -125,7 +136,7 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
       {current && !pending && !current.off_topic && !ended && !challenge && (
         <section className="mt-8">
           <Eyebrow>Level {current.depth + 1}: connections</Eyebrow>
-          <h3 className="mt-1 font-serif text-xl">Go one level deeper?</h3>
+          <h3 className="mt-1 font-serif text-xl">{current.next_questions?.length ? "Go one level deeper?" : "No further connections available"}</h3>
           <div className="mt-4 space-y-2">
             {(current.next_questions ?? []).map((q) => (
               <button key={q.question} onClick={() => setChallenge(q)} className="flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 text-left transition hover:border-accent/50">
@@ -155,9 +166,10 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
             </>
           )}
           <div className="mt-6 flex flex-col gap-2">
-            <button onClick={save} disabled={saved} className="rounded-full bg-paper px-5 py-3 text-sm font-medium text-ink disabled:opacity-70">
-              {saved ? "Saved to your Knowledge Passport ✓" : "Save to my Knowledge Passport"}
+            <button onClick={save} disabled={saved || saving} className="rounded-full bg-paper px-5 py-3 text-sm font-medium text-ink disabled:opacity-70">
+              {saved ? "Saved to your Knowledge Passport ✓" : saving ? "Saving…" : saveError ? "Try saving again" : "Save to my Knowledge Passport"}
             </button>
+            {saveError && <p role="alert" className="text-sm text-paper/90">Could not save your journey: {saveError}. Your prediction is still here; please try again.</p>}
             <Link href={briefingId ? "/briefing" : "/briefing"} className="rounded-full border border-paper/30 px-5 py-3 text-center text-sm">
               Return to the briefing
             </Link>

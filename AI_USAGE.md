@@ -29,3 +29,7 @@ Used the in-app browser against the production frontend and isolated QA backend 
 ## 2026-10-24T23:28:09+05:30 — Codex Curiosity Challenges
 
 Implemented optional prediction/reveal/skip flow, saved prediction display and depth-safe exploration caching. Added depth-cache and journey-persistence regression tests. Nine tests and import pass without a key; frontend core checks pass. Human review and browser QA pending. Owner instructed work without a key and to stop before live AI validation.
+
+## 2026-10-24T23:32:53+05:30 — Codex Curiosity Challenges browser QA
+
+Tested the production UI with an isolated no-key backend, deterministic source passages and injected exploration/save failures. Fixed focus, save error/retry, empty connections and misleading loading text. Verified prediction persistence, skips, two-level ending and mobile layout in the browser. Nine tests/import previously passed; final tsc/ESLint/build pass. No key was used. Human review and live AI quality evaluation remain pending; stopped before that stage per owner instruction.
