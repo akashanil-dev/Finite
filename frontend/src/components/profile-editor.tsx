@@ -2,16 +2,9 @@
 
 import { useState } from "react";
 import { PRIORITY_LABELS, type Meta, type Profile, type SourcesIndex } from "@/lib/api";
-import { Eyebrow, TierBadge } from "./ui";
+import { Eyebrow, Fold, TierBadge } from "./ui";
 
 type Props = { meta: Meta; profile: Profile; onChange: (p: Profile) => void };
-
-const PRIORITY_STYLE: Record<number, string> = {
-  0: "border-line bg-card text-ink",
-  1: "border-accent/30 bg-accent-soft/50 text-accent",
-  2: "border-accent/60 bg-accent-soft text-accent",
-  3: "border-accent bg-accent text-paper",
-};
 
 export function LanguagePicker({ meta, profile, onChange }: Props) {
   const ml = profile.languages.includes("ml");
@@ -60,9 +53,7 @@ export function LanguagePicker({ meta, profile, onChange }: Props) {
 
 export function InterestPicker({ meta, profile, onChange }: Props) {
   const [open, setOpen] = useState<string | null>(meta.taxonomy[0]?.id ?? null);
-  const set = (id: string) => {
-    const cur = profile.interests[id] ?? 0;
-    const next = (cur + 1) % 4;
+  const set = (id: string, next: number) => {
     const interests = { ...profile.interests };
     if (next) interests[id] = next;
     else delete interests[id];
@@ -70,31 +61,33 @@ export function InterestPicker({ meta, profile, onChange }: Props) {
   };
   return (
     <div className="space-y-3">
-      <p className="text-xs text-muted">Tap once for occasional, twice for moderate, three times for high priority. A fourth tap removes it.</p>
+      <p className="text-xs text-muted">Choose how much each topic matters to you. Off leaves it out of your interests.</p>
       {meta.taxonomy.map((f) => {
         const count = f.subfields.filter((s) => profile.interests[s.id]).length;
         const isOpen = open === f.id;
         return (
           <div key={f.id} className="overflow-hidden rounded-2xl border border-line bg-card">
-            <button onClick={() => setOpen(isOpen ? null : f.id)} className="flex w-full items-center justify-between p-4 text-left">
+            <button aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : f.id)} className="flex w-full items-center justify-between p-4 text-left">
               <span className="font-medium">{f.name}</span>
               <span className="text-xs text-muted">
                 {count}/{f.subfields.length} <span className="ml-1 inline-block transition" style={{ transform: isOpen ? "rotate(90deg)" : "" }}>›</span>
               </span>
             </button>
-            {isOpen && (
-              <div className="flex flex-wrap gap-2 px-4 pb-4">
+            <Fold open={isOpen}>
+              <div className="px-4 pb-4">
                 {f.subfields.map((s) => {
                   const p = profile.interests[s.id] ?? 0;
                   return (
-                    <button key={s.id} onClick={() => set(s.id)} className={`rounded-full border px-3 py-1.5 text-sm transition ${PRIORITY_STYLE[p]}`}>
-                      {s.name}
-                      {p > 0 && <span className="ml-1.5 text-[10px] opacity-80">· {PRIORITY_LABELS[p]}</span>}
-                    </button>
+                    <div key={s.id} className="priority-row">
+                      <span className="text-sm font-medium">{s.name}</span>
+                      <div className="priority-options" role="group" aria-label={`${s.name} priority`}>
+                        {[0, 1, 2, 3].map((weight) => <button key={weight} type="button" aria-pressed={p === weight} onClick={() => set(s.id, weight)}>{weight === 0 ? "Off" : PRIORITY_LABELS[weight]}</button>)}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
-            )}
+            </Fold>
           </div>
         );
       })}

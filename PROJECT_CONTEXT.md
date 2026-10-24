@@ -2,7 +2,7 @@
 
 > **Canonical, agent-agnostic project memory.** Read this first, then verify against the code. If this document and the repository disagree, investigate the discrepancy; do not silently trust either. Maintenance rules: [AGENTS.md](AGENTS.md#persistent-project-context-and-documentation-maintenance) and [RULES.md](RULES.md#persistent-project-context-and-documentation-maintenance).
 >
-> **Last verified against repository:** 2026-10-24T22:49:59+05:30 at commit `c589d96` (branch `main`). See the [Context Maintenance Log](#context-maintenance-log).
+> **Last verified against repository:** 2026-10-25T04:39:05+05:30 on `main`, visual checkpoint `a9628be` plus the preference-controls commit containing this update. See the [Context Maintenance Log](#context-maintenance-log).
 
 ## Contents
 
@@ -200,7 +200,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | Keyword classification | Subfield and story-type scoring with phrase keywords plus source hints | COMPLETE (approximate quality) | `backend/app/ingest.py`, `backend/app/taxonomy.py` | Better quality; Malayalam articles default to `kerala` |
 | LLM classification | Batches of 40 headlines sent to `FAST_MODEL` | VERIFIED live sample | `backend/app/ingest.py` (`llm_classify`) | Broader story coverage |
 | Source credibility index | Tier, weight and rationale per outlet; public page | COMPLETE | `backend/app/sources.py`, `frontend/src/app/sources/page.tsx` | Weights are editorial (methodology v0) |
-| Onboarding | Languages, weighted interests, exclusions, schedule | COMPLETE (live desktop verified) | `frontend/src/app/onboarding/page.tsx`, `frontend/src/components/profile-editor.tsx` | Manual walkthrough on a phone |
+| Onboarding | Languages, explicit priority choices, exclusions, schedule | COMPLETE (live desktop verified) | `frontend/src/app/onboarding/page.tsx`, `frontend/src/components/profile-editor.tsx` | Manual walkthrough on a phone |
 | Settings | Edit the same profile after onboarding | COMPLETE (live desktop verified) | `frontend/src/app/settings/page.tsx` | Manual walkthrough |
 | Briefing builder | Lookback window, dedupe vs earlier briefings, clustering, weighted ranking, diversity cap, freeze | COMPLETE | `backend/app/briefing.py` | Clustering sometimes splits one event (see J) |
 | Embedding clustering | Clusters by cosine similarity (0.8) when a key is set | VERIFIED live sample | `backend/app/briefing.py` (`_cluster`), `backend/app/llm.py` (`embed`) | Live sample passed; broaden coverage |
@@ -582,6 +582,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
+2026-10-25T04:39:05+05:30 — Visual system checkpoint `a9628be`; preference controls and narrow-screen corrections follow in this commit. Explicit priority selection, saved value persistence and 320px overflow checks passed in the local production preview.
+
 2026-10-25T04:38:33+05:30 — Visual overhaul implemented and locally exercised with AI disabled and an isolated database. Desktop (1280/1440) and mobile (390) samples cover signup/onboarding, briefing, depth selection, Lens, graph/list/evidence, timeline, challenge, completion and Passport save. Production build passes. Production release verification follows push.
 
 2026-10-25T04:05:26+05:30 — Live QA fixes deployed and verified at `5613245` through Actions run 40138920728. Both containers healthy, current-state database backups pass integrity, account writes work after deployment, and AI spending remains zero. LIVE_QA.md records browser acceptance and untested AI/mobile/scheduler boundaries.
@@ -873,3 +875,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T04:05:26+05:30 | docs: record live browser regression results; release `5613245` | I; LIVE_QA.md, submission and logs | Full CI/deploy passed; final live UI, logout, backup integrity and absent AI ledger verified |
 
 | 2026-10-25T04:38:33+05:30 | Visual overhaul checkpoint (this commit) | Responsive design, motion direction, browser validation and audit boundaries recorded. |
+
+| 2026-10-25T04:39:05+05:30 | Preference controls (this commit), visual base `a9628be` | Explicit weights, save feedback and 320px QA reconciled. |

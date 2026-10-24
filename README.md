@@ -138,3 +138,5 @@ Live production QA scope and remaining verification boundaries are recorded in [
 Finite uses a warm cream canvas, charcoal navigation, lime highlights and lavender/mint/yellow exploration cards. Mobile has a floating navigation dock; desktop has a navigation rail and a side-by-side reader at wide widths. Interactions include spring-like card lifts, gliding reading-depth selections, folding panels and a one-time completion flower. Reduced-motion preferences suppress decorative animation. No animation library or generated artwork was added.
 
 The owner's [finite-ideas Pinterest board](https://in.pinterest.com/gutgbihgg/finite-ideas/) informed the palette and card compositions; no reference artwork was copied. UI QA uses an isolated database and `OPENAI_API_KEY=''`, `FINITE_SCHEDULER_ENABLED=false` so visual testing does not consume AI budget. Physical-device and cross-browser accessibility/performance audits remain pending.
+
+Interest priorities are explicit Off / Occasional / Moderate / High choices in onboarding and Settings. Settings use animated section selectors and show saving feedback before confirmation.

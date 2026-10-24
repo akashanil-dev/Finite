@@ -4,7 +4,7 @@ import { useState } from "react";
 import { api, type Meta, type Profile, type SourcesIndex } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
 import { Exclusions, InterestPicker, LanguagePicker, ScheduleForm } from "@/components/profile-editor";
-import { Button, ErrorNote, Shell, Spinner } from "@/components/ui";
+import { Button, ErrorNote, Segmented, Shell, Spinner } from "@/components/ui";
 
 const TABS = ["Interests", "Briefing", "Languages", "Exclusions"] as const;
 
@@ -19,6 +19,7 @@ export default function Settings() {
   const profile = draft ?? prof.data;
   const [tab, setTab] = useState<(typeof TABS)[number]>("Interests");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   if (prof.error) return <Shell><ErrorNote message={prof.error} onRetry={prof.reload} /></Shell>;
   if (meta.error) return <Shell><ErrorNote message={meta.error} /></Shell>;
@@ -29,11 +30,14 @@ export default function Settings() {
     setSaved(false);
   };
   const save = async () => {
+    if (saving) return;
+    setSaving(true);
     try {
       setProfile(await api<Profile>("/api/profile", { method: "PUT", json: profile }));
       setSaved(true);
       setAccountError(null);
     } catch (e) { setAccountError(e instanceof Error ? e.message : "Could not save changes"); }
+    finally { setSaving(false); }
   };
 
   return (
@@ -53,22 +57,16 @@ export default function Settings() {
         }}>{signingOut ? "Signing out…" : "Sign out"}</Button>
       </div>
       {accountError && <ErrorNote message={accountError} /> }
-      <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-        {TABS.map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={`shrink-0 rounded-full px-4 py-1.5 text-sm ${tab === t ? "bg-ink text-paper" : "border border-line"}`}>
-            {t}
-          </button>
-        ))}
-      </div>
-      <div className="mt-6">
+      <div className="mt-6"><Segmented value={tab} options={TABS} onChange={setTab} label="Settings section" /></div>
+      <div key={tab} className="rise mt-6">
         {tab === "Interests" && <InterestPicker meta={meta.data} profile={profile} onChange={update} />}
         {tab === "Briefing" && <ScheduleForm meta={meta.data} profile={profile} onChange={update} />}
         {tab === "Languages" && <LanguagePicker meta={meta.data} profile={profile} onChange={update} />}
         {tab === "Exclusions" && <Exclusions meta={meta.data} profile={profile} onChange={update} sources={sources.data} />}
       </div>
-      <div className="sticky bottom-20 mt-8">
-        <Button onClick={save} className="w-full">
-          {saved ? "Saved. Applies to your next briefing" : "Save changes"}
+      <div className="sticky bottom-28 mt-8">
+        <Button onClick={save} disabled={saving} className="w-full">
+          {saving ? "Saving…" : saved ? "Saved. Applies to your next briefing" : "Save changes"}
         </Button>
       </div>
       <p className="mt-6 text-center text-xs text-muted">
