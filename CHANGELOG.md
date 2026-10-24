@@ -162,3 +162,7 @@ The live signup 500 response had an empty HTTP status text and a non-JSON body, 
 ## 2026-10-25T03:55:47+05:30 — Make source exclusions match checkbox state
 
 Live onboarding showed every source checked under Exclude sources even though none was excluded. Changed the checkbox to checked=excluded and added explicit helper text. Stored exclusions and filtering are unchanged. TypeScript and zero-warning ESLint pass; live verification follows deployment.
+
+## 2026-10-25T04:01:18+05:30 — Clarify conditional briefing scheduling
+
+Live completion UI promised a next delivery even though production scheduling is intentionally disabled. Completion and schedule-help text now describe a saved time and make automatic preparation conditional on enabled scheduling. No scheduler or AI configuration changed. TypeScript and zero-warning ESLint pass; CI/build and final live wording verification follow the push.

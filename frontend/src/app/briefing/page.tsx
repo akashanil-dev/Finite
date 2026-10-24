@@ -122,7 +122,7 @@ export default function BriefingPage() {
               <>
                 <div className="font-serif text-3xl">You&apos;re done for today.</div>
                 <p className="mt-2 text-sm text-paper/70">
-                  That&apos;s everything that mattered to you in the past {b.config.lookback_hours} hours. No more recommendations. Your next briefing arrives at {b.config.delivery_time}.
+                  That&apos;s everything that mattered to you in the past {b.config.lookback_hours} hours. No more recommendations. Your saved briefing time is {b.config.delivery_time}. Automatic preparation depends on scheduled delivery being enabled.
                 </p>
                 <Link href="/passport" className="mt-4 inline-block text-sm underline">See what you learned →</Link>
               </>

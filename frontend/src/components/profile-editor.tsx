@@ -182,7 +182,7 @@ export function ScheduleForm({ meta, profile, onChange }: Props) {
             className="bg-transparent text-right font-medium"
           />
         </label>
-        <p className="mt-2 text-xs text-muted">Your briefing is prepared 30 minutes before this time, then frozen so it doesn&apos;t change while you read.</p>
+        <p className="mt-2 text-xs text-muted">When scheduled delivery is enabled, your briefing is prepared 30 minutes before this time. Every prepared briefing is frozen so it doesn&apos;t change while you read.</p>
       </section>
 
       <section>

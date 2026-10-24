@@ -199,11 +199,11 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | Keyword classification | Subfield and story-type scoring with phrase keywords plus source hints | COMPLETE (approximate quality) | `backend/app/ingest.py`, `backend/app/taxonomy.py` | Better quality; Malayalam articles default to `kerala` |
 | LLM classification | Batches of 40 headlines sent to `FAST_MODEL` | VERIFIED live sample | `backend/app/ingest.py` (`llm_classify`) | Broader story coverage |
 | Source credibility index | Tier, weight and rationale per outlet; public page | COMPLETE | `backend/app/sources.py`, `frontend/src/app/sources/page.tsx` | Weights are editorial (methodology v0) |
-| Onboarding | Languages, weighted interests, exclusions, schedule | IMPLEMENTED / UNVERIFIED (page returns 200; API save verified; full click-through not recorded) | `frontend/src/app/onboarding/page.tsx`, `frontend/src/components/profile-editor.tsx` | Manual walkthrough on a phone |
-| Settings | Edit the same profile after onboarding | IMPLEMENTED / UNVERIFIED | `frontend/src/app/settings/page.tsx` | Manual walkthrough |
+| Onboarding | Languages, weighted interests, exclusions, schedule | COMPLETE (live desktop verified) | `frontend/src/app/onboarding/page.tsx`, `frontend/src/components/profile-editor.tsx` | Manual walkthrough on a phone |
+| Settings | Edit the same profile after onboarding | COMPLETE (live desktop verified) | `frontend/src/app/settings/page.tsx` | Manual walkthrough |
 | Briefing builder | Lookback window, dedupe vs earlier briefings, clustering, weighted ranking, diversity cap, freeze | COMPLETE | `backend/app/briefing.py` | Clustering sometimes splits one event (see J) |
 | Embedding clustering | Clusters by cosine similarity (0.8) when a key is set | VERIFIED live sample | `backend/app/briefing.py` (`_cluster`), `backend/app/llm.py` (`embed`) | Live sample passed; broaden coverage |
-| Finite feed UI | Numbered list, progress bar, read state, "You're done for today" | IMPLEMENTED / UNVERIFIED (API mark-read verified) | `frontend/src/app/briefing/page.tsx` | Manual walkthrough |
+| Finite feed UI | Numbered list, progress bar, read state, "You're done for today" | COMPLETE (live desktop verified) | `frontend/src/app/briefing/page.tsx` | Manual walkthrough |
 | Scheduler | Ingests every 60 min; freezes the briefing 30 min before delivery time | IMPLEMENTED / UNVERIFIED (never seen firing at a real delivery time) | `backend/app/main.py` (`scheduler`) | Observe one real trigger |
 | Story analysis (extractive) | Lead-sentence summaries at 3 depths, cited facts, template questions and Missing Piece | COMPLETE | `backend/app/analysis.py` | Missing Piece is generic without a key |
 | Story analysis (AI) | Summaries, facts, story type, Missing Piece, 4–6 tailored questions, concepts | VERIFIED live sample | `backend/app/analysis.py` (`ANALYSIS_SYSTEM`) | Sample passed; broader grounding quality review |
@@ -216,14 +216,14 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | Malayalam translation | Translates generated content; cached per story | Rendering verified; human quality review pending | `backend/app/translate.py` | Live rendering passed; owner to judge quality |
 | Malayalam crawl | Choosing Malayalam adds Malayalam feeds to briefings | COMPLETE | `backend/app/sources.py`, `backend/app/briefing.py` | Malayalam stories rank low without a key |
 | Knowledge Passport | Saved journeys, concept cloud, fields explored, counts | VERIFIED live sample | `backend/app/main.py`, Passport page | Broader coverage |
-| Citations UI | Citation chips with popovers (source, weight, link); confidence badges | IMPLEMENTED / UNVERIFIED | `frontend/src/components/citations.tsx` | Manual walkthrough |
+| Citations UI | Citation chips with popovers (source, weight, link); confidence badges | COMPLETE (live desktop sample verified) | `frontend/src/components/citations.tsx` | Manual walkthrough |
 | PWA manifest | Installable app manifest and icon | IMPLEMENTED / UNVERIFIED | `frontend/src/app/manifest.ts`, `frontend/public/icon.svg` | No service worker or offline support |
 | Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Seven backend/API tests, desktop/mobile browser QA and production build pass; real-key sample passed; broader quality review pending |
 | Curiosity Challenges | Optional three-hypothesis prediction before Level 2; reveal, skip, reflect and save | COMPLETE in extractive mode | `curiosity-challenge.tsx`, `rabbit-hole.tsx`, Passport | Desktop/mobile browser QA passed; live AI journey/Passport sample passed; no extra AI generation |
 | Connection Explorer | Three finite source-backed cross-story comparisons | COMPLETE (v1; desktop browser verified) | `connections.py`, `connection-explorer.tsx` | Literal saved-concept matching; no causal inference |
 | Interactive knowledge graph | Selectable source-backed story map with list alternative | COMPLETE (v1; desktop browser verified) | `connection-explorer.tsx` | Literal shared mentions only; maximum three branches |
 | Push notifications | "Briefing ready" alert | PROPOSED | — | — |
-| Accounts and auth | Username/password, cookie sessions and per-user profiles/briefings/Passport | COMPLETE (local desktop/API verified) | `auth.py`, `db.py`, `main.py`, login, auth gate | Production HTTPS and broader security/UX review pending; no reset |
+| Accounts and auth | Username/password, cookie sessions and per-user profiles/briefings/Passport | COMPLETE (local API and live desktop verified) | `auth.py`, `db.py`, `main.py`, login, auth gate | Live HTTPS auth/isolation verified; broader security/UX review pending; no reset |
 | Native mobile app | Expo app reusing the API | PROPOSED (owner wants it after the hackathon) | — | — |
 
 ---
@@ -579,6 +579,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
+2026-10-25T04:01:18+05:30 — Production browser QA completed for signup/login/logout/isolation, onboarding, preferences, 12-story completion/regeneration, citations, single-publisher lens, connections/graph/list, Time Machine, rabbit holes/challenge/Passport and off-topic rejection. See LIVE_QA.md for exact boundaries. Backup ownership, silent errors, inverted exclusions and conditional schedule wording fixed. No API spending.
+
 2026-10-25T03:52:41+05:30 — Live signup found host-backup-created WAL/SHM ownership blocking SQLite writes. Approved ownership repair restored signup; protected deployment script now performs online backups inside the backend as UID 10001 with timeout/integrity verification. Full live QA continues with AI disabled.
 
 2026-10-25T03:49:07+05:30 — Push-triggered [Actions run 40137766681](https://github.com/akashanil-dev/Finite/actions/runs/40137766681) passed checks, both ARM64 image jobs and deployment for `537687f062e2e42c080dd7d0e7ac12ab669a19d0`. Direct SSH verified that exact current-release and both healthy containers; public homepage/health returned 200, Faber/Tuxos 200, Notes its existing 401. AI and scheduler remain disabled.
@@ -852,3 +854,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T03:49:07+05:30 | docs: record automatic deployment verification; implementation `537687f` | C/D/I/K; README, submission, deployment guide/handoff | Push-triggered full workflow passed; exact release, health and existing-site responses verified |
 
 | 2026-10-25T03:52:41+05:30 | fix: preserve sqlite ownership during deployment backups | I; deployment guide, changelog, AI usage | Live signup reproduced then passed after approved repair; shell syntax passes |
+
+| 2026-10-25T04:01:18+05:30 | fix: clarify conditional briefing scheduling; QA fixes bef6333/b6b0f30/1c737ad | C/I; LIVE_QA.md and logs | Production browser flows verified without AI; scheduling copy deployment pending |

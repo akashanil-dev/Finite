@@ -130,3 +130,5 @@ Existing local data is preserved, but not given to the first registrant. After c
 ### Oracle containers and GitHub deployment
 
 Target: `finite.akashanil.dev` on Oracle Ampere. See [server setup and deployment](deploy/README.md) and [server-side Codex handoff](deploy/SERVER_HANDOFF.md). Two ARM64 containers sit behind the existing Caddy; persistent data stays outside images. The workflow checks code, builds and smoke-tests images, then deploys only when `FINITE_DEPLOY_ENABLED=true` and repository Actions secrets are configured. Automatic deployment on main pushes is verified; the live site is https://finite.akashanil.dev. Deployment uses a forced-command SSH key and root-owned server configuration. AI and scheduling remain disabled.
+
+Live production QA scope and remaining verification boundaries are recorded in [LIVE_QA.md](LIVE_QA.md). Source-exclusion checkboxes are checked when excluded. Saved delivery times take effect only when scheduled delivery is enabled; production scheduling remains disabled.
