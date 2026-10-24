@@ -10,7 +10,7 @@ The key uses `restrict,command="/usr/local/lib/finite/ssh-dispatch.sh"` and perm
 
 Protected script/Compose changes require a separately approved server installation; normal releases update only application images. The existing `/opt/finite` copies are historical and are not used by the Actions dispatcher. Set `FINITE_DEPLOY_ENABLED=false` to disable automated releases.
 
-Verified setup: restricted shell/file-transfer commands rejected; deployment of the existing release through the dedicated key passed backup/health checks. First push-triggered deployment verification is pending. Finite is already live at https://finite.akashanil.dev; AI and scheduler remain disabled.
+Verified setup: restricted shell/file-transfer commands rejected; deployment of the existing release through the dedicated key passed backup/health checks. Push-triggered [Actions run 40137766681](https://github.com/akashanil-dev/Finite/actions/runs/40137766681) passed checks, both ARM64 image jobs and deployment for `537687f062e2e42c080dd7d0e7ac12ab669a19d0`. Direct SSH verified that exact current-release and both healthy containers; public homepage/health returned 200, Faber/Tuxos 200, Notes its existing 401. AI and scheduler remain disabled. Finite is already live at https://finite.akashanil.dev; AI and scheduler remain disabled.
 
 ## Architecture and reference
 

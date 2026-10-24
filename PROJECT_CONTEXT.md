@@ -232,7 +232,7 @@ AI budget guard: persistent $1 conservative reservation allowance in `backend/da
 
 ## D. System architecture
 
-Deployment target: two ARM64 containers (Node standalone frontend and single-worker FastAPI backend), shared existing Caddy TLS proxy via external finite-edge network. No app ports published. `/opt/finite/data` persists all SQLite/cache/budget state. GitHub builds immutable SHA tags; deployment requires repository enable variable and production environment. See `deploy/README.md`; Oracle execution is not yet verified.
+Deployment target: two ARM64 containers (Node standalone frontend and single-worker FastAPI backend), shared existing Caddy TLS proxy via external finite-edge network. No app ports published. `/opt/finite/data` persists all SQLite/cache/budget state. GitHub builds immutable SHA tags; deployment requires repository enable variable and repository Actions secrets. Forced-command SSH invokes root-owned scripts/configuration. Oracle deployment and public HTTPS are verified; see `deploy/README.md`.
 
 Accounts add `users`, `sessions`, `auth_attempts` and nullable `user_id` ownership columns on briefings/journeys. Profiles use `kv.profile:<id>`. Legacy rows remain unassigned. Story/source caches are shared. API auth is a global dependency; only health and registration/login bypass it. Local CLI commands claim legacy data or grant/revoke admin. Scheduler is configurable and builds per-user briefings; it still requires a single backend worker.
 
@@ -383,7 +383,7 @@ A client-side optional three-choice prediction precedes the existing Level 2 exp
 ### D9. Auth, deployment and observability
 
 - **Auth:** username/password; salted scrypt, hashed opaque session tokens, HttpOnly/SameSite=Lax cookies (Secure on HTTPS). Data APIs require sessions; explicit ownership filters protect personal records. CORS allows configured origins only; write requests require a custom header and valid Origin when present.
-- **Deployment:** **none configured.** The demo runs locally. There is no Dockerfile, CI or hosting config.
+- **Deployment:** Oracle ARM64 frontend/backend containers behind existing Caddy at https://finite.akashanil.dev. Main pushes automatically build, test, publish and deploy over restricted SSH; protected server configuration requires separate approved updates.
 - **Observability:** stdout logs only.
 
 ---
@@ -579,6 +579,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
+2026-10-25T03:49:07+05:30 — Push-triggered [Actions run 40137766681](https://github.com/akashanil-dev/Finite/actions/runs/40137766681) passed checks, both ARM64 image jobs and deployment for `537687f062e2e42c080dd7d0e7ac12ab669a19d0`. Direct SSH verified that exact current-release and both healthy containers; public homepage/health returned 200, Faber/Tuxos 200, Notes its existing 401. AI and scheduler remain disabled.
+
 2026-10-25T03:43:06+05:30 — Owner-provided Oracle results confirm fresh deployment of 9d246ab, healthy containers, public HTTPS and successful SQLite online backup. Direct laptop SSH confirmed current-release and host fingerprint. Automatic main deployment authorized; protected SSH dispatch installed, repository secrets configured and deploy variable enabled. Restricted-key existing-release deployment passed; push-triggered verification pending.
 
 2026-10-25T01:56:00+05:30 — Server handoff updated with mandatory live Caddy-container verification and owner approval gates. Documentation-only change; Oracle deployment remains unverified.
@@ -694,7 +696,7 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 - Postgres + pgvector, and migrations.
 - Rate limiting for ask-your-own, plus matching similar questions to a cached answer.
 - 34 unittest regressions and GitHub CI workflow prepared; first hosted CI/container run passed; extend coverage as needed.
-- Oracle ARM64 hosted deployment prepared in `deploy/`; server configuration, secrets and HTTPS go-live remain pending; first CI image checks passed.
+- Oracle ARM64 hosting and automatic main deployment complete and verified. Production account/browser acceptance and broader operational review remain.
 
 ### Longer term
 
@@ -844,3 +846,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T03:43:06+05:30 | Working tree; commit pending | H/I; automatic deployment authorization and restricted SSH proposal | Shell syntax and six rejected command cases pass; server installation blocked pending explicit scope approval |
 
 | 2026-10-25T03:45:14+05:30 | build: enable automatic oracle deployment | H/I and deployment docs; protected SSH setup and repository Actions secrets | Real restricted-key deployment and rejected shell/file commands pass; push run pending |
+
+| 2026-10-25T03:49:07+05:30 | docs: record automatic deployment verification; implementation `537687f` | C/D/I/K; README, submission, deployment guide/handoff | Push-triggered full workflow passed; exact release, health and existing-site responses verified |

@@ -9,7 +9,7 @@ Prepared for **Devin Hacks Kochi** (24–25 October 2026). Submit through the or
 - **Short description:** News apps are built for endless scrolling and only answer "what happened?". Finite gives you one frozen, finite briefing a day, ranked by your weighted interests and a public source credibility index. Any story can be opened into a cited rabbit hole with a depth limit: context, then connections, then "Expedition complete". It is for readers who want to understand the news without doomscrolling.
 - **Code repository URL:** https://github.com/akashanil-dev/Finite
 - **Final submitted implementation commit SHA:** TODO (fill in at code freeze)
-- **Working demo:** local demo, see below
+- **Working demo:** https://finite.akashanil.dev (HTTPS health verified; fresh production data; AI/scheduler disabled)
 - **Demo access requirements:** Python 3.13 with uv, Node.js 20+ and internet access. An OpenAI API key is optional; without it the app runs in extractive mode.
 
 ## Participant
@@ -55,6 +55,6 @@ Connection Explorer demo: open an OpenAI story, expand Connection Explorer, then
 
 Knowledge graph demo: expand Connection Explorer, select a story node in Knowledge map, inspect both cited excerpts, then switch to List view. Desktop browser verified; three-branch maximum with no additional AI generation.
 
-Accounts demo: create a username/password account at `/login`, save preferences, sign out and sign back in. Per-user API isolation and desktop browser flow verified; no reset flow. Oracle target is `finite.akashanil.dev`; container/CI setup prepared but not yet deployed or HTTPS-verified. Do not list this hostname as a working hosted demo until verification succeeds.
+Accounts demo: create a username/password account at `/login`, save preferences, sign out and sign back in. Per-user API isolation and desktop browser flow verified; no reset flow. Oracle HTTPS is live at `finite.akashanil.dev`. Production account/browser acceptance remains separate from container/HTTP checks.
 
-Hosted validation: [GitHub run 40128562535](https://github.com/akashanil-dev/Finite/actions/runs/40128562535) passed code checks and both ARM64 image build/smoke/publish jobs at `9d246ab`. Production deployment skipped; hostname is not yet a verified working demo.
+Hosted validation: [GitHub run 40128562535](https://github.com/akashanil-dev/Finite/actions/runs/40128562535) passed code checks and both ARM64 image build/smoke/publish jobs at `9d246ab`. That initial deployment was skipped. Push-triggered [Actions run 40137766681](https://github.com/akashanil-dev/Finite/actions/runs/40137766681) passed checks, both ARM64 image jobs and deployment for `537687f062e2e42c080dd7d0e7ac12ab669a19d0`. Direct SSH verified that exact current-release and both healthy containers; public homepage/health returned 200, Faber/Tuxos 200, Notes its existing 401. AI and scheduler remain disabled.
