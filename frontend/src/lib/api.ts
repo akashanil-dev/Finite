@@ -127,10 +127,12 @@ export async function api<T>(path: string, init?: RequestInit & { json?: unknown
     cache: "no-store",
   });
   if (!res.ok) {
-    let detail = res.statusText;
+    let detail = res.status >= 500
+      ? "Finite could not complete this request. Please try again."
+      : `Request failed (HTTP ${res.status}). Please try again.`;
     try {
       const value = (await res.json()).detail;
-      detail = typeof value === "string" ? value : "Please check the entered values.";
+      detail = typeof value === "string" && value.trim() ? value : "Please check the entered values.";
     } catch {}
     if (res.status === 401 && !path.startsWith("/api/auth/") && typeof window !== "undefined") window.location.replace("/login");
     throw new ApiError(detail, res.status);

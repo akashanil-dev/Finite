@@ -141,3 +141,7 @@ Reconciled deployment status in README, submission, context and handoff. Documen
 ## 2026-10-25T03:52:41+05:30 — Preserve SQLite ownership during deployment backups
 
 Live signup exposed readonly-database errors: host-user online backups created WAL/SHM files owned by finite-deploy (0644), while the backend uses UID 10001. Deployment now backs up inside the existing backend as its application UID, streams an integrity-checked snapshot into a private host backup, and stops on timeout/failure. Existing database without a running backend fails safely. Owner approved sidecar ownership repair and protected-script installation; signup then reached onboarding. Shell syntax passes; next CI deployment will verify the corrected backup path end to end.
+
+## 2026-10-25T03:52:52+05:30 — Show non-JSON API failures
+
+The live signup 500 response had an empty HTTP status text and a non-JSON body, leaving the form without an error. API helper now supplies nonempty server/request fallback messages while preserving useful API validation errors. Verified mocked empty-status 500/403, JSON validation and empty-detail responses; frontend TypeScript and zero-warning ESLint pass.
