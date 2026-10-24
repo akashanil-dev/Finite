@@ -220,7 +220,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | PWA manifest | Installable app manifest and icon | IMPLEMENTED / UNVERIFIED | `frontend/src/app/manifest.ts`, `frontend/public/icon.svg` | No service worker or offline support |
 | Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Seven backend/API tests, desktop/mobile browser QA and production build pass; real-key sample passed; broader quality review pending |
 | Curiosity Challenges | Optional three-hypothesis prediction before Level 2; reveal, skip, reflect and save | COMPLETE in extractive mode | `curiosity-challenge.tsx`, `rabbit-hole.tsx`, Passport | Desktop/mobile browser QA passed; live AI journey/Passport sample passed; no extra AI generation |
-| Connection Explorer | Three finite source-backed cross-story comparisons | IMPLEMENTED (browser QA pending) | `connections.py`, `connection-explorer.tsx` | Literal saved-concept matching; no causal inference |
+| Connection Explorer | Three finite source-backed cross-story comparisons | COMPLETE (v1; desktop browser verified) | `connections.py`, `connection-explorer.tsx` | Literal saved-concept matching; no causal inference |
 | Push notifications | "Briefing ready" alert | PROPOSED | — | — |
 | Accounts and auth | Multiple users | PROPOSED | — | Needed before a public launch |
 | Native mobile app | Expo app reusing the API | PROPOSED (owner wants it after the hackathon) | — | — |
@@ -557,6 +557,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
+2026-10-25T00:46:14+05:30 — Connection Explorer v1 complete, implementation `2aa0da1` pushed; browser evidence/retry/empty/end-state checks passed. API allowance unchanged: $0.223300. Mobile-specific QA not performed.
+
 2026-10-25T00:44:56+05:30 — Connection Explorer implemented; 25 tests/import and frontend checks pass. Browser QA pending. Zero provider calls by design.
 
 2026-10-25T00:35:42+05:30 — Time Machine v1 completed; implementation `19a0721` pushed and QA/date fix checkpoint `fix: distinguish timeline years from ordinary counts` follows. 21 tests/import and frontend checks pass; production desktop browser checks pass; API allowance unchanged at $0.223300 remaining. No mobile claim for this checkpoint.
@@ -658,7 +660,7 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 - Native app (Expo, reusing the API) with push notifications.
 - Extend the dedicated Time Machine with an archive of past stories (current version uses the story’s stored coverage).
-- Connection Explorer v1 implemented; browser QA pending. Richer semantic connections remain future work.
+- Connection Explorer v1 complete; production desktop browser verified. Richer semantic connections remain future work.
 - More regional languages.
 - Licensed news feeds, and legal review.
 
@@ -727,6 +729,8 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ## M. Instructions for Incoming AI Agents
 
+Connection Explorer and Time Machine v1 are implemented and desktop-browser verified. Preserve the $1 persistent ledger ($0.223300 remaining at this checkpoint); both features use stored evidence without new AI calls. Semantic connections and broader historical retrieval remain extensions.
+
 This document is a **map, not the territory**. Always verify against the code.
 
 1. **Read** this file (at least sections 0, C, I, J and K).
@@ -774,3 +778,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T00:35:42+05:30 | `fix: distinguish timeline years from ordinary counts`, based on `19a0721` | C, I, J, K; README, changelog, AI usage | 21 tests/import, tsc/ESLint/build, production desktop browser QA; no API spend |
 
 | 2026-10-25T00:44:56+05:30 | `feat: add source-backed connection explorer` | C, D, H, I, J, K; README, submission, changelog, AI usage | 25 tests/import, tsc/ESLint/build; browser QA pending |
+
+| 2026-10-25T00:46:14+05:30 | `docs: record connection explorer browser validation`, based on `2aa0da1` | C, I, K, M; submission, changelog, AI usage | Production desktop browser matches/citations/retry/empty/end; no API spending |
