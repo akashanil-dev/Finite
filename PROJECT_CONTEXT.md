@@ -579,6 +579,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
+2026-10-25T04:05:26+05:30 — Live QA fixes deployed and verified at `5613245` through Actions run 40138920728. Both containers healthy, current-state database backups pass integrity, account writes work after deployment, and AI spending remains zero. LIVE_QA.md records browser acceptance and untested AI/mobile/scheduler boundaries.
+
 2026-10-25T04:01:18+05:30 — Production browser QA completed for signup/login/logout/isolation, onboarding, preferences, 12-story completion/regeneration, citations, single-publisher lens, connections/graph/list, Time Machine, rabbit holes/challenge/Passport and off-topic rejection. See LIVE_QA.md for exact boundaries. Backup ownership, silent errors, inverted exclusions and conditional schedule wording fixed. No API spending.
 
 2026-10-25T03:52:41+05:30 — Live signup found host-backup-created WAL/SHM ownership blocking SQLite writes. Approved ownership repair restored signup; protected deployment script now performs online backups inside the backend as UID 10001 with timeout/integrity verification. Full live QA continues with AI disabled.
@@ -856,3 +858,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T03:52:41+05:30 | fix: preserve sqlite ownership during deployment backups | I; deployment guide, changelog, AI usage | Live signup reproduced then passed after approved repair; shell syntax passes |
 
 | 2026-10-25T04:01:18+05:30 | fix: clarify conditional briefing scheduling; QA fixes bef6333/b6b0f30/1c737ad | C/I; LIVE_QA.md and logs | Production browser flows verified without AI; scheduling copy deployment pending |
+
+| 2026-10-25T04:05:26+05:30 | docs: record live browser regression results; release `5613245` | I; LIVE_QA.md, submission and logs | Full CI/deploy passed; final live UI, logout, backup integrity and absent AI ledger verified |

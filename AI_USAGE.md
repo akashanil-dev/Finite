@@ -153,3 +153,7 @@ Live onboarding showed every source checked under Exclude sources even though no
 ## 2026-10-25T04:01:18+05:30 — Clarify conditional briefing scheduling
 
 Live completion UI promised a next delivery even though production scheduling is intentionally disabled. Completion and schedule-help text now describe a saved time and make automatic preparation conditional on enabled scheduling. No scheduler or AI configuration changed. TypeScript and zero-warning ESLint pass; CI/build and final live wording verification follow the push.
+
+## 2026-10-25T04:05:26+05:30 — Verify production QA fixes
+
+All fix releases passed GitHub checks, ARM64 image smoke/build/publish and automatic deployment. Final run https://github.com/akashanil-dev/Finite/actions/runs/40138920728 deployed `5613245f8e53b6d1245ae541f0a8947c3ef4434d`; both containers healthy. Live schedule wording and logout verified after deployment. Exclusion save/reload, on/off-topic questions, early ending and coverage-history dates passed. Latest corrected backup integrity returned ok, live account writes remained functional, and no AI budget ledger was created. QA accounts retained; session signed out. See LIVE_QA.md for scope and limitations.
