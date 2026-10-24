@@ -207,15 +207,15 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | Scheduler | Ingests every 60 min; freezes the briefing 30 min before delivery time | IMPLEMENTED / UNVERIFIED (never seen firing at a real delivery time) | `backend/app/main.py` (`scheduler`) | Observe one real trigger |
 | Story analysis (extractive) | Lead-sentence summaries at 3 depths, cited facts, template questions and Missing Piece | COMPLETE | `backend/app/analysis.py` | Missing Piece is generic without a key |
 | Story analysis (AI) | Summaries, facts, story type, Missing Piece, 4–6 tailored questions, concepts | VERIFIED live sample | `backend/app/analysis.py` (`ANALYSIS_SYSTEM`) | Sample passed; broader grounding quality review |
-| Missing Piece | What the coverage didn't explain; each item opens a rabbit hole | IMPLEMENTED / UNVERIFIED (generic templates without a key) | VERIFIED live sample | AI browser sample passed; broader coverage pending |
+| Missing Piece | What the coverage didn't explain; each item opens a rabbit hole | VERIFIED live sample | `backend/app/analysis.py`, story page | AI browser sample passed; broader coverage pending |
 | Rabbit holes (extractive) | Passages from articles and Wikipedia, ranked by TF-IDF; nodes, timeline, follow-ups | COMPLETE | `backend/app/rabbithole.py`, `backend/app/retrieval.py` | Follow-up questions can be odd, e.g. "How does Heinlein connect…" |
-| Rabbit holes (AI) | `SMART_MODEL` writes only from passages, then `FAST_MODEL` checks each claim; uncited or unsupported claims dropped | IMPLEMENTED / UNVERIFIED | VERIFIED live sample | Live sample passed; broaden coverage |
-| Depth limit and ending | `MAX_DEPTH = 2`, journey map, "Expedition complete", end at any point | IMPLEMENTED / UNVERIFIED (API verified; UI not walked through) | VERIFIED live sample | Manual walkthrough |
-| Ask your own question | Free-text question scoped to the story; off-topic check (word overlap without a key, LLM with one) | IMPLEMENTED / UNVERIFIED | VERIFIED live sample | Rate limiting; matching similar questions to a cached answer |
-| Time Machine | Dedicated source-extractive story timeline and separate coverage history; rabbit-hole timelines retained | IMPLEMENTED / browser QA pending | `time_machine.py`, `time-machine.tsx`, story page | English date patterns; broader archive and semantic date interpretation deferred |
-| Malayalam translation | Translates generated content; cached per story | IMPLEMENTED / UNVERIFIED (returns "unavailable" without a key) | Rendering verified; human quality review pending | Live rendering passed; owner to judge quality |
+| Rabbit holes (AI) | `SMART_MODEL` writes only from passages, then `FAST_MODEL` checks each claim; uncited or unsupported claims dropped | VERIFIED live sample | `backend/app/rabbithole.py` | Live sample passed; broaden coverage |
+| Depth limit and ending | `MAX_DEPTH = 2`, journey map, "Expedition complete", end at any point | VERIFIED live sample | `backend/app/config.py`, `rabbit-hole.tsx` | Broader coverage |
+| Ask your own question | Free-text question scoped to the story; off-topic check (word overlap without a key, LLM with one) | VERIFIED live sample | `backend/app/rabbithole.py`, story page | Rate limiting; matching similar questions to a cached answer |
+| Time Machine | Dedicated source-extractive story timeline and separate coverage history; rabbit-hole timelines retained | COMPLETE (v1; desktop browser verified) | `time_machine.py`, `time-machine.tsx`, story page | English date patterns; broader archive and semantic date interpretation deferred |
+| Malayalam translation | Translates generated content; cached per story | Rendering verified; human quality review pending | `backend/app/translate.py` | Live rendering passed; owner to judge quality |
 | Malayalam crawl | Choosing Malayalam adds Malayalam feeds to briefings | COMPLETE | `backend/app/sources.py`, `backend/app/briefing.py` | Malayalam stories rank low without a key |
-| Knowledge Passport | Saved journeys, concept cloud, fields explored, counts | IMPLEMENTED / UNVERIFIED (API verified) | VERIFIED live sample | Manual walkthrough |
+| Knowledge Passport | Saved journeys, concept cloud, fields explored, counts | VERIFIED live sample | `backend/app/main.py`, Passport page | Broader coverage |
 | Citations UI | Citation chips with popovers (source, weight, link); confidence badges | IMPLEMENTED / UNVERIFIED | `frontend/src/components/citations.tsx` | Manual walkthrough |
 | PWA manifest | Installable app manifest and icon | IMPLEMENTED / UNVERIFIED | `frontend/src/app/manifest.ts`, `frontend/public/icon.svg` | No service worker or offline support |
 | Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Seven backend/API tests, desktop/mobile browser QA and production build pass; real-key sample passed; broader quality review pending |
@@ -553,6 +553,9 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## I. Current development state
 
+2026-10-25T00:35:42+05:30 — Time Machine v1 completed; implementation `19a0721` pushed and QA/date fix checkpoint `fix: distinguish timeline years from ordinary counts` follows. 21 tests/import and frontend checks pass; production desktop browser checks pass; API allowance unchanged at $0.223300 remaining. No mobile claim for this checkpoint.
+
+
 2026-10-25T00:32:15+05:30 — Time Machine implementation checkpoint `feat: add source-backed time machine`, based on `df14c54`. Backend 21 tests/import and frontend checks pass; browser QA next. No new AI calls.
 
 
@@ -585,6 +588,8 @@ Current verification: 2026-10-25T00:17:27+05:30; `0d88ce0` plus checkpoint `fix:
 
 Perspective Lens limitations: real-key sample verified on stored Jamia coverage; broader editorial quality remains pending. Browser QA and production build pass; fresh generated cache and a port-capable environment resolved the prior build failure. At most eight distinct publisher hostnames; syndication/shared ownership are not detected. Comparison uses stored excerpts, and generated text is English only.
 
+Time Machine v1 limitations: pattern-based English dates can miss expressions; years need temporal context, multiple dates/missing years remain unresolved. Complete source quotations only (20–600 characters), up to 12 passages; no comprehensive archive or semantic contradiction detection. Desktop browser verified; mobile-specific QA remains pending.
+
 Ordered by impact on the demo and the product. *Hypothesis* marks a suspected cause that hasn't been confirmed.
 
 | Sev. | Issue | Where | Notes / workaround |
@@ -616,6 +621,9 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 No invented deadlines. The only external deadline is the 8:00 AM IST code freeze on 25 Oct 2026.
 
 ### Immediate (hackathon)
+
+Time Machine v1 is complete: dedicated source-extractive story timeline plus coverage history, no AI calls. Broad historical archive and richer multilingual date recognition remain extensions.
+
 
 25 Oct update: live AI sample acceptance checks now pass, including unsupported-claim removal and translation rendering. Human Malayalam quality review, broader sampling and submission remain pending. The detailed rows retain the original acceptance criteria.
 
@@ -754,3 +762,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T00:17:27+05:30 | `fix: enforce AI verification and validate translations`, based on `0d88ce0` | C, D, I, J, K, M; README, submission, changelog, AI usage | 16 tests/import, tsc/ESLint/build; live AI browser sample; $0.776700 reserved |
 
 | 2026-10-25T00:32:15+05:30 | `feat: add source-backed time machine`, based on `df14c54` | C, D, H, I, K; README, submission, changelog, AI usage | 21 backend tests/import; tsc/ESLint/build; browser QA pending |
+
+| 2026-10-25T00:35:42+05:30 | `fix: distinguish timeline years from ordinary counts`, based on `19a0721` | C, I, J, K; README, changelog, AI usage | 21 tests/import, tsc/ESLint/build, production desktop browser QA; no API spend |

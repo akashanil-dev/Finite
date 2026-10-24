@@ -17,7 +17,19 @@ MAX_EVENTS = 12
 
 def date_info(text):
     """Never infer a missing year or select one date from an ambiguous sentence."""
-    matches = list(dict.fromkeys(m.group() for m in DATE.finditer(text)))
+    matches = []
+    previous_end = None
+    for match in DATE.finditer(text):
+        value = match.group()
+        if re.fullmatch(r"\d{4}", value):
+            prefix = text[:match.start()]
+            temporal = re.search(r"\b(?:in|since|from|until|during|before|after|by|of|year|between)\s+$", prefix, re.I)
+            connected = previous_end is not None and re.fullmatch(r"\s*(?:or|and|to|[-–—])\s*", text[previous_end:match.start()], re.I)
+            if not temporal and not connected:
+                continue
+        previous_end = match.end()
+        if value not in matches:
+            matches.append(value)
     if not matches:
         return None
     if len(matches) != 1:
@@ -80,7 +92,7 @@ def timeline(story_id):
             if date['sort_date']:
                 group = 'background' if coverage_year and date['sort_date'][:4] < coverage_year else 'current'
             events[key] = {**date, 'text': sentence, 'citations': [ref], 'group': group}
-    ordered = sorted(events.values(), key=lambda e: (e['sort_date'] is None, e['sort_date'] or '', e['text']))
+    ordered = sorted(events.values(), key=lambda e: (e['sort_date'] is None, e['sort_date'] or ''))
     return {'mode': 'extractive', 'events': ordered[:MAX_EVENTS], 'total_events': len(ordered),
             'coverage': coverage, 'sources': sources, 'coverage_year': coverage_year,
             'status': 'available' if ordered else 'no_dated_events'}

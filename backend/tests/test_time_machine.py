@@ -25,10 +25,12 @@ class TimeMachineTests(unittest.TestCase):
 
     def test_dates_never_infer_year_and_preserve_conflicts(self):
         self.assertEqual(tm.date_info('The strike began on October 12.')['sort_date'], None)
-        self.assertEqual(tm.date_info('The reports say 2005 or 2006.')['precision'], 'multiple_dates')
+        self.assertEqual(tm.date_info('The reports differ between 2005 or 2006.')['precision'], 'multiple_dates')
         self.assertEqual(tm.date_info('On 12 October 2026 students started a strike.')['sort_date'], '2026-10-12')
         self.assertEqual(tm.date_info('It happened on February 30, 2026.')['sort_date'], None)
         self.assertIsNone(tm.date_info('It happened yesterday.'))
+        self.assertIsNone(tm.date_info('About 2000 residents attended the meeting.'))
+        self.assertIsNone(tm.date_info('The project cost 2025 dollars.'))
 
     def test_citations_deduplication_and_chronology(self):
         sentence = 'The union was suspended in 2005 after campus unrest.'
