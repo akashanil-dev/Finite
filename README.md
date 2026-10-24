@@ -4,7 +4,15 @@
 
 Finite is a finite, personalised daily news briefing (English and Malayalam). Most news apps answer *what happened* and then keep you scrolling. Finite also helps you see **why it happened, how we got here, and what it connects to**, through source-backed "rabbit holes" that go a fixed number of levels deep and always end. You finish your briefing, and you're done.
 
-Built by Akash A ([@akashanil-dev](https://github.com/akashanil-dev)) at Devin Hack Kochi, 24–25 October 2026.
+Built solo by Akash A ([@akashanil-dev](https://github.com/akashanil-dev)) with Devin at **[Devin Hacks Kochi](https://www.devinhacks.in/)**, 24–25 October 2026.
+
+| Event document | Purpose |
+| --- | --- |
+| [RULES.md](RULES.md) | Devin Hacks Kochi event details and rules |
+| [SUBMISSION.md](SUBMISSION.md) | Submission details and checklist |
+| [CHANGELOG.md](CHANGELOG.md) | Timestamped development log |
+| [AI_USAGE.md](AI_USAGE.md) | How Devin and other AI tools were used |
+| [AGENTS.md](AGENTS.md) | Conventions and commands for coding agents |
 
 ## How it works
 
