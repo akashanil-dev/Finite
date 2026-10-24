@@ -5,7 +5,7 @@ import re
 from collections import Counter
 
 from . import db, llm
-from .config import FAST_MODEL
+from .config import FAST_MODEL, MOCK_MODE
 from .retrieval import story_articles
 from .sources import SOURCE_MAP
 from .textutil import sentences
@@ -91,6 +91,7 @@ def _questions_from_angles(angles, concepts):
 
 def _extractive(story, arts):
     texts = [a["content"] or a["description"] or "" for a in arts]
+    texts = texts or [story["title"]]
     lead = sentences(texts[0]) or [texts[0][:300]]
     allsents = [(i, s) for i, t in enumerate(texts) for s in sentences(t)[:6]]
     concepts = proper_nouns(" ".join(texts))
@@ -124,7 +125,9 @@ def analyze(story_id):
         return None
     story = rows[0]
     if story["analysis"]:
-        return json.loads(story["analysis"])
+        cached = json.loads(story["analysis"])
+        if MOCK_MODE or cached.get("mode") == "ai":
+            return cached
     arts = story_articles(story)
     refs = _refs(arts)
     user = "\n\n".join(f"[A{i + 1}] {r['source']} — {a['title']}\n{(a['content'] or a['description'] or '')[:3500]}" for i, (a, r) in enumerate(zip(arts, refs)))

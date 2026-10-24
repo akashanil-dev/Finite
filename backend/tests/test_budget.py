@@ -46,6 +46,8 @@ class BudgetTests(unittest.TestCase):
             self.assertEqual(llm.chat_json('system', 'user'), {'cached': True})
             self.assertEqual(budget.status()['requests'], 1)
             self.assertEqual(client.responses.create.call_count, 1)
+            self.assertIn('JSON', client.responses.create.call_args.kwargs['input'])
+            self.assertEqual(client.responses.create.call_args.kwargs['service_tier'], 'default')
 
     def test_exhaustion_does_not_call_provider(self):
         with patch.object(budget, 'MAX_CALLS', 1):

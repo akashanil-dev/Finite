@@ -33,16 +33,19 @@ def chat_json(system: str, user: str, model: str = FAST_MODEL, max_output_tokens
         return json.loads(path.read_text())
     try:
         instructions = system + "\n\nRespond with a single valid JSON object only."
-        budget.reserve(model, [instructions, user], max_output_tokens)
+        request_input = user + "\n\nReturn the requested JSON object."
+        budget.reserve(model, [instructions, request_input], max_output_tokens)
         resp = _get_client().responses.create(
             model=model,
             instructions=instructions,
             service_tier="default",
-            input=user,
+            input=request_input,
             text={"format": {"type": "json_object"}},
             max_output_tokens=max_output_tokens,
         )
         data = json.loads(resp.output_text)
+        if not isinstance(data, dict):
+            return None
     except Exception as e:  # network, quota, malformed JSON: degrade gracefully
         log.warning("LLM call unavailable (%s): %s", model, type(e).__name__)
         return None

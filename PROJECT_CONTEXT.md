@@ -48,7 +48,7 @@ It also **always ends**:
 **Status:**
 
 - **Verified without a key:** the MVP works end-to-end in extractive mode.
-- **Not yet run:** the AI paths have never been run with a real key.
+- **Live AI sample verified (25 Oct):** classification, embeddings, summaries, Missing Piece, Perspective Lens, two-level explorations, custom-question rejection and Malayalam rendering. See current state for limits.
 - **Context:** built solo by Akash A, with Devin, at Devin Hacks Kochi (24–25 Oct 2026; code freeze 8:00 AM IST, 25 Oct).
 
 ---
@@ -545,6 +545,9 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## I. Current development state
 
+2026-10-25T00:15:26+05:30 — Live classification/embeddings and story analysis now pass after JSON input fix; `fix: repair JSON requests and refresh extractive analyses`, based on `42a7b54`. Grounding and final browser QA checkpoint follows.
+
+
 2026-10-25T00:08:44+05:30 — Owner supplied a local key and authorized $1 guarded live AI testing. Guard implemented and unit-tested; live/browser validation remains pending. Checkpoint `feat: add persistent one-dollar AI budget guard` (based on `64884e3`).
 
 
@@ -586,7 +589,7 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 
 | Sev. | Issue | Where | Notes / workaround |
 | --- | --- | --- | --- |
-| High | **AI mode has never been run.** Calls to the Responses API with `text.format=json_object` and the configured model names are untested. | `llm.py`, all prompts | Needs a real key. Failures are logged and fall back to extractive mode, so the app degrades instead of crashing. |
+| High | **Resolved: JSON-mode request rejection.** Input now explicitly requests JSON; configured models succeeded in live sample tests. | `llm.py`, all prompts | Key supplied locally; generated output was verified in browser. Failures still fall back to extractive mode. |
 | High | **Limited automated coverage** | whole repo | Seven Perspective Lens tests exist; broader API regression coverage and CI remain pending |
 | Med | TF-IDF clustering sometimes **splits one event into two stories** (e.g. two Jamia protest stories, from Mint and from Indian Express + Scroll) | `briefing._cluster` (threshold 0.32) | Embeddings (0.8) with a key should fix it (hypothesis); or tune the threshold |
 | Med | Keyword classification is approximate; Malayalam articles only get the `kerala` source hint, so they rank low | `ingest.keyword_classify` | LLM classification with a key |
@@ -741,3 +744,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-24T23:32:53+05:30 | Curiosity Challenges browser QA checkpoint `fix: handle challenge journey retries and focus`, based on `47bedbd` | C, D, E, F, I, K, README, changelog, AI usage | Desktop/mobile no-key browser flows verified; nine tests/import and final tsc/ESLint/build pass; STOP before live AI validation |
 
 | 2026-10-25T00:08:44+05:30 | `feat: add persistent one-dollar AI budget guard`, based on `64884e3` | C, D, I; README, changelog, AI usage | Four guard tests and backend import pass; live testing pending |
+
+| 2026-10-25T00:15:26+05:30 | `fix: repair JSON requests and refresh extractive analyses`, based on `42a7b54` | 0, I, J; README | Live classification, embeddings and story browser checks; 15 backend tests/import pass |
