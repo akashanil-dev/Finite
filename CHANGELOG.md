@@ -180,3 +180,7 @@ Validation: TypeScript, zero-warning ESLint and production build pass. Local bro
 ## 2026-10-25T04:39:05+05:30 — Make preference choices explicit
 
 Codex replaced repeated-tap interest cycling with Off/Occasional/Moderate/High buttons, added folding topic groups and a gliding settings selector, and added pending-save feedback. The save control clears the floating dock. Existing profile storage and weighting are unchanged. Validation: local browser onboarding selected High; settings changed to Moderate, saved and persisted after reload. Language choice save and Sources navigation passed. At 320 pixels the tab labels initially overflowed; sizing was corrected and document scroll width matched viewport width. TypeScript, zero-warning ESLint and the production build pass. Human direction approved; final visual review pending.
+
+## 2026-10-25T04:43:14+05:30 — Verify redesign deployment
+
+Actions run 40141543544 passed checks, both ARM64 builds/publishing and automatic deployment of `f64b943`. Codex visually verified the redesigned public HTTPS login page. Final local production-preview login/logout and profile persistence passed. `DESIGN_QA.md` records sources, tests and limitations. No additional AI budget used. Final human visual review remains pending.

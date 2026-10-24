@@ -582,6 +582,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
+2026-10-25T04:43:14+05:30 — Redesign release `f64b943` is live: Actions 40141543544 passed all jobs, including deploy. Live HTTPS login visually verified. Local production-preview authenticated QA passed; full verification scope is in DESIGN_QA.md. No new AI usage.
+
 2026-10-25T04:39:05+05:30 — Visual system checkpoint `a9628be`; preference controls and narrow-screen corrections follow in this commit. Explicit priority selection, saved value persistence and 320px overflow checks passed in the local production preview.
 
 2026-10-25T04:38:33+05:30 — Visual overhaul implemented and locally exercised with AI disabled and an isolated database. Desktop (1280/1440) and mobile (390) samples cover signup/onboarding, briefing, depth selection, Lens, graph/list/evidence, timeline, challenge, completion and Passport save. Production build passes. Production release verification follows push.
@@ -877,3 +879,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T04:38:33+05:30 | Visual overhaul checkpoint (this commit) | Responsive design, motion direction, browser validation and audit boundaries recorded. |
 
 | 2026-10-25T04:39:05+05:30 | Preference controls (this commit), visual base `a9628be` | Explicit weights, save feedback and 320px QA reconciled. |
+
+| 2026-10-25T04:43:14+05:30 | Deployment QA (this commit); release `f64b943` | CI/CD success and live visual check recorded in DESIGN_QA.md. |

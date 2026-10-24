@@ -140,3 +140,5 @@ Finite uses a warm cream canvas, charcoal navigation, lime highlights and lavend
 The owner's [finite-ideas Pinterest board](https://in.pinterest.com/gutgbihgg/finite-ideas/) informed the palette and card compositions; no reference artwork was copied. UI QA uses an isolated database and `OPENAI_API_KEY=''`, `FINITE_SCHEDULER_ENABLED=false` so visual testing does not consume AI budget. Physical-device and cross-browser accessibility/performance audits remain pending.
 
 Interest priorities are explicit Off / Occasional / Moderate / High choices in onboarding and Settings. Settings use animated section selectors and show saving feedback before confirmation.
+
+See [DESIGN_QA.md](DESIGN_QA.md) for the visual references, redesign test coverage and deployed release evidence.
