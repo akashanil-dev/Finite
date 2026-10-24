@@ -76,7 +76,7 @@ export default function PassportPage() {
                     <li key={j.id} className="rounded-2xl border border-line bg-card p-4">
                       <Link href={`/story/${j.story_id}`} className="font-serif text-lg leading-snug">{j.story_title}</Link>
                       <ol className="mt-2 space-y-1 border-l border-line pl-3 text-sm text-muted">
-                        {j.path.map((s, i) => <li key={i}>{s.question}</li>)}
+                        {j.path.map((s, i) => <li key={i}>{s.question}{s.prediction && <span className="mt-1 block text-xs text-accent">Your prediction: {s.prediction}</span>}</li>)}
                       </ol>
                       <div className="mt-2 text-[11px] text-muted">{fmtTime(j.created_at)}</div>
                     </li>

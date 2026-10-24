@@ -92,7 +92,7 @@ export type Exploration = {
 };
 
 export type Passport = {
-  journeys: { id: number; story_id: string; story_title: string; path: { question: string }[]; concepts: string[]; created_at: number }[];
+  journeys: { id: number; story_id: string; story_title: string; path: { question: string; prediction?: string }[]; concepts: string[]; created_at: number }[];
   concepts: { name: string; count: number }[];
   areas: { name: string; count: number }[];
   briefings_completed: number;

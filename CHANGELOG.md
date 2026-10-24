@@ -2,6 +2,14 @@
 
 Meaningful project changes during Devin Hacks Kochi, newest first. Timestamps are IST (UTC+05:30).
 
+## 2026-10-24T23:28:09+05:30 — Curiosity Challenges implementation
+
+- Changed: Optional three-choice prediction before Level 2, reveal/skip/back controls, reflection alongside the cited answer and optional prediction in saved Passport journeys. Added curiosity-challenge.tsx; updated rabbit-hole.tsx, passport page and API types.
+- Why: Active reflection without trivia scores or fabricated correct answers. The challenge uses no additional AI calls and never adds a journey level.
+- Backend: Versioned exploration cache includes depth, angle, search and custom-question flag; cached responses receive the current request path. This prevents a cached Level 1 response from breaking the Level 2 endpoint. Old cache rows remain harmlessly unused.
+- Validation: Nine backend/API tests and backend import pass with OPENAI_API_KEY explicitly empty. TypeScript, ESLint and production build pass for the core flow; final Passport display and browser checks follow in the QA checkpoint.
+- Limitations: Browser QA pending in this implementation checkpoint. Generic connection hypotheses are intentionally ungraded; live AI quality is a separate key-required stage and is not run.
+
 ## 2026-10-24T23:18:29+05:30 — Perspective Lens browser QA and fixes
 
 - Changed: Preserve short opening sentences in perspectives.py; regression test added. Citation chips show full publisher names and expose expanded state/accessibility labels. Keep the Lens toggle on one line on mobile. README documents recovery from a cached Turbopack port-permission failure.

@@ -70,10 +70,12 @@ def _extractive(question, angle, passages, depth, concepts):
 
 def explore(story_id, question: str, angle: str = "context", search: list[str] | None = None, depth: int = 1, custom: bool = False, path: list | None = None):
     depth = max(1, min(MAX_DEPTH, depth))
-    key = _key(story_id, question, "en")
+    # Version the cache by depth and retrieval inputs so final-level responses stay final.
+    key = hid("explore-v2", _key(story_id, question, "en"), str(depth), angle,
+              json.dumps(search or [], ensure_ascii=False), str(custom))
     cached = db.query("SELECT payload FROM explorations WHERE key=?", (key,))
     if cached:
-        return json.loads(cached[0]["payload"])
+        return {**json.loads(cached[0]["payload"]), "path": path or []}
     story = db.query("SELECT * FROM stories WHERE id=?", (story_id,))
     if not story:
         return None

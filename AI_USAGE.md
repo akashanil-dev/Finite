@@ -25,3 +25,7 @@ Implemented the comparison endpoint and expandable UI, publisher deduplication, 
 ## 2026-10-24T23:18:29+05:30 — Codex browser validation and corrections
 
 Used the in-app browser against the production frontend and isolated QA backend to test Perspective Lens states, citations, retry and responsive layout. Found and fixed short-lead omission, ambiguous citation labels and wrapping toggle. Added a regression test. Diagnosed build recovery through a fresh generated cache and local port permission; no configuration workaround required. Seven tests, import, tsc, ESLint and production build pass. Human review and live-key AI evaluation remain pending; fixture AI checks are not live model validation.
+
+## 2026-10-24T23:28:09+05:30 — Codex Curiosity Challenges
+
+Implemented optional prediction/reveal/skip flow, saved prediction display and depth-safe exploration caching. Added depth-cache and journey-persistence regression tests. Nine tests and import pass without a key; frontend core checks pass. Human review and browser QA pending. Owner instructed work without a key and to stop before live AI validation.

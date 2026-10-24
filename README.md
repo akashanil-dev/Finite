@@ -22,9 +22,10 @@ Built solo by Akash A ([@akashanil-dev](https://github.com/akashanil-dev)) with 
 3. **Finite feed:** a numbered list of source-backed stories with a progress bar and an explicit *"You're done for today"* ending.
 4. **Story:** quick (30s), standard (2 min) or deep (5 min) summary, key facts with citations, original publish and update times, sources with credibility tier, and **The Missing Piece** (what the coverage didn't explain).
 5. **Rabbit holes:** questions chosen to fit the type of story, plus *ask your own*. Level 1 gives context and Level 2 gives connections, then the expedition is complete. Every claim is cited and labelled *established*, *reported* or *disputed*, with a timeline where relevant.
-6. **Knowledge Passport:** the concepts you've explored, with no streaks.
-7. **Perspective Lens:** open “Compare” on a story to see headlines and short original excerpts from up to eight distinct publishers. With AI enabled, cited claims are grouped as corroborated, reported, disputed or opinion only after an explicit support check. Failed checks fall back to source excerpts. Aggregators are excluded; one publisher cannot count as multiple perspectives. Comparisons are English; excerpts retain their original language.
-8. **Sources page:** a public credibility index of every outlet Finite reads, with its tier, confidence weight and the reason for it.
+6. **Curiosity Challenges:** before following a Level 2 connection, optionally predict a shared history, similar mechanism or wider impact. Reveal the cited exploration and reflect; there are no scores or invented correct answers. Skip or return to the connection choices anytime before revealing. Your prediction is saved with the journey. No extra AI calls are required.
+7. **Knowledge Passport:** the concepts you've explored, with no streaks.
+8. **Perspective Lens:** open “Compare” on a story to see headlines and short original excerpts from up to eight distinct publishers. With AI enabled, cited claims are grouped as corroborated, reported, disputed or opinion only after an explicit support check. Failed checks fall back to source excerpts. Aggregators are excluded; one publisher cannot count as multiple perspectives. Comparisons are English; excerpts retain their original language.
+9. **Sources page:** a public credibility index of every outlet Finite reads, with its tier, confidence weight and the reason for it.
 
 ## Stack
 
@@ -87,7 +88,7 @@ If a restricted agent run fails with a Turbopack CSS-worker `binding to a port: 
   - Topic sorting without a key is approximate.
   - Duplicate grouping without a key sometimes splits one event into two stories.
   - Source weights are editorial judgements.
-  - Perspective Lens is implemented with fixture-tested AI handling; desktop/mobile browser checks pass; real-key quality remains pending. Curiosity Challenges are planned.
+  - Perspective Lens is implemented with fixture-tested AI handling; desktop/mobile browser checks pass; real-key quality remains pending. Curiosity Challenges are implemented; browser QA is the next checkpoint.
 
 ## Data and attribution
 

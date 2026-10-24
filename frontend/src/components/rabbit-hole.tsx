@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, type Exploration, type NextQuestion } from "@/lib/api";
+import { CuriosityChallenge } from "./curiosity-challenge";
 import { CitationChips, ConfidenceBadge } from "./citations";
 import { Button, ErrorNote, Eyebrow, Skeleton } from "./ui";
 
@@ -24,6 +25,8 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
   const [error, setError] = useState<string | null>(null);
   const [ended, setEnded] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [challenge, setChallenge] = useState<NextQuestion | null>(null);
+  const [prediction, setPrediction] = useState<string | undefined>();
 
   const load = useCallback(
     (q: HoleStart, prev: Exploration[], isAlive: () => boolean = () => true) =>
@@ -56,7 +59,9 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
   const current = steps[steps.length - 1];
   const concepts = [...new Set(steps.flatMap((s) => s.concepts ?? []))];
 
-  const goDeeper = (q: NextQuestion) => {
+  const goDeeper = (q: NextQuestion, guess?: string) => {
+    setChallenge(null);
+    setPrediction(guess);
     const next = { question: q.question, angle: q.angle, search: q.search ?? [] };
     setError(null);
     setPending(next);
@@ -66,7 +71,7 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
   const save = async () => {
     await api("/api/journeys", {
       method: "POST",
-      json: { story_id: storyId, path: steps.map((s) => ({ question: s.question, key: s.key })), concepts },
+      json: { story_id: storyId, path: steps.map((s) => ({ question: s.question, key: s.key, ...(s.depth === 2 && prediction ? { prediction } : {}) })), concepts },
     });
     setSaved(true);
   };
@@ -107,15 +112,23 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
         </div>
       )}
 
+      {current && !pending && !current.off_topic && current.depth === 2 && prediction && (
+        <aside className="mt-6 rounded-2xl border border-accent/30 bg-accent-soft p-4 text-sm" aria-label="Your prediction">
+          <p className="font-medium">Your prediction: {prediction}</p>
+          <p className="mt-1 text-muted">Compare your idea with the cited exploration below. Did the sources support it, suggest another connection, or leave it unresolved?</p>
+        </aside>
+      )}
       {current && !pending && !current.off_topic && <StepView step={current} />}
 
-      {current && !pending && !current.off_topic && !ended && (
+      {challenge && !pending && !ended && <CuriosityChallenge key={challenge.question} question={challenge.question} onReveal={(guess) => goDeeper(challenge, guess)} onCancel={() => setChallenge(null)} />}
+
+      {current && !pending && !current.off_topic && !ended && !challenge && (
         <section className="mt-8">
           <Eyebrow>Level {current.depth + 1}: connections</Eyebrow>
           <h3 className="mt-1 font-serif text-xl">Go one level deeper?</h3>
           <div className="mt-4 space-y-2">
             {(current.next_questions ?? []).map((q) => (
-              <button key={q.question} onClick={() => goDeeper(q)} className="flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 text-left transition hover:border-accent/50">
+              <button key={q.question} onClick={() => setChallenge(q)} className="flex w-full items-center justify-between rounded-2xl border border-line bg-card p-4 text-left transition hover:border-accent/50">
                 <span className="text-sm font-medium">{q.question}</span>
                 <span className="text-accent">→</span>
               </button>
