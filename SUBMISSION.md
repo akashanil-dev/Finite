@@ -29,7 +29,8 @@ Prepared for **Devin Hacks Kochi** (24–25 October 2026). Submit through the or
   3. Read the finite feed.
   4. Open a story: summaries, cited facts, the Missing Piece.
   5. Open a rabbit hole down to Level 2, reach "Expedition complete", and save it to the Knowledge Passport.
-  6. Show the Sources page.
+  6. On a multi-publisher story, expand Perspective Lens and compare the attributed excerpts. AI grouping requires a working key.
+  7. Show the Sources page.
 - **Checks performed and results:** see [CHANGELOG.md](CHANGELOG.md)
 - **Known limitations:** see the Status section of [README.md](README.md)
 - **Libraries, APIs and data used:** see the Data and attribution section of [README.md](README.md)
