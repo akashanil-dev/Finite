@@ -1,6 +1,6 @@
 # Proposed production AI activation — requires owner approval
 
-This batch has NOT been executed. Routine SHA deployments are already authorized; changing Oracle AI configuration is a separate owner-required approval.
+This batch was explicitly approved by the owner and executed on 25 October 2026 after CI run 40148109626 passed. The backend became healthy, AI enabled was confirmed, and the independent production ledger reported $15 available before the live sample. Backup: `/var/backups/finite-ai-20261025T005142Z`. Routine SHA deployments are already authorized; changing Oracle AI configuration is a separate owner-required approval.
 
 After the new release passes CI/CD:
 

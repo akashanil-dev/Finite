@@ -232,7 +232,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 
 ---
 
-AI budget guard: configurable conservative reservation allowance (default $1, dev $5, proposed production $15; maximum $15) in `backend/data/ai_budget.sqlite3`; atomic across local workers, no refunds/reset, 100 requests maximum, reviewed models only. Four guard tests and backend import pass; live testing follows. `GET /api/ai-budget` exposes reservations, not billing.
+AI budget guard: configurable conservative reservation allowance (default $1, dev $5, production $15; maximum $15) in `backend/data/ai_budget.sqlite3`; atomic across local workers, no refunds/reset, 100 requests maximum, reviewed models only. Four guard tests and backend import pass; live testing follows. `GET /api/ai-budget` exposes reservations, not billing.
 
 ## D. System architecture
 
@@ -589,14 +589,16 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 | D19 | Perspective Lens uses existing excerpts and fails closed on verification failure | Avoid extra scraping and unchecked comparison claims | Coverage and AI quality remain limited; hostname deduplication cannot detect syndication | Active |
 | D20 | Ungraded connection hypotheses with skip and source-based reflection | Active learning without invented answers or scores; no extra AI calls | Generic choices rather than generated quizzes | Active |
 | D22 | Time Machine uses complete dated source quotations; publication timestamps stay separate | Preserve remaining AI allowance and avoid invented chronology | English patterns can miss dates; no complete archive | Active |
-| D21 | Configurable persistent conservative reservation guard (dev $5; production $15 pending activation), no automatic refunds or resets | Owner-approved testing allowance; reserve before calls, including failed calls | Installation-local only; not an account billing cap | Active |
+| D21 | Configurable persistent conservative reservation guard (dev $5; production $15), no automatic refunds or resets | Owner-approved testing allowance; reserve before calls, including failed calls | Installation-local only; not an account billing cap | Active |
 | D18 | Name **"Finite"** | Owner's choice from the suggestions | Warren, Undercurrent, Kaaranam, Fathom, Sutra were considered | Active |
 
 ---
 
 ## I. Current development state
 
-2026-10-25T06:14:39+05:30 — AI reliability fixes: analysis v3 independently checks summaries, claims, questions and missing-piece premises; failed summaries become source excerpts. Rabbit-hole fallbacks no longer fabricate entity-based follow-ups, mark incomplete evidence, and upgrade when AI is available. Translation caches track analysis version/mode. 43 backend tests pass; real API sample audit covers Kerala and Jamia, two depths, off-topic rejection, translation, classification, embeddings and multi-outlet comparison. Production AI remains disabled pending explicit server approval. Swipe UX is implemented and locally browser-verified; see AI_UX_QA.md.
+2026-10-25T06:24:38+05:30 — Release `b33eb6e` (AI fix `538f9f6`) deployed via successful full Actions run `40148109626`. Owner explicitly approved production AI activation: server-only key, separate $15 allowance, scheduling disabled, backend healthy. Root-only environment backup `/var/backups/finite-ai-20261025T005142Z`. Actual production Kerala article `se042c3c12ba6000d` regenerated relevant AI summaries/questions in the browser. Development reservations $2.281297 of $5 (57 requests); production Kerala rabbit-hole sample completed with three cited relevant nodes and inspectable source links ($0.246894 reserved, $14.753106 remaining, 4 requests).
+
+2026-10-25T06:14:39+05:30 — AI reliability fixes: analysis v3 independently checks summaries, claims, questions and missing-piece premises; failed summaries become source excerpts. Rabbit-hole fallbacks no longer fabricate entity-based follow-ups, mark incomplete evidence, and upgrade when AI is available. Translation caches track analysis version/mode. 43 backend tests pass; real API sample audit covers Kerala and Jamia, two depths, off-topic rejection, translation, classification, embeddings and multi-outlet comparison. Production AI was subsequently explicitly approved and activated at $15; scheduler remains disabled. Swipe UX is implemented and locally browser-verified; see AI_UX_QA.md.
 
 2026-10-25T05:47:36+05:30 — Knowledge-map false-positive fix: 39 backend tests passed; published Kerala report with synthetic comparison fixtures and 20 stored stories checked locally. No AI spend. Release `584716f` deployed; Actions run `40146140933` passed checks, builds, smoke tests and public verification.
 
@@ -669,7 +671,7 @@ Current verification: 2026-10-25T00:17:27+05:30; `0d88ce0` plus checkpoint `fix:
 
 ## J. Bugs, limitations and technical debt
 
-AI audit is sample-based, not a guarantee: verification is itself model-based, Wikipedia/source coverage can be incomplete, and follow-up questions can still need editorial review. Production AI activation is pending. Swipe reader was tested with browser-native scrolling at desktop/mobile viewport sizes, not on physical touch devices.
+AI audit is sample-based, not a guarantee: verification is itself model-based, Wikipedia/source coverage can be incomplete, and follow-up questions can still need editorial review. Production AI was activated after explicit approval; its separate ledger is preserved. Swipe reader was tested with browser-native scrolling at desktop/mobile viewport sizes, not on physical touch devices.
 
 - Redesign QA is sampled local browser coverage, not a full accessibility or frame-rate audit. Reduced-motion CSS is implemented but OS-level emulation has not been exercised. Next development mode emits existing instant-navigation diagnostics for auth-gated routes; production build and tested navigation succeed.
 
@@ -711,7 +713,7 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 
 ## K. Roadmap and pending tasks
 
-Current next steps: explicitly approve production AI activation at $15; verify production AI after activation; run physical-device touch QA and broaden factual evaluation beyond the Kerala/Jamia samples.
+Current next steps: run physical-device touch QA and broaden factual evaluation beyond the Kerala/Jamia samples.
 
 - Pinterest-inspired visual overhaul implemented; obtain owner visual feedback and complete physical-device/cross-browser motion and accessibility testing.
 
@@ -826,7 +828,7 @@ For visual work, preserve the owner-approved playful/calm motion and finite prod
 
 Server agents must follow `deploy/SERVER_HANDOFF.md`: inspect containerized Caddy read-only first, then ask explicit owner permission before every change or precisely scoped batch. Do not treat deployment instructions as authorization.
 
-For Oracle work, read `deploy/README.md` and `deploy/SERVER_HANDOFF.md`. Verify live Caddy paths/networks; preserve Tuxos and other services. Automatic deployment is verified and authorized. Production AI activation still requires explicit approval; preserve its separate ledger and use the requested $15 cap. Do not migrate the development ledger into this fresh production installation.
+For Oracle work, read `deploy/README.md` and `deploy/SERVER_HANDOFF.md`. Verify live Caddy paths/networks; preserve Tuxos and other services. Automatic deployment is verified and authorized. Production AI activation was explicitly approved and completed at $15; preserve its separate ledger and keep scheduling disabled. Do not migrate the development ledger into this fresh production installation.
 
 Accounts now gate data APIs. Create a test account on a DB copy with AI disabled; never automatically claim legacy data. Back up before migrations. Registration grants no admin role; local CLI controls ownership/admin changes. Production cookies must be Secure with exact HTTPS origin.
 
@@ -927,3 +929,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T06:14:39+05:30 | fix: verify story suggestions and preserve configurable AI budgets | C/D/H/I/J/M; README and AI audit | 43 backend tests pass; real AI samples exercised, browser QA ongoing; production activation pending |
 
 | 2026-10-25T06:17:33+05:30 | feat: add a swipeable finite briefing | C/H/I/J/K; README and AI_UX_QA | Desktop/mobile browser gestures, journeys, challenge, save, graph and timeline; tsc, ESLint and production build passed |
+
+| 2026-10-25T06:24:38+05:30 | docs: record swipe deployment and production AI activation | I/M and deployment docs | Full CI/deploy passed; approved backend-only activation healthy; live article verified |

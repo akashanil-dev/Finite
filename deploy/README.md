@@ -82,7 +82,7 @@ uv run python -m app.claim_legacy YOUR_USERNAME
 
 Back up first. This assigns unowned briefings/journeys and copies the legacy profile only when the account has no saved profile. It is idempotent; it does not overwrite another user's records. Do not expose this command as a web endpoint.
 
-If retaining local history on Oracle, migrate **before allowing server registrations**: stop the laptop backend, take consistent SQLite backups, then copy the data directory (including `ai_budget.sqlite3`, not `backend/.env`) through SSH into the server volume and set ownership to 10001:finite-deploy. Start Finite and verify sign-in and history. Do not overwrite an active server database. Never copy just the main DB while writes/WAL files are active. For a fresh server with no history, still preserve the existing budget ledger before enabling the same AI key; a fresh volume otherwise has a fresh installation allowance.
+If retaining local history on Oracle, migrate **before allowing server registrations**: stop the laptop backend, take consistent SQLite backups, then copy the data directory (including `ai_budget.sqlite3`, not `backend/.env`) through SSH into the server volume and set ownership to 10001:finite-deploy. Start Finite and verify sign-in and history. Do not overwrite an active server database. Never copy just the main DB while writes/WAL files are active. The owner subsequently approved separate allowances: $5 development and $15 production. Preserve each installation’s existing ledger; do not copy/reset the development ledger as part of production activation. These application caps do not impose an account-wide billing limit.
 
 ## Operations and rollback
 
@@ -113,3 +113,5 @@ Complete the device-code login yourself. Use your ChatGPT login, not Finite's ne
 This laptop chat and a separately installed server CLI do not automatically share messages or state. Provide the server CLI with the current deployment files, `PROJECT_CONTEXT.md` and `deploy/SERVER_HANDOFF.md`, then bring its results back here (or provide an authorized SSH host alias for direct server work). Keep application edits on the laptop and server configuration work on the server to avoid conflicting changes.
 
 Backups run inside the existing backend container as UID 10001 and stream to private host backup files after integrity checking (60-second outer timeout). Do not open production WAL databases as the host deploy user: that can create sidecars the app cannot write. If a database exists but the backend is stopped, deployment aborts; recover the backend or arrange an approved offline backup first.
+
+Production AI was explicitly approved and enabled on 25 October 2026 with `FINITE_AI_BUDGET_USD=15`; scheduling remains disabled. Environment backup: `/var/backups/finite-ai-20261025T005142Z/backend.env` (server-only, private). Future deployments retain `/etc/finite/backend.env` and `/opt/finite/data/ai_budget.sqlite3`.

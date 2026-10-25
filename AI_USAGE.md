@@ -210,3 +210,7 @@ Codex implemented and tested the AI reliability and configurable-budget fixes. U
 ## 2026-10-25T06:17:33+05:30 — Swipe briefing
 
 Codex implemented the requested swipe reader and calm interaction changes, then exercised a production frontend build against an isolated local backend. Browser-native vertical/horizontal scrolling, reverse dock gesture, saved journey/prediction and feature panels were verified. Found and fixed dock overlap, snap flicker and lost Explore selection. Human design review remains pending; no production AI activation performed.
+
+## 2026-10-25T06:24:38+05:30 — Deployment and approved production AI
+
+Codex performed the owner-approved production AI activation after CI passed. Key transferred privately over SSH, never printed or committed. Isolated live QA account used; signup API and browser login/article generation verified. Development reservation ledger remained $2.281297/$5. Production sample validation recorded in AI_UX_QA.md.

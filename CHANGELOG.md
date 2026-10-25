@@ -221,3 +221,7 @@ Verify story summaries, cited facts and question premises; replace rejected summ
 ## 2026-10-25T06:17:33+05:30 — Swipe briefing
 
 Add a finite vertical briefing deck and horizontal in-card feature panels, retain visited card/panel state, embed journeys, preserve explicit read/save confirmation, and hide/show the dock by gesture direction. Fixed mobile dock overlap, returning-to-Explore state, embedded scrolling and scroll-snap dock flicker. Frontend tsc, ESLint and production build pass. Browser QA covers 390px mobile and 1280px desktop, native wheel scrolling, challenges/Passport, connections and timelines; physical touch remains untested.
+
+## 2026-10-25T06:24:38+05:30 — Deployment and approved production AI
+
+Verified release b33eb6e through successful Actions 40148109626. Executed explicitly approved server-only AI activation at $15, scheduling disabled, separate ledger preserved, environment backed up and backend health verified. Browser login and actual production Kerala article AI analysis passed. No Caddy/DNS/other-service configuration changes.

@@ -2,7 +2,7 @@
 
 ## Scope and evidence
 
-Real OpenAI calls ran against an isolated copy of local story data in `/tmp/finite-ai-audit`, with the **original development reservation ledger** preserved. No production data, credentials or AI configuration were changed. UI QA used a test-only local auth override; this is not a new production authentication test. The normal authentication/isolation regression tests passed.
+Real OpenAI calls ran against an isolated copy of local story data in `/tmp/finite-ai-audit`, with the **original development reservation ledger** preserved. The initial development audit made no production changes. The later approved production activation and isolated QA account are recorded below. UI QA used a test-only local auth override; this is not a new production authentication test. The normal authentication/isolation regression tests passed.
 
 Cases exercised:
 
@@ -30,4 +30,14 @@ Screenshots: `/tmp/finite-swipe-mobile.png` and `/tmp/finite-swipe-desktop.png` 
 
 43 backend regression tests passed. Frontend TypeScript, ESLint (zero warnings), and Next production build passed. Initial test invocation from the repository root failed import resolution; rerunning from backend passed. A cache regression fixture was made explicit about extractive mode. A dock edit syntax error was caught and corrected before the successful build.
 
-Development allowance is $5 cumulative reservations, not a monthly reset or actual billed usage. Final analysis-v3 checkpoint: $2.266581 reserved, 56 requests; later browser requests may increase this. The 100-request ceiling also remains. Production's requested $15 is separate and awaits explicit activation approval. Model verification and these samples cannot guarantee correctness of every future answer; source provenance and incomplete coverage still matter.
+Development allowance is $5 cumulative reservations, not a monthly reset or actual billed usage. Final analysis-v3 checkpoint: $2.266581 reserved, 56 requests; later browser requests may increase this. The 100-request ceiling also remains. Production’s $15 is separate and was subsequently explicitly approved and activated. Model verification and these samples cannot guarantee correctness of every future answer; source provenance and incomplete coverage still matter.
+
+## Deployment and approved activation
+
+`538f9f6` and `b33eb6e` were pushed separately as logical commits. Actions run 40148109626 passed checks, ARM64 image builds/smoke tests/publishing and Oracle deployment. The approved activation backed up only the environment, installed the key privately, set the $15 guard and kept scheduling disabled, then recreated only the backend. Health passed; no rollback was needed.
+
+Live QA used a dedicated new account. Signup succeeded through the public API (an initial manual probe omitted the required CSRF header and correctly received 403); browser login succeeded. The exact production Kerala story regenerated AI analysis and relevant questions. Production AI calls returned HTTP 200. Development finished at $2.281297 reserved, $2.718703 remaining, 57 requests. These are conservative reservations, not billing.
+
+The live production rabbit hole about SFI/KSU completed successfully: three relevant cited nodes, source attribution to Wikipedia and The Hindu - Kerala, no unsupported attribution of violence, two relevant next-level questions, and an expandable citation pointing to the named SFI article. Screenshot: `/tmp/finite-production-ai.png`. This bounded production sample stopped at level one; the two-level challenge/save flow was already verified locally.
+
+Production sample checkpoint: $0.246894 reserved, $14.753106 remaining, 4 requests; both containers healthy and scheduler false.
