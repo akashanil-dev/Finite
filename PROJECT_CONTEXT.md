@@ -592,7 +592,7 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
-2026-10-25T05:47:36+05:30 — Knowledge-map false-positive fix: 39 backend tests passed; published Kerala report with synthetic comparison fixtures and 20 stored stories checked locally. No AI spend. Deployment pending.
+2026-10-25T05:47:36+05:30 — Knowledge-map false-positive fix: 39 backend tests passed; published Kerala report with synthetic comparison fixtures and 20 stored stories checked locally. No AI spend. Release `584716f` deployed; Actions run `40146140933` passed checks, builds, smoke tests and public verification.
 
 
 2026-10-25T05:25:18+05:30 — Public landing page implemented and locally verified at desktop/320px. Signup/login links and section navigation work; tsc, ESLint and production build pass. Release `b7ed394` deployed successfully via Actions run `40144672691`; live public homepage and signed-out `/start` redirect verified. No API spend.
@@ -911,3 +911,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T05:47:36+05:30 | fix: reject weak knowledge map connections (this commit) | C/D/H/I/J/K | 39 tests; isolated Kerala report and corpus QA; no AI |
 
 | 2026-10-25T05:47:47+05:30 | fix: explain conservative connection matching (this commit), backend `050cf46` | C/I and DESIGN_QA | Local map/list/evidence/empty-state QA; frontend checks/build passed |
+
+| 2026-10-25T05:51:38+05:30 | docs: record connection fix deployment (this commit) | I; DESIGN_QA | Release `584716f`, Actions `40146140933` passed; article browser QA local |

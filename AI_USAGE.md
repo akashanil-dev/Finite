@@ -197,3 +197,8 @@ Codex implemented and tested this owner-requested fix; human review pending.
 ## 2026-10-25T05:47:47+05:30 — Explain meaningful connection filtering
 
 Updated Connection Explorer loading, explanation and empty-state text to match the new relevance gate. Local browser verified Kerala graph evidence, empty state and Apple map/list consistency; tsc, ESLint and production build passed. No AI calls. Human review pending.
+
+
+### 2026-10-25T05:51:38+05:30 — Connection fix deployment
+
+Commits `050cf46` (backend/tests) and `584716f` (UI explanation) deployed successfully through Actions run `40146140933`; checks, images, no-AI smoke tests and public-site verification passed. Article-specific browser QA was local with published PTI report text and synthetic comparison candidates, not the friend’s production account. No additional AI budget used.
