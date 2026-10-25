@@ -23,17 +23,17 @@ export function ConnectionExplorer({ storyId, storyTitle }: { storyId: string; s
       <span className="shrink-0 text-sm text-accent">{open ? "Hide −" : "Connect +"}</span>
     </button>
     <Fold open={open} id={contentId}>
-      {loading && <div role="status"><p className="mb-3 text-xs text-muted">Looking for shared mentions in stored stories…</p><Skeleton lines={4} /></div>}
+      {loading && <div role="status"><p className="mb-3 text-xs text-muted">Looking for relevant connections in stored stories…</p><Skeleton lines={4} /></div>}
       {error && <ErrorNote message={error} onRetry={reload} />}
       {data && <>
-        <p className="text-xs leading-relaxed text-muted">Shared mentions, not proof of a causal relationship. Compare the original coverage below; no new AI generation.</p>
-        {!data.connections.length && <p className="mt-4 rounded-xl bg-paper p-3 text-sm">No source-backed matches found in the available stories. Connections need a saved concept and an explicit mention in both stories; we won&apos;t invent a link.</p>}
+        <p className="text-xs leading-relaxed text-muted">Shared subjects with overlapping headline context, not proof of a causal relationship. Compare the sources below.</p>
+        {!data.connections.length && <p className="mt-4 rounded-xl bg-paper p-3 text-sm">No meaningful connections found in the available stories. A shared word alone isn’t enough: both headlines must name the subject and share additional context.</p>}
         {!!data.connections.length && <>
           <div className="mt-4 flex gap-2" role="group" aria-label="Connection view">
             {(["map", "list"] as const).map((mode) => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)} className={`rounded-full border border-line px-4 py-2 text-sm ${view === mode ? "bg-ink text-paper" : "bg-paper"}`}>{mode === "map" ? "Knowledge map" : "List view"}</button>)}
           </div>
           {view === "map" && <div className="mt-4">
-            <p className="text-xs text-muted">Select a story node to compare its sources. Each branch is a shared mention; this map ends here.</p>
+            <p className="text-xs text-muted">Select a story node to compare its sources. Each branch shares a subject and context; this map ends here.</p>
             <div className="mt-4 rounded-2xl border border-line bg-paper p-3 sm:p-4" role="group" aria-label="Knowledge graph">
               <div className="mx-auto max-w-sm rounded-2xl border-2 border-accent bg-card p-4 text-center">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">This story · starting point</p>
@@ -80,7 +80,7 @@ export function ConnectionExplorer({ storyId, storyTitle }: { storyId: string; s
             </details>
           </li>)}
         </ol>}
-        <p className="mt-5 border-t border-line pt-3 text-xs leading-relaxed text-muted">End of connections · Up to {data.limit} matches from the latest {data.candidate_limit} stored stories, respecting your language and exclusion settings. Exact mentions can miss synonyms and translations. Quotes retain their original language.</p>
+        <p className="mt-5 border-t border-line pt-3 text-xs leading-relaxed text-muted">End of connections · Up to {data.limit} matches from the latest {data.candidate_limit} stored stories, respecting your language and exclusion settings. Conservative headline matching can miss synonyms, translations and connections explained only in article text. Quotes retain their original language.</p>
       </>}
     </Fold>
   </section>;

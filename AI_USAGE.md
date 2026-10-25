@@ -192,3 +192,8 @@ Release `b7ed394` passed GitHub Actions run `40144672691`: checks, both containe
 - Validation: 39 backend tests pass, including the reported Kerala headline and three irrelevant screenshot headlines (synthetic descriptions), a valid university match, Apple technology versus earnings, incidental body mentions, relevance ordering, exclusions and no-spend API checks. Published PTI report retrieved from ThePrint and checked in isolated local browser with synthetic candidate stories; 20 stored real stories evaluated using a read-only database copy. Jamia campus stories retain connections; weak cases stay empty.
 - Limitations: conservative lexical headline relevance, not semantic or causal proof. May miss synonyms, Malayalam morphology, cross-topic/body-only relationships. Exact production record not inspected.
 Codex implemented and tested this owner-requested fix; human review pending.
+
+
+## 2026-10-25T05:47:47+05:30 — Explain meaningful connection filtering
+
+Updated Connection Explorer loading, explanation and empty-state text to match the new relevance gate. Local browser verified Kerala graph evidence, empty state and Apple map/list consistency; tsc, ESLint and production build passed. No AI calls. Human review pending.

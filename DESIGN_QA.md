@@ -44,3 +44,8 @@ This is sampled browser QA, not a frame-rate benchmark, full accessibility audit
 ### 2026-10-25T05:29:16+05:30 — Landing release verification
 
 Release `b7ed394` passed GitHub Actions run `40144672691`: checks, both container builds/smoke tests and automatic deployment. Live browser verified the public homepage, protected `/start` redirect to login while signed out, and return-home link. Local 320px/desktop checks passed; authenticated form submission was not repeated. No AI calls.
+
+
+## 2026-10-25T05:47:47+05:30 — Explain meaningful connection filtering
+
+Updated Connection Explorer loading, explanation and empty-state text to match the new relevance gate. Local browser verified Kerala graph evidence, empty state and Apple map/list consistency; tsc, ESLint and production build passed. No AI calls. Human review pending.
