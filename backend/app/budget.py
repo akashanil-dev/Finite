@@ -1,16 +1,21 @@
-"""Persistent, conservative $1 allowance for this installation's OpenAI calls.
+"""Persistent, conservative configurable allowance for this installation's OpenAI calls.
 
 Reservations are never refunded: even a timeout may have incurred a charge.
 This is an application guard, not an account-wide billing limit.
 """
 from contextlib import closing
+import os
+from decimal import Decimal
 import sqlite3
 import time
 
 from .config import DATA_DIR
 
 BUDGET_PATH = DATA_DIR / "ai_budget.sqlite3"
-LIMIT_MICRODOLLARS = 1_000_000
+_limit = Decimal(os.getenv("FINITE_AI_BUDGET_USD", "1"))
+if not _limit.is_finite() or not 0 <= _limit <= 15:
+    raise ValueError("FINITE_AI_BUDGET_USD must be between 0 and 15")
+LIMIT_MICRODOLLARS = int(_limit * 1_000_000)
 MAX_CALLS = 100
 # Conservative rates above standard pricing, including long-context pricing.
 # USD per million tokens == microdollars per token. Reviewed 2026-10-25:
@@ -39,7 +44,7 @@ def reserve(model, texts, output_tokens=0):
         conn.execute("BEGIN IMMEDIATE")
         used, calls = conn.execute("SELECT COALESCE(SUM(amount),0), COUNT(*) FROM reservations").fetchone()
         if used + amount > LIMIT_MICRODOLLARS or calls >= MAX_CALLS:
-            raise BudgetBlocked("Finite's $1 AI allowance cannot cover another request; using extractive mode")
+            raise BudgetBlocked("Finite's AI allowance cannot cover another request; using extractive mode")
         conn.execute("INSERT INTO reservations(model,amount,created_at) VALUES(?,?,?)", (model, amount, time.time()))
     return amount
 
@@ -50,7 +55,7 @@ def status():
     else:
         with closing(sqlite3.connect(BUDGET_PATH)) as conn:
             used, calls = conn.execute("SELECT COALESCE(SUM(amount),0), COUNT(*) FROM reservations").fetchone()
-    return {"limit_usd": 1, "reserved_usd": used / 1_000_000,
+    return {"limit_usd": LIMIT_MICRODOLLARS / 1_000_000, "reserved_usd": used / 1_000_000,
             "remaining_usd": max(0, LIMIT_MICRODOLLARS - used) / 1_000_000,
             "requests": calls, "max_requests": MAX_CALLS,
             "scope": "This installation; conservative reservations, not billed usage"}

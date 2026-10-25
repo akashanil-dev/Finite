@@ -36,3 +36,26 @@ class ValidationTests(unittest.TestCase):
                 self.assertEqual(result['dropped_claims'], 1)
                 self.assertTrue(result['insufficient'])
                 self.assertIn('2099: An unsupported event', chat.call_args.args[1])
+
+    def test_unverified_summary_falls_back_but_valid_questions_survive(self):
+        from app import analysis
+        data={'summary':{'quick':'Made up.','standard':'Supported.','deep':'Supported.'},'what_happened':[],
+              'questions':[{'question':'Why did the university review its rules?','angle':'context','search':['University governance']}],
+              'missing_piece':[], 'concepts':['University governance']}
+        arts=[{'content':'The university reviewed its campus rules after a court direction.', 'description':''}]
+        with patch.object(analysis.llm,'chat_json',return_value={'results':[{'i':i,'supported':i!=0} for i in range(4)]}):
+            out=analysis._checked_analysis(data,arts)
+        self.assertNotEqual(out['summary']['quick'],'Made up.')
+        self.assertEqual(len(out['questions']),1)
+
+    def test_malformed_analysis_and_unreviewed_questions_rejected(self):
+        from app import analysis
+        self.assertIsNone(analysis._checked_analysis({'summary':{'quick':None}},[]))
+        data={'summary':dict.fromkeys(['quick','standard','deep'],'Test.'),'questions':[{'question':'Why?','angle':'context'}]}
+        with patch.object(analysis.llm,'chat_json',return_value={}):
+            self.assertIsNone(analysis._checked_analysis(data,[]))
+
+    def test_extractive_followups_do_not_promote_capitalized_words(self):
+        out=rabbithole._extractive('Why?', 'context', [{'text':'There is a question. Responding to it takes time.', 'title':'Example','ref':'A1','kind':'news'}],1,[])
+        self.assertEqual(out['next_questions'],[])
+        self.assertTrue(out['insufficient'])

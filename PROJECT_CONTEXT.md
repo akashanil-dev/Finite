@@ -230,7 +230,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 
 ---
 
-AI budget guard: persistent $1 conservative reservation allowance in `backend/data/ai_budget.sqlite3`; atomic across local workers, no refunds/reset, 100 requests maximum, reviewed models only. Four guard tests and backend import pass; live testing follows. `GET /api/ai-budget` exposes reservations, not billing.
+AI budget guard: configurable conservative reservation allowance (default $1, dev $5, proposed production $15; maximum $15) in `backend/data/ai_budget.sqlite3`; atomic across local workers, no refunds/reset, 100 requests maximum, reviewed models only. Four guard tests and backend import pass; live testing follows. `GET /api/ai-budget` exposes reservations, not billing.
 
 ## D. System architecture
 
@@ -585,12 +585,14 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 | D19 | Perspective Lens uses existing excerpts and fails closed on verification failure | Avoid extra scraping and unchecked comparison claims | Coverage and AI quality remain limited; hostname deduplication cannot detect syndication | Active |
 | D20 | Ungraded connection hypotheses with skip and source-based reflection | Active learning without invented answers or scores; no extra AI calls | Generic choices rather than generated quizzes | Active |
 | D22 | Time Machine uses complete dated source quotations; publication timestamps stay separate | Preserve remaining AI allowance and avoid invented chronology | English patterns can miss dates; no complete archive | Active |
-| D21 | Persistent $1 conservative reservation guard, no automatic refunds or resets | Owner-approved testing allowance; reserve before calls, including failed calls | Installation-local only; not an account billing cap | Active |
+| D21 | Configurable persistent conservative reservation guard (dev $5; production $15 pending activation), no automatic refunds or resets | Owner-approved testing allowance; reserve before calls, including failed calls | Installation-local only; not an account billing cap | Active |
 | D18 | Name **"Finite"** | Owner's choice from the suggestions | Warren, Undercurrent, Kaaranam, Fathom, Sutra were considered | Active |
 
 ---
 
 ## I. Current development state
+
+2026-10-25T06:14:39+05:30 — AI reliability fixes: analysis v3 independently checks summaries, claims, questions and missing-piece premises; failed summaries become source excerpts. Rabbit-hole fallbacks no longer fabricate entity-based follow-ups, mark incomplete evidence, and upgrade when AI is available. Translation caches track analysis version/mode. 43 backend tests pass; real API sample audit covers Kerala and Jamia, two depths, off-topic rejection, translation, classification, embeddings and multi-outlet comparison. Production AI remains disabled pending explicit server approval. Swipe UX is in progress in the working tree.
 
 2026-10-25T05:47:36+05:30 — Knowledge-map false-positive fix: 39 backend tests passed; published Kerala report with synthetic comparison fixtures and 20 stored stories checked locally. No AI spend. Release `584716f` deployed; Actions run `40146140933` passed checks, builds, smoke tests and public verification.
 
@@ -816,13 +818,13 @@ For visual work, preserve the owner-approved playful/calm motion and finite prod
 
 Server agents must follow `deploy/SERVER_HANDOFF.md`: inspect containerized Caddy read-only first, then ask explicit owner permission before every change or precisely scoped batch. Do not treat deployment instructions as authorization.
 
-For Oracle work, read `deploy/README.md` and `deploy/SERVER_HANDOFF.md`. Verify live Caddy paths/networks; preserve Tuxos and other services. No server deployment has been verified. Do not enable auto-deploy before configuration and secrets are ready; keep the API key absent until the persistent budget ledger is migrated.
+For Oracle work, read `deploy/README.md` and `deploy/SERVER_HANDOFF.md`. Verify live Caddy paths/networks; preserve Tuxos and other services. Automatic deployment is verified and authorized. Production AI activation still requires explicit approval; preserve its separate ledger and use the requested $15 cap. Do not migrate the development ledger into this fresh production installation.
 
 Accounts now gate data APIs. Create a test account on a DB copy with AI disabled; never automatically claim legacy data. Back up before migrations. Registration grants no admin role; local CLI controls ownership/admin changes. Production cookies must be Secure with exact HTTPS origin.
 
-Knowledge graph v1 is complete inside Connection Explorer; defaults to map with a list alternative. Uses existing stored data and makes no new AI requests. Preserve the nearly exhausted budget ledger.
+Knowledge graph v1 is complete inside Connection Explorer; defaults to map with a list alternative. Uses existing stored data and makes no new AI requests. Preserve the existing budget ledger; development allowance is now $5.
 
-Connection Explorer and Time Machine v1 are implemented and desktop-browser verified. Preserve the $1 persistent ledger ($0.223300 remaining at this checkpoint); both features use stored evidence without new AI calls. Semantic connections and broader historical retrieval remain extensions.
+Connection Explorer and Time Machine v1 are implemented and desktop-browser verified. Preserve the persistent ledger (the old $1 checkpoint is superseded by the $5 development allowance); both features use stored evidence without new AI calls. Semantic connections and broader historical retrieval remain extensions.
 
 This document is a **map, not the territory**. Always verify against the code.
 
@@ -913,3 +915,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T05:47:47+05:30 | fix: explain conservative connection matching (this commit), backend `050cf46` | C/I and DESIGN_QA | Local map/list/evidence/empty-state QA; frontend checks/build passed |
 
 | 2026-10-25T05:51:38+05:30 | docs: record connection fix deployment (this commit) | I; DESIGN_QA | Release `584716f`, Actions `40146140933` passed; article browser QA local |
+
+| 2026-10-25T06:14:39+05:30 | fix: verify story suggestions and preserve configurable AI budgets | C/D/H/I/J/M; README and AI audit | 43 backend tests pass; real AI samples exercised, browser QA ongoing; production activation pending |

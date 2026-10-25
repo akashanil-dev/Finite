@@ -202,3 +202,7 @@ Updated Connection Explorer loading, explanation and empty-state text to match t
 ### 2026-10-25T05:51:38+05:30 — Connection fix deployment
 
 Commits `050cf46` (backend/tests) and `584716f` (UI explanation) deployed successfully through Actions run `40146140933`; checks, images, no-AI smoke tests and public-site verification passed. Article-specific browser QA was local with published PTI report text and synthetic comparison candidates, not the friend’s production account. No additional AI budget used.
+
+## 2026-10-25T06:14:39+05:30 — AI reliability
+
+Codex implemented and tested the AI reliability and configurable-budget fixes. Used live OpenAI calls against isolated QA data with the existing development budget ledger; no production key/configuration changed. Human review pending. Corrected overly strict whole-analysis rejection to preserve independently accepted questions and verified missing-piece premises. 43 backend regressions pass.

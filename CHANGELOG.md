@@ -213,3 +213,7 @@ Updated Connection Explorer loading, explanation and empty-state text to match t
 ### 2026-10-25T05:51:38+05:30 — Connection fix deployment
 
 Commits `050cf46` (backend/tests) and `584716f` (UI explanation) deployed successfully through Actions run `40146140933`; checks, images, no-AI smoke tests and public-site verification passed. Article-specific browser QA was local with published PTI report text and synthetic comparison candidates, not the friend’s production account. No additional AI budget used.
+
+## 2026-10-25T06:14:39+05:30 — AI reliability
+
+Verify story summaries, cited facts and question premises; replace rejected summaries with excerpts. Remove spurious fallback follow-ups, improve verification evidence window, refresh stale AI/translation caches and configure preserved dev/production allowances. Backend regression suite: 43 passed. Real API sample checks succeeded; comprehensive factual accuracy is not guaranteed. Affected backend analysis, rabbithole, translate, budget, tests and environment templates.

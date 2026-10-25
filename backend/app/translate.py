@@ -52,7 +52,7 @@ def translate_payload(payload, lang):
 def translated_analysis(story_id, analysis, lang):
     rows = db.query("SELECT translations FROM stories WHERE id=?", (story_id,))
     cache = json.loads(rows[0]["translations"] or "{}") if rows else {}
-    if lang in cache:
+    if lang in cache and cache[lang].get("version") == analysis.get("version") and cache[lang].get("mode") == analysis.get("mode"):
         return cache[lang]
     out = translate_payload(analysis, lang)
     if out.get("translation") == lang:

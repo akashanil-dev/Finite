@@ -16,7 +16,7 @@ class ExplorationDepthTests(unittest.TestCase):
             analysis = {'concepts': [], 'summary': {'standard': 'QA', 'deep': 'QA'}}
             def extractive(question, angle, passages, depth, concepts):
                 return {'nodes': [], 'timeline': [], 'next_questions': [] if depth == 2 else [{'question': 'Next?'}]}
-            with patch.object(rabbithole, 'analyze', return_value=analysis), patch.object(rabbithole, 'gather', return_value=[]), patch.object(rabbithole.llm, 'chat_json', return_value=None), patch.object(rabbithole, '_extractive', side_effect=extractive) as generate:
+            with patch.object(rabbithole, 'MOCK_MODE', True), patch.object(rabbithole, 'analyze', return_value=analysis), patch.object(rabbithole, 'gather', return_value=[]), patch.object(rabbithole.llm, 'chat_json', return_value=None), patch.object(rabbithole, '_extractive', side_effect=extractive) as generate:
                 first = rabbithole.explore('s', 'Same question', depth=1)
                 final = rabbithole.explore('s', 'Same question', depth=2, path=[{'question': 'Old path'}])
                 again = rabbithole.explore('s', 'Same question', depth=2, path=[{'question': 'Current path'}])

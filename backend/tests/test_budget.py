@@ -11,6 +11,9 @@ class BudgetTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
+        cap = patch.object(budget, 'LIMIT_MICRODOLLARS', 1_000_000)
+        cap.start()
+        self.addCleanup(cap.stop)
         self.patch = patch.object(budget, 'BUDGET_PATH', Path(self.tmp.name) / 'budget.db')
         self.patch.start()
         self.addCleanup(self.patch.stop)
@@ -57,6 +60,10 @@ class BudgetTests(unittest.TestCase):
                 self.assertIsNone(llm.embed(['new']))
                 client.assert_not_called()
 
-
-if __name__ == '__main__':
-    unittest.main()
+    def test_increasing_cap_preserves_existing_reservations(self):
+        budget.reserve('gpt-6-luna',['already used'],100)
+        before=budget.status()['reserved_usd']
+        with patch.object(budget,'LIMIT_MICRODOLLARS',5_000_000):
+            self.assertEqual(budget.status()['limit_usd'],5)
+            self.assertEqual(budget.status()['reserved_usd'],before)
+            self.assertEqual(budget.status()['remaining_usd'],5-before)

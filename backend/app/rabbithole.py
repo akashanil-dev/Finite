@@ -41,7 +41,7 @@ def _verify(nodes, passages):
     if not nodes:
         return [], 0
     by_ref = {p["ref"]: p["text"] for p in passages}
-    claims = "\n\n".join(f"{i}. CLAIM: {n['text']}\nPASSAGES: " + " | ".join(by_ref.get(r, "")[:600] for r in n["citations"]) for i, n in enumerate(nodes))
+    claims = "\n\n".join(f"{i}. CLAIM: {n['text']}\nPASSAGES: " + " | ".join(by_ref.get(r, "")[:2000] for r in n["citations"]) for i, n in enumerate(nodes))
     data = llm.chat_json(VERIFY_SYSTEM, claims, model=FAST_MODEL)
     verdicts = data.get("results", []) if isinstance(data, dict) else []
     accepted = []
@@ -60,7 +60,7 @@ def _extractive(question, angle, passages, depth, concepts):
         sents = sentences(p["text"]) or [p["text"]]
         sents.sort(key=lambda s: -len(words(s) & qw))
         nodes.append({"heading": p["title"], "text": " ".join(sents[:2]), "citations": [p["ref"]],
-                      "confidence": "reported" if p["kind"] == "news" else "verified"})
+                      "confidence": "reported"})
     timeline = []
     if angle in {"origin", "history", "prior_work", "precedent", "connection"}:
         for p in passages:
@@ -70,18 +70,20 @@ def _extractive(question, angle, passages, depth, concepts):
                     timeline.append({"date": m.group(1), "event": s[:220], "citations": [p["ref"]]})
         timeline.sort(key=lambda t: t["date"])
     found = proper_nouns(" ".join(p["text"] for p in passages), 6)
-    nxt = [] if depth >= MAX_DEPTH else [{"question": f"How does {c} connect to this?", "angle": "connection", "search": [c]} for c in found if c not in concepts][:3]
-    return {"title": question, "nodes": nodes, "timeline": timeline, "next_questions": nxt, "concepts": found[:4], "insufficient": len(passages) < 2, "off_topic": False}
+    nxt = []  # Capitalized names alone do not establish a meaningful follow-up.
+    return {"title": question, "nodes": nodes, "timeline": timeline, "next_questions": nxt, "concepts": found[:4], "insufficient": True, "off_topic": False}
 
 
 def explore(story_id, question: str, angle: str = "context", search: list[str] | None = None, depth: int = 1, custom: bool = False, path: list | None = None):
     depth = max(1, min(MAX_DEPTH, depth))
     # Version the cache by depth and retrieval inputs so final-level responses stay final.
-    key = hid("explore-v3", _key(story_id, question, "en"), str(depth), angle,
+    key = hid("explore-v4", str(MOCK_MODE), FAST_MODEL, SMART_MODEL, _key(story_id, question, "en"), str(depth), angle,
               json.dumps(search or [], ensure_ascii=False), str(custom))
     cached = db.query("SELECT payload FROM explorations WHERE key=?", (key,))
     if cached:
-        return {**json.loads(cached[0]["payload"]), "path": path or []}
+        payload = json.loads(cached[0]["payload"])
+        if MOCK_MODE or payload.get("mode") == "ai":
+            return {**payload, "path": path or []}
     story = db.query("SELECT * FROM stories WHERE id=?", (story_id,))
     if not story:
         return None
@@ -109,16 +111,21 @@ def explore(story_id, question: str, angle: str = "context", search: list[str] |
         nodes = [n for n in nodes if n["citations"]]
         nodes, dropped = _verify(nodes, passages)
         dropped += uncited
+        for node in nodes:
+            node["heading"] = str(node.get("heading") or "Source-backed context")
+            if node.get("confidence") not in {"reported", "disputed"}:
+                node["confidence"] = "reported"
         data["nodes"] = nodes
-        timeline = [{**t, "text": f"{t.get('date', '')}: {t['event']}", "citations": [r for r in t.get("citations", []) if isinstance(r, str) and r in refs]}
-                    for t in data.get("timeline", []) if isinstance(t, dict) and isinstance(t.get("event"), str)]
+        timeline = [{**t, "text": f"{t.get('date', '')}: {t['event']}", "citations": [r for r in (t.get("citations") if isinstance(t.get("citations"), list) else []) if isinstance(r, str) and r in refs]}
+                    for t in (data.get("timeline") if isinstance(data.get("timeline"), list) else []) if isinstance(t, dict) and isinstance(t.get("event"), str)]
         timeline = [t for t in timeline if t["citations"]]
         timeline, timeline_dropped = _verify(timeline, passages)
         dropped += timeline_dropped
         data["timeline"] = [{k: v for k, v in t.items() if k != "text"} for t in timeline]
         if not nodes:
             data["insufficient"] = True
-        data["next_questions"] = [] if final else data.get("next_questions", [])[:3]
+        data["next_questions"] = [] if final or not nodes else [q for q in data.get("next_questions", []) if isinstance(q, dict) and isinstance(q.get("question"), str) and isinstance(q.get("angle"), str) and isinstance(q.get("search", []), list) and all(isinstance(x, str) for x in q.get("search", []))][:3] if isinstance(data.get("next_questions", []), list) else []
+        data["concepts"] = [c for c in data.get("concepts", []) if isinstance(c, str)][:6] if isinstance(data.get("concepts", []), list) else []
         data["mode"] = "ai"
     else:
         data = _extractive(question, angle, passages, depth, concepts)
