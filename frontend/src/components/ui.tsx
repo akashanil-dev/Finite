@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 const NAV = [
   { href: "/briefing", label: "Briefing", icon: "M4 5h16M4 10h16M4 15h10" },
@@ -13,34 +13,11 @@ const NAV = [
 
 export function Shell({ children, nav = true, immersive = false }: { children: ReactNode; nav?: boolean; immersive?: boolean }) {
   const path = usePathname();
-  const [hiddenAt, setHiddenAt] = useState<string | null>(null);
-  useEffect(() => {
-    let touchY: number | null = null;
-    const wheel = (event: WheelEvent) => {
-      if (Math.abs(event.deltaY) > Math.abs(event.deltaX) && Math.abs(event.deltaY) > 2)
-        setHiddenAt(event.deltaY > 0 ? path : null);
-    };
-    const start = (event: TouchEvent) => { touchY = event.touches[0]?.clientY ?? null; };
-    const move = (event: TouchEvent) => {
-      const y = event.touches[0]?.clientY;
-      if (touchY === null || y === undefined || Math.abs(y - touchY) < 16) return;
-      setHiddenAt(y < touchY ? path : null);
-      touchY = y;
-    };
-    document.addEventListener("wheel", wheel, { passive: true });
-    document.addEventListener("touchstart", start, { passive: true });
-    document.addEventListener("touchmove", move, { passive: true });
-    return () => {
-      document.removeEventListener("wheel", wheel);
-      document.removeEventListener("touchstart", start);
-      document.removeEventListener("touchmove", move);
-    };
-  }, [path]);
   return (
     <div className="app-shell" data-nav={nav} data-immersive={immersive}>
       <main className="app-main">{children}</main>
       {nav && (
-        <nav className="app-nav" data-hidden={hiddenAt === path} aria-label="Main navigation">
+        <nav className="app-nav" aria-label="Main navigation">
           <div className="nav-brand" aria-hidden="true">Finite.</div>
           <div className="nav-items">
             {NAV.map((n) => {

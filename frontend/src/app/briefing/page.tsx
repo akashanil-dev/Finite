@@ -1,31 +1,61 @@
 "use client";
 
-import { useState } from "react";
-import { BriefingDeck } from "@/components/briefing-deck";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { api, fmtTime, type Briefing } from "@/lib/api";
 import { useApi } from "@/lib/hooks";
-import { Button, ErrorNote, Shell, Skeleton, Wordmark } from "@/components/ui";
+import { Button, ErrorNote, Shell, Skeleton } from "@/components/ui";
+
+type Edition = { id: number; created_at: number; story_count: number; read_count: number; headline: string; can_refresh: boolean; edition_of: number | null };
+type History = { items: Edition[]; next_cursor: number | null };
 
 export default function BriefingPage() {
-  const { data: b, setData, error, loading } = useApi<Briefing | null>("/api/briefings/latest");
+  const history = useApi<History>("/api/briefings");
+  const router = useRouter();
+  const lock = useRef(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  async function prepare() {
-    setBusy(true); setErr(null);
-    try { setData(await api<Briefing>("/api/briefings", { method: "POST" })); }
-    catch (e) { setErr(e instanceof Error ? e.message : "Could not prepare a briefing"); }
-    finally { setBusy(false); }
+  const [older, setOlder] = useState<History | null>(null);
+  const [used, setUsed] = useState<number[]>([]);
+  const editions = [...new Map([...(history.data?.items ?? []), ...(older?.items ?? [])].map(b => [b.id,b])).values()];
+  const cursor = older ? older.next_cursor : history.data?.next_cursor;
+  async function prepare(id?: number) {
+    if (lock.current) return;
+    lock.current = true; setBusy(true); setErr(null);
+    if (id !== undefined) setUsed(previous => [...previous,id]);
+    try {
+      const b = await api<Briefing>(id === undefined ? '/api/briefings' : `/api/briefings/${id}/edition`, {method:'POST'});
+      history.reload(); router.push(`/briefing/${b.id}`);
+    } catch (e) { setErr(e instanceof Error ? e.message : 'Could not prepare an edition.'); history.reload(); }
+    finally { lock.current = false; setBusy(false); }
   }
-  return <Shell immersive={!!b}>
-    <header className="briefing-overview">
-      <Wordmark small />
-      {b && <div><h1>Your daily briefing</h1><p>{b.stories.length} stories · {fmtTime(b.created_at)} · A finite edition</p></div>}
-      {b && <button onClick={prepare} disabled={busy}>{busy ? 'Preparing…' : 'New edition'}</button>}
-    </header>
-    {loading && <div className="mt-10"><Skeleton lines={6} /></div>}
-    {error && <ErrorNote message={error} />}
+  async function more() {
+    if (!cursor || lock.current) return;
+    lock.current = true; setBusy(true); setErr(null);
+    try {
+      const page = await api<History>(`/api/briefings?before=${cursor}`);
+      setOlder(previous => ({items:[...(previous?.items ?? []),...page.items],next_cursor:page.next_cursor}));
+    } catch (e) { setErr(e instanceof Error ? e.message : 'Could not load older briefs.'); }
+    finally { lock.current = false; setBusy(false); }
+  }
+  return <Shell>
+    <header className="briefing-library-heading"><h1>Your briefings</h1><p>Every edition stays here. Pick up wherever you left off.</p></header>
+    {history.loading && <Skeleton lines={5} />}
+    {history.error && <ErrorNote message={history.error} onRetry={history.reload} />}
     {err && <ErrorNote message={err} />}
-    {!loading && !b && !error && <div className="mt-16 space-y-4 text-center"><h1 className="font-serif text-3xl">No briefing yet</h1><p className="text-sm text-muted">A finite collection of stories, chosen around your interests.</p><Button onClick={prepare} disabled={busy}>{busy ? 'Preparing…' : 'Prepare my briefing now'}</Button></div>}
-    {b && <BriefingDeck key={b.id} briefing={b} onRead={id => setData({...b, read_ids:[...new Set([...b.read_ids,id])]})} />}
+    <div className="briefing-library">
+      {editions.map(b => <article className="edition-card" key={b.id}>
+        <Link href={`/briefing/${b.id}`} className="edition-open" prefetch={false}>
+          <span className="edition-date">{fmtTime(b.created_at)} · {b.edition_of ? 'Extra edition' : 'Briefing'}</span>
+          <h2>{b.headline}</h2>
+          <p>{b.story_count} stories · {b.read_count} read <span aria-hidden="true">↗</span></p>
+        </Link>
+        {b.can_refresh && !used.includes(b.id) && <div className="edition-refresh"><span>One extra edition available</span><button onClick={() => prepare(b.id)} disabled={busy}>New edition</button></div>}
+      </article>)}
+    </div>
+    {!history.loading && !history.error && editions.length === 0 && <div className="mt-10 space-y-4"><p>No saved briefs yet. Prepare your first edition to begin.</p><Button disabled={busy} onClick={() => prepare()}>{busy ? 'Preparing…' : 'Prepare my first briefing'}</Button></div>}
+    {cursor && <Button className="mt-6" disabled={busy} onClick={more}>{busy ? 'Loading…' : 'Older briefings'}</Button>}
+    {busy && <p role="status" className="mt-4 text-sm text-muted">Working on your request…</p>}
   </Shell>;
 }

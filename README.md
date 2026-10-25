@@ -154,7 +154,7 @@ Development AI allowance is now $5; the separately approved and activated produc
 
 ## Swipe briefing
 
-The briefing is a finite vertical deck. Swipe/scroll vertically between story cards; use Previous/Next or focus the deck and press Up/Down on desktop. Swipe horizontally inside a card (or use its tabs/Left/Right keys) for Brief, Different views and Explore. Longer panel content scrolls within the card; use the card header/footer or Next to advance directly. Reading is saved with Mark as read. Returning to a visited card preserves its panel and journey during the current page session. The dock hides on a forward vertical gesture and returns on a reverse gesture; keyboard focus reveals it.
+The briefing is a finite vertical deck. Swipe/scroll vertically between story cards; use Previous/Next or focus the deck and press Up/Down on desktop. Swipe horizontally inside a card (or use its tabs/Left/Right keys) for Brief, Different views and Explore. Longer panel content scrolls within the card; use the card header/footer or Next to advance directly. Reading is saved with Mark as read. Returning to a visited card preserves its panel and journey during the current page session. The mobile dock stays fixed and compact (56px), with safe-area clearance. Briefing opens the saved-edition card library; selecting a card opens `/briefing/{id}`. The reader has no external daily heading: date and position live inside each card, and the headline scrolls with its content. Depth controls wrap with room for every label.
 
 ## Saved editions
 

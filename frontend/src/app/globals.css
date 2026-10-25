@@ -262,3 +262,49 @@ h1 { letter-spacing: -.045em; }
 /* Keep the card edges quiet while native touch/trackpad scrolling remains available. */
 .briefing-deck { scrollbar-width: none; }
 .briefing-deck::-webkit-scrollbar { display: none; }
+
+/* Editions are permanent library cards; the open reader spends its viewport on content. */
+.briefing-library-heading { margin-bottom: 24px; }
+.briefing-library-heading h1 { font-size: 28px; font-weight: 650; }
+.briefing-library-heading p { font-size: 14px; color: var(--color-muted); margin-top: 8px; }
+.briefing-library { display: grid; gap: 16px; }
+.edition-card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 22px; overflow: hidden; }
+.edition-open { display: block; padding: 20px; }
+.edition-date { font-size: 12px; color: var(--color-muted); }
+.edition-open h2 { font-family: var(--font-serif); font-size: 24px; line-height: 1.25; margin: 12px 0; }
+.edition-open p { font-size: 13px; }.edition-open p span { float: right; }
+.edition-refresh { padding: 8px 20px; border-top: 1px solid var(--color-line); display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; color: var(--color-muted); }
+.edition-refresh button { min-height: 44px; text-decoration: underline; color: var(--color-ink); white-space: nowrap; }
+.depth-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.segmented { flex-shrink: 0; min-width: 228px; }
+.segmented button { min-width: 72px; min-height: 44px; padding: 8px 10px; font-size: 13px; }
+.app-shell[data-immersive=true] .app-main { padding-top: 8px; }
+.app-shell[data-immersive=true] .briefing-deck-wrap { margin-top: 0; }
+.app-shell[data-immersive=true] .briefing-deck { height: calc(100dvh - 24px); min-height: 0; }
+.deck-story-top { min-height: 36px; margin-bottom: 0; font-size: 11px; }
+.deck-story-top a { min-height: 36px; display: inline-flex; align-items: center; }
+.deck-step-buttons { display: flex; align-items: center; gap: 6px; }
+.deck-story-bottom .deck-step-buttons button { min-width: 40px; min-height: 40px; padding: 4px; background: #e8e9e0; }
+.reader-language-row:empty { display: none; }.reader-language-row { display: flex; justify-content: flex-end; }
+.reader-language-row button { min-height: 36px; }
+.embedded-reader .reader-content > .reader-heading { font-size: 1.5rem; line-height: 1.2; }
+.embedded-reader .swipe-tabs { margin-top: 4px; padding: 3px; }
+.embedded-reader .swipe-tabs button { min-height: 40px; padding: 6px; }
+.embedded-reader .swipe-hint { display: none; }
+.embedded-reader .reader-summary { padding: 14px 0 0; }
+.embedded-reader .reader-summary > p { font-size: 1.125rem; line-height: 1.6; }
+.embedded-reader .swipe-panel { padding: 10px 4px; }
+@media (max-width: 999px) {
+ .app-nav { bottom: max(6px, env(safe-area-inset-bottom)); left: 10px; right: 10px; padding: 4px; border-radius: 20px; max-width: 400px; }
+ .nav-link { min-height: 48px; padding: 5px 4px; gap: 2px; border-radius: 16px; font-size: 10px; }
+ .nav-link svg { width: 17px; height: 17px; }
+ .app-main { padding: 18px 14px 84px; }
+ .app-shell[data-immersive=true] .app-main { padding: 6px 8px calc(70px + env(safe-area-inset-bottom)); }
+ .app-shell[data-immersive=true] .briefing-deck { height: calc(100dvh - 76px - env(safe-area-inset-bottom)); min-height: 0; }
+ .deck-story { padding: 8px 12px; border-radius: 22px; }
+ .deck-story-bottom { padding-top: 4px; font-size: 11px; }
+ .deck-story-bottom > button { min-height: 40px; padding: 8px 12px; }
+ .embedded-reader .reader-summary > .depth-controls > p { display: none; }
+ .depth-controls { justify-content: flex-start; }
+ .edition-open h2 { font-size: 22px; }
+}

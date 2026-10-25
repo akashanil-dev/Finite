@@ -229,3 +229,7 @@ Verified release b33eb6e through successful Actions 40148109626. Executed explic
 ## 2026-10-25T06:43:15+05:30 — Saved briefing editions
 
 Preserve saved briefing history with owner-scoped pagination; add atomic one-use extra editions, prohibit chaining/unlimited POST refresh, avoid empty editions, and key scheduled editions by local delivery date including midnight preparation. Additive SQLite migration preserves existing data. Affected: backend/app/{db,briefing,main}.py and tests/test_briefing_history.py. Validation: all 51 backend tests passed; no AI calls. Production scheduler activation remains separate; initial-creation crash claim recovery is an operator limitation.
+
+## 2026-10-25T06:46:00+05:30 — Mobile reading space and edition library
+
+Replace the latest-only briefing page with saved-edition cards and a dedicated reader route. Move edition metadata into cards and headlines into scrollable content. Restore a compact fixed 56px mobile dock; give depth labels 72px minimum buttons; fix horizontal-panel alignment on resize. Validation: 320×640/390×844 and desktop browser checks, history persistence, successful/empty one-time refresh, depth selection and scrolling; TypeScript, ESLint, production build passed. Isolated copied data and test auth; ingestion stubbed and OpenAI disabled. Physical phones and production rollout pending.

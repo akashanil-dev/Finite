@@ -6,9 +6,17 @@ export function SwipePanels({ panels, initialIndex = 0, onChange }: { initialInd
   const track = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState(initialIndex);
   const initialPanel = useRef(initialIndex);
+  const currentPanel = useRef(initialIndex);
   useEffect(() => {
     const element = track.current;
-    if (element) element.scrollLeft = initialPanel.current * element.clientWidth;
+    if (!element) return;
+    element.scrollLeft = initialPanel.current * element.clientWidth;
+    // Keep the active panel aligned after rotation or a viewport resize.
+    const observer = new ResizeObserver(() => {
+      element.scrollTo({ left: currentPanel.current * element.clientWidth, behavior: 'instant' });
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
   function go(index: number) {
     const element = track.current;
@@ -24,6 +32,7 @@ export function SwipePanels({ panels, initialIndex = 0, onChange }: { initialInd
       if (event.target !== event.currentTarget) return;
       const el = event.currentTarget;
       const index = Math.round(el.scrollLeft / el.clientWidth);
+      currentPanel.current = index;
       setSelected(index); onChange?.(index);
     }} onKeyDown={(event) => {
       if (event.target !== event.currentTarget) return;

@@ -55,6 +55,18 @@ export function StoryReader({ id, bid = null, embedded = false }: { id: string; 
   };
   const mlAvailable = profile.data?.languages.includes("ml");
 
+  const readerHeader = s && <>
+          <div className="flex flex-wrap gap-x-2 text-[11px] uppercase tracking-wide text-muted">
+            {s.card.subfields.map((t) => <span key={t.id}>{t.name}</span>)}
+          </div>
+          <h1 className={`reader-heading mt-2 font-serif ${s.card.lang === "ml" ? "font-sans text-2xl" : ""}`}>{s.card.title}</h1>
+          <div className="mt-3 flex flex-wrap gap-x-4 text-xs text-muted">
+            <span>First published {fmtTime(s.card.published_at)}</span>
+            {s.card.updated_at - s.card.published_at > 900 && <span className="text-accent">Updated {fmtTime(s.card.updated_at)}</span>}
+          </div>
+
+  </>;
+
   if (hole && s)
     return (
       <Frame>
@@ -72,7 +84,7 @@ export function StoryReader({ id, bid = null, embedded = false }: { id: string; 
 
   return (
     <Frame>
-      <div className="flex items-center justify-between">
+      <div className={embedded ? "reader-language-row" : "flex items-center justify-between"}>
         {!embedded && <Link href="/briefing" className="text-sm text-muted">← Briefing</Link>}
         {mlAvailable && (
           <div className="flex rounded-full border border-line p-0.5 text-xs">
@@ -96,18 +108,12 @@ export function StoryReader({ id, bid = null, embedded = false }: { id: string; 
 
       {s && a && (
         <article className={`story-reader ${embedded ? "embedded-reader" : "rise mt-6"}`}>
-          <div className="flex flex-wrap gap-x-2 text-[11px] uppercase tracking-wide text-muted">
-            {s.card.subfields.map((t) => <span key={t.id}>{t.name}</span>)}
-          </div>
-          <h1 className={`reader-heading mt-2 font-serif ${s.card.lang === "ml" ? "font-sans text-2xl" : ""}`}>{s.card.title}</h1>
-          <div className="mt-3 flex flex-wrap gap-x-4 text-xs text-muted">
-            <span>First published {fmtTime(s.card.published_at)}</span>
-            {s.card.updated_at - s.card.published_at > 900 && <span className="text-accent">Updated {fmtTime(s.card.updated_at)}</span>}
-          </div>
+          {!embedded && readerHeader}
 
           <SwipePanels initialIndex={panelIndex} onChange={setPanelIndex} panels={[{ label: "Brief", content: <div className="reader-content">
+          {embedded && readerHeader}
           <section className="reader-summary mt-6">
-            <div className="flex items-center justify-between">
+            <div className="depth-controls">
               <Eyebrow>What happened</Eyebrow>
               <Segmented value={depth} options={["quick", "standard", "deep"] as const} onChange={setDepth} label="Reading depth" />
             </div>

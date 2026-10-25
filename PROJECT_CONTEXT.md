@@ -180,6 +180,8 @@ Legend: **[M]** mandatory, approved by the owner · **[O]** optional enhancement
 
 ## C. Feature inventory and implementation status
 
+Mobile reader update: `/briefing` is the permanent edition-card library; `/briefing/[id]` opens the finite reader. Metadata is in-card, headline scrolls with body, depth controls fit labels, and the mobile dock is fixed at 56px. Local 320/390px and desktop browser checks passed; physical-device validation remains pending.
+
 Swipe briefing: finite vertical story deck with horizontal Brief / Different views / Explore panels, embedded two-level journeys and direction-aware dock. Native scrolling plus tabs/buttons/keyboard alternatives. Local desktop/mobile viewport validation passed; physical-device touch testing remains pending.
 
 Status meanings:
@@ -547,6 +549,8 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+2026-10-25 — Owner reversed the dock auto-hide behavior: keep a smaller sticky dock. Remove the outer daily-briefing header and preserve reading space by scrolling the title inside the Brief panel.
+
 2026-10-25 — Preserve every briefing. Each original/scheduled edition gets one extra-edition attempt; generated extras cannot chain. An empty/failed attempt stays consumed, as requested for one press. Scheduling is keyed by local delivery date, not the last manual refresh.
 
 2026-10-25: Owner requested Instagram-like vertical news navigation and sideways in-card features, while retaining a finite endpoint. Long source content scrolls within its panel; Previous/Next provides direct story navigation. Motion remains calm and playful. Cards fetch on first visit and retain state until the page is left.
@@ -599,6 +603,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 ---
 
 ## I. Current development state
+
+2026-10-25T06:46:00+05:30 — Compact reader and saved library browser-verified at 320×640, 390×844 and desktop. Standard/Deep labels fit; article scroll retains the 56px dock; feature panels realign after resize. Successful extra creation, empty attempt, retained originals/read progress and absent refresh buttons verified after reload. TypeScript, ESLint and production build pass. No API credits used; live rollout pending.
 
 2026-10-25T06:43:15+05:30 — Saved-edition APIs and additive migration implemented; 51 backend tests pass, covering ownership, pagination, duplicate/concurrent refresh, empty attempts, no chaining, and midnight schedule preparation. Production scheduling remains disabled.
 
@@ -721,7 +727,7 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 
 ## K. Roadmap and pending tasks
 
-Saved-edition retention and one-time extras are implemented. Browser library/mobile verification and deployment are in progress; production schedule activation requires explicit owner approval.
+Saved-edition retention and one-time extras are implemented. Browser library/mobile verification passed; deployment is pending; production schedule activation requires explicit owner approval.
 
 Current next steps: run physical-device touch QA and broaden factual evaluation beyond the Kerala/Jamia samples.
 
@@ -834,6 +840,8 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ## M. Instructions for Incoming AI Agents
 
+Preserve the saved-edition library and compact fixed dock. New edition is a single attempt per original/scheduled edition, not a repeatable refresh; child editions have no further attempt. Server scheduling is still off pending the separate approval batch in `deploy/SCHEDULER_APPROVAL.md`.
+
 For visual work, preserve the owner-approved playful/calm motion and finite product boundaries. Preview with AI explicitly disabled and isolated data; do not enable the production key to test styling.
 
 Server agents must follow `deploy/SERVER_HANDOFF.md`: inspect containerized Caddy read-only first, then ask explicit owner permission before every change or precisely scoped batch. Do not treat deployment instructions as authorization.
@@ -943,3 +951,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T06:24:38+05:30 | docs: record swipe deployment and production AI activation | I/M and deployment docs | Full CI/deploy passed; approved backend-only activation healthy; live article verified |
 
 | 2026-10-25T06:43:15+05:30 | feat: preserve briefing history and limit extra editions | C/D/H/I/J/K; README | 51 backend tests pass; browser verification ongoing; no AI calls |
+
+| 2026-10-25T06:46:00+05:30 | fix: give mobile stories more reading space | C/H/I/K/M; README, MOBILE_BRIEFING_QA | 320/390px and desktop browser checks; tsc, ESLint, build pass; no AI calls |

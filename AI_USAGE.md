@@ -218,3 +218,7 @@ Codex performed the owner-approved production AI activation after CI passed. Key
 ## 2026-10-25T06:43:15+05:30 — Saved briefing editions
 
 Codex implemented and tested saved-edition APIs, retention, one-attempt refresh and scheduled-date uniqueness. Owner requested these behaviors; human code review pending. 51 backend tests passed with no OpenAI calls; browser flow verification is ongoing.
+
+## 2026-10-25T06:46:00+05:30 — Mobile reading space and edition library
+
+Codex implemented the saved briefing library, compact mobile reader, fixed dock and responsive depth controls. Browser testing found and fixed horizontal panel misalignment on resize. Local production build, TypeScript and ESLint pass. Browser checks used isolated data/test-only auth and no OpenAI calls. Owner review pending; physical-device checks remain open.
