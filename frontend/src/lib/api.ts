@@ -58,6 +58,7 @@ export type Cited = { text: string; citations: string[] };
 export type Question = { id: string; question: string; angle: string; blurb: string; search: string[] };
 
 export type Analysis = {
+  summary_fallback?: boolean;
   summary: Record<Depth, string>;
   what_happened: Cited[];
   missing_piece: { question: string; why: string }[];

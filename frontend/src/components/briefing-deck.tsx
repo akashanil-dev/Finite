@@ -1,0 +1,65 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { api, type Briefing } from "@/lib/api";
+import { StoryReader } from "@/app/story/[id]/story-view";
+import { CompletionFlower, ErrorNote } from "./ui";
+
+export function BriefingDeck({ briefing, onRead }: { briefing: Briefing; onRead: (id: string) => void }) {
+  const deck = useRef<HTMLDivElement>(null);
+  const [index, setIndex] = useState(0);
+  const [visited, setVisited] = useState(() => new Set([0]));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const count = briefing.stories.length;
+  useEffect(() => {
+    const root = deck.current;
+    if (!root) return;
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) if (entry.isIntersecting) {
+        const next = Number((entry.target as HTMLElement).dataset.index);
+        setIndex(next);
+        setVisited(previous => previous.has(next) ? previous : new Set([...previous, next]));
+      }
+    }, { root, threshold: 0.6 });
+    root.querySelectorAll('[data-index]').forEach(element => observer.observe(element));
+    return () => observer.disconnect();
+  }, [briefing.id]);
+  function go(next: number) {
+    const target = deck.current?.querySelector<HTMLElement>(`[data-index="${next}"]`);
+    if (target) deck.current?.scrollTo({ top: target.offsetTop, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+  }
+  async function markRead(id: string) {
+    setBusy(true); setError(null);
+    try { await api(`/api/briefings/${briefing.id}/read`, { method: 'POST', json: { story_id: id } }); onRead(id); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Could not save your reading progress.'); }
+    finally { setBusy(false); }
+  }
+  return <div className="briefing-deck-wrap">
+    <div className="deck-controls">
+      <button disabled={index === 0} onClick={() => go(index - 1)} aria-label="Previous story">↑ Previous</button>
+      <span aria-live="polite">{index < count ? `${index + 1} / ${count}` : 'The end'} · {briefing.read_ids.length} read</span>
+      <button disabled={index === count} onClick={() => go(index + 1)} aria-label="Next story">Next ↓</button>
+    </div>
+    <div ref={deck} className="briefing-deck" tabIndex={0} aria-label="Your finite briefing; use up and down arrow keys" onKeyDown={event => {
+      if (event.target !== event.currentTarget) return;
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault(); go(Math.min(count, Math.max(0, index + (event.key === 'ArrowDown' ? 1 : -1))));
+      }
+    }}>
+      {briefing.stories.map((story, i) => <section className="deck-story" key={story.id} data-index={i} aria-label={`Story ${i + 1} of ${count}`}>
+        <div className="deck-story-top"><span>{String(i + 1).padStart(2,'0')} / YOUR BRIEFING</span><Link href={`/story/${story.id}?b=${briefing.id}`}>Open full page ↗</Link></div>
+        {visited.has(i) ? <StoryReader key={story.id} id={story.id} embedded /> : <div className="deck-preview"><h2>{story.title}</h2><p>{story.teaser}</p></div>}
+        <div className="deck-story-bottom"><span>Swipe up for the next story</span><button disabled={busy || briefing.read_ids.includes(story.id)} onClick={() => markRead(story.id)}>{briefing.read_ids.includes(story.id) ? 'Read ✓' : busy ? 'Saving…' : 'Mark as read'}</button></div>
+        {error && index === i && <ErrorNote message={error} />}
+      </section>)}
+      <section className="deck-ending" data-index={count}>
+        <CompletionFlower /><h2>The end. Take a breath.</h2>
+        <p>{count - briefing.read_ids.length > 0 ? `${count - briefing.read_ids.length} stories still unread. You can return to them whenever you like.` : 'You’re done for today.'} Nothing more will load.</p>
+        <Link href="/passport">Visit your Knowledge Passport →</Link>
+        <button onClick={() => go(0)}>Back to the first story ↑</button>
+      </section>
+    </div>
+  </div>;
+}

@@ -206,3 +206,7 @@ Commits `050cf46` (backend/tests) and `584716f` (UI explanation) deployed succes
 ## 2026-10-25T06:14:39+05:30 — AI reliability
 
 Codex implemented and tested the AI reliability and configurable-budget fixes. Used live OpenAI calls against isolated QA data with the existing development budget ledger; no production key/configuration changed. Human review pending. Corrected overly strict whole-analysis rejection to preserve independently accepted questions and verified missing-piece premises. 43 backend regressions pass.
+
+## 2026-10-25T06:17:33+05:30 — Swipe briefing
+
+Codex implemented the requested swipe reader and calm interaction changes, then exercised a production frontend build against an isolated local backend. Browser-native vertical/horizontal scrolling, reverse dock gesture, saved journey/prediction and feature panels were verified. Found and fixed dock overlap, snap flicker and lost Explore selection. Human design review remains pending; no production AI activation performed.

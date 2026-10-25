@@ -216,3 +216,49 @@ h1 { letter-spacing: -.045em; }
 .landing-footer { padding: 36px 0; font-size: 12px; }.landing-footer p { color: #64665e; }
 @media (max-width: 760px) { .landing { padding: 0 20px; }.landing-nav nav { gap: 16px; }.landing-about { display: none; }.landing-nav .landing-button { padding: 12px 16px; gap: 8px; }.landing-hero { grid-template-columns: 1fr; padding: 30px 0 48px; }.landing-intro { max-width: 520px; }.landing-preview { max-width: 500px; width: 100%; margin: auto; }.landing-steps { grid-template-columns: 1fr; gap: 30px; }.landing-steps h3 { margin-top: 12px; }.landing-section { padding: 44px 0; }.landing-tools { grid-template-columns: 1fr; }.landing-footer { flex-wrap: wrap; }.landing-footer p { order: 3; width: 100%; }.landing-tool { padding: 26px; } }
 @media (prefers-reduced-motion: reduce) { .landing-button:hover, .landing-tool:hover, .landing-preview:hover .landing-paper, .landing-preview:hover .landing-question { transform: none; } }
+
+/* Finite swipe reader: native scroll snapping preserves touch and trackpad input. */
+.app-nav { transition: transform 400ms var(--settle), opacity 300ms; }
+.app-nav[data-hidden=true]:not(:focus-within) { transform: translateY(calc(100% + 40px)); opacity: 0; pointer-events: none; }
+.swipe-tabs { display: flex; gap: 6px; padding: 5px; background: #e8e9e0; border-radius: 22px; margin-top: 16px; }
+.swipe-tabs button { flex: 1; font-size: 12px; padding: 10px 4px; border-radius: 18px; }
+.swipe-tabs button[aria-pressed=true] { background: #20211f; color: #fffef9; }
+.swipe-hint { font-size: 10px; text-align: center; color: #64665e; padding: 8px; }
+.swipe-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; min-width: 0; align-items: stretch; }
+.swipe-panel { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; padding: 4px; }
+.swipe-panel .reader-tools { display: block; }
+.briefing-deck-wrap { margin-top: 20px; }
+.deck-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; padding: 8px 0; }
+.deck-controls button { border: 1px solid #d9dbcf; border-radius: 99px; padding: 10px 16px; }.deck-controls button:disabled { opacity: .35; }
+.briefing-deck { position: relative; height: 84dvh; overflow-y: auto; scroll-snap-type: y mandatory; scrollbar-width: thin; border-radius: 28px; }
+.deck-story { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; background: #fffef9; border: 1px solid #d9dbcf; border-radius: 28px; padding: 20px; overflow: hidden; }
+.deck-story-top, .deck-story-bottom { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-shrink: 0; font-size: 10px; }
+.deck-story-top { color: #64665e; margin-bottom: 12px; }.deck-story-top a { text-decoration: underline; text-underline-offset: 3px; }
+.deck-story > div:nth-child(2) { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.embedded-reader { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+.embedded-reader .reader-heading { font-size: clamp(1.3rem,2.6vw,2rem); line-height: 1.12; }
+.embedded-reader > p:last-child { font-size: 9px; margin: 6px 0; }
+.embedded-reader .swipe-panels { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.embedded-reader .swipe-track { flex: 1; min-height: 0; }
+.embedded-reader .swipe-panel { overflow-y: auto; height: 100%; }
+.embedded-reader .reader-summary { margin-top: 0; padding: 16px; border: none; }.embedded-reader .reader-summary > p { font-size: 1.15rem; }
+.deck-story-bottom { padding-top: 10px; border-top: 1px solid #d9dbcf; }.deck-story-bottom button { background: #d3ed80; border-radius: 99px; padding: 10px 15px; }.deck-story-bottom button:disabled { opacity: .6; }
+.deck-preview { display: grid; place-content: center; gap: 20px; }.deck-preview h2 { font-family: var(--font-serif); font-size: 28px; }
+.deck-ending { height: 100%; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 20px; padding: 32px; background: #d3ed80; border-radius: 28px; }.deck-ending h2 { font-family: var(--font-serif); font-size: 40px; }.deck-ending p { font-size: 14px; line-height: 1.7; }.deck-ending a, .deck-ending button { text-decoration: underline; font-size: 13px; }
+.deck-intro { padding: 20px; }.deck-intro h1 { font-size: 1.8rem; }.deck-intro .hero-caption { font-size: 11px; }
+@media (min-width: 1000px) { .app-nav[data-hidden=true]:not(:focus-within) { transform: translateX(-240px); }.app-shell[data-immersive=true] { max-width: 1100px; }.briefing-deck { height: 80dvh; } }
+@media (max-width: 600px) { .deck-story { padding: 16px 12px; }.briefing-deck { height: 84dvh; }.deck-controls button { padding: 8px 12px; }.app-shell[data-immersive=true] .app-main { padding-inline: 12px; }.embedded-reader .reader-summary { padding: 10px 4px; } }
+
+.embedded-journey { overflow-y: auto; min-height: 0; height: 100%; padding: 8px; }
+.briefing-overview { display: flex; align-items: center; gap: 20px; justify-content: space-between; }
+.briefing-overview h1 { font-size: 18px; font-weight: 650; }.briefing-overview p { font-size: 10px; color: #64665e; margin-top: 4px; }.briefing-overview button { font-size: 11px; padding: 8px; text-decoration: underline; }
+.app-shell[data-immersive=true] .app-main { padding-top: 20px; padding-bottom: 20px; }
+.app-shell[data-immersive=true] .briefing-deck-wrap { margin-top: 10px; }
+.app-shell[data-immersive=true] .briefing-deck { height: calc(100dvh - 150px); min-height: 430px; }
+@media (max-width:600px) { .briefing-overview { gap: 8px; }.briefing-overview .wordmark { display: none; }.briefing-overview h1 { font-size: 18px; }.app-shell[data-immersive=true] .briefing-deck { height: calc(100dvh - 134px); min-height: 390px; } }
+
+@media (max-width:600px) { .app-shell[data-immersive=true] .briefing-deck { height: calc(100dvh - 220px); min-height: 320px; }.app-shell[data-immersive=true] .app-main { padding-bottom: 100px; } }
+
+/* Keep the card edges quiet while native touch/trackpad scrolling remains available. */
+.briefing-deck { scrollbar-width: none; }
+.briefing-deck::-webkit-scrollbar { display: none; }

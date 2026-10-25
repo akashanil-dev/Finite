@@ -217,3 +217,7 @@ Commits `050cf46` (backend/tests) and `584716f` (UI explanation) deployed succes
 ## 2026-10-25T06:14:39+05:30 — AI reliability
 
 Verify story summaries, cited facts and question premises; replace rejected summaries with excerpts. Remove spurious fallback follow-ups, improve verification evidence window, refresh stale AI/translation caches and configure preserved dev/production allowances. Backend regression suite: 43 passed. Real API sample checks succeeded; comprehensive factual accuracy is not guaranteed. Affected backend analysis, rabbithole, translate, budget, tests and environment templates.
+
+## 2026-10-25T06:17:33+05:30 — Swipe briefing
+
+Add a finite vertical briefing deck and horizontal in-card feature panels, retain visited card/panel state, embed journeys, preserve explicit read/save confirmation, and hide/show the dock by gesture direction. Fixed mobile dock overlap, returning-to-Explore state, embedded scrolling and scroll-snap dock flicker. Frontend tsc, ESLint and production build pass. Browser QA covers 390px mobile and 1280px desktop, native wheel scrolling, challenges/Passport, connections and timelines; physical touch remains untested.

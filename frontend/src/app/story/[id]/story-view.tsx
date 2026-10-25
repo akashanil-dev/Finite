@@ -9,6 +9,7 @@ import { CitationChips } from "@/components/citations";
 import { ConnectionExplorer } from "@/components/connection-explorer";
 import { TimeMachine } from "@/components/time-machine";
 import { PerspectiveLens } from "@/components/perspective-lens";
+import { SwipePanels } from "@/components/swipe-panels";
 import { RabbitHole, type HoleStart } from "@/components/rabbit-hole";
 import { ErrorNote, Eyebrow, Segmented, Shell, Skeleton, TierBadge, WeightBar } from "@/components/ui";
 
@@ -17,6 +18,11 @@ type StoryResp = { card: StoryCard; analysis: Analysis };
 export default function StoryView() {
   const { id } = useParams<{ id: string }>();
   const bid = useSearchParams().get("b");
+  return <StoryReader key={id} id={id} bid={bid} />;
+}
+
+export function StoryReader({ id, bid = null, embedded = false }: { id: string; bid?: string | null; embedded?: boolean }) {
+  const Frame = embedded ? "div" : Shell;
   const meta = useApi<Meta>("/api/meta");
   const profile = useApi<Profile>("/api/profile");
   const [langChoice, setLang] = useState<string | null>(null);
@@ -25,6 +31,7 @@ export default function StoryView() {
   const depth = depthChoice ?? profile.data?.depth ?? "standard";
   const story = useApi<StoryResp>(lang ? `/api/stories/${id}?lang=${lang}` : null);
   const [hole, setHole] = useState<HoleStart | null>(null);
+  const [panelIndex, setPanelIndex] = useState(0);
   const [ask, setAsk] = useState("");
   const readerScroll = useRef(0);
   const openHole = (start: HoleStart) => {
@@ -37,8 +44,8 @@ export default function StoryView() {
   }, [bid, id]);
 
   useEffect(() => {
-    window.scrollTo({ top: hole ? 0 : readerScroll.current });
-  }, [hole]);
+    if (!embedded) window.scrollTo({ top: hole ? 0 : readerScroll.current });
+  }, [hole, embedded]);
 
   const s = story.data;
   const a = s?.analysis;
@@ -50,8 +57,8 @@ export default function StoryView() {
 
   if (hole && s)
     return (
-      <Shell>
-        <RabbitHole
+      <Frame>
+        <div className={embedded ? "embedded-journey" : undefined}><RabbitHole embedded={embedded}
           storyId={id}
           storyTitle={s.card.title}
           start={hole}
@@ -59,14 +66,14 @@ export default function StoryView() {
           maxDepth={meta.data?.max_depth ?? 2}
           briefingId={bid}
           onClose={() => setHole(null)}
-        />
-      </Shell>
+        /></div>
+      </Frame>
     );
 
   return (
-    <Shell>
+    <Frame>
       <div className="flex items-center justify-between">
-        <Link href="/briefing" className="text-sm text-muted">← Briefing</Link>
+        {!embedded && <Link href="/briefing" className="text-sm text-muted">← Briefing</Link>}
         {mlAvailable && (
           <div className="flex rounded-full border border-line p-0.5 text-xs">
             {[["en", "English"], ["ml", "മലയാളം"]].map(([l, label]) => (
@@ -88,7 +95,7 @@ export default function StoryView() {
       )}
 
       {s && a && (
-        <article className="rise mt-6">
+        <article className={`story-reader ${embedded ? "embedded-reader" : "rise mt-6"}`}>
           <div className="flex flex-wrap gap-x-2 text-[11px] uppercase tracking-wide text-muted">
             {s.card.subfields.map((t) => <span key={t.id}>{t.name}</span>)}
           </div>
@@ -98,7 +105,7 @@ export default function StoryView() {
             {s.card.updated_at - s.card.published_at > 900 && <span className="text-accent">Updated {fmtTime(s.card.updated_at)}</span>}
           </div>
 
-          <div className="reader-layout"><div className="reader-content">
+          <SwipePanels initialIndex={panelIndex} onChange={setPanelIndex} panels={[{ label: "Brief", content: <div className="reader-content">
           <section className="reader-summary mt-6">
             <div className="flex items-center justify-between">
               <Eyebrow>What happened</Eyebrow>
@@ -142,13 +149,13 @@ export default function StoryView() {
           </section>
 
 
-          </div><aside className="reader-tools" aria-label="Explore this story">
+          </div> }, { label: "Different views", content: <aside className="reader-tools" aria-label="Explore this story">
             <div className="mt-6"><Eyebrow>Take a different view</Eyebrow></div>
           <PerspectiveLens key={id} storyId={id} />
           <ConnectionExplorer key={`connections-${id}`} storyId={id} storyTitle={s.card.title} />
           <TimeMachine key={`timeline-${id}`} storyId={id} />
 
-          </aside><div className="reader-questions">
+          </aside> }, { label: "Explore", content: <div className="reader-questions">
           {a.missing_piece.length > 0 && (
             <section className="mt-4 rounded-3xl border border-warm/25 bg-warm-soft/60 p-5">
               <Eyebrow>The missing piece</Eyebrow>
@@ -211,13 +218,13 @@ export default function StoryView() {
             </form>
           </section>
 
-          </div></div>
+          </div> }]} />
           <p className="mt-8 text-center text-[11px] text-muted">
-            {a.mode === "ai" ? "Summary written by AI from the linked sources." : "Extractive summary: sentences quoted from the linked sources."}
+            {a.summary_fallback ? "Includes source excerpts where an AI summary could not be verified." : a.mode === "ai" ? "Summary written by AI from the linked sources." : "Extractive summary: sentences quoted from the linked sources."}
             {a.translation === "unavailable" && " Malayalam translation needs an AI key."}
           </p>
         </article>
       )}
-    </Shell>
+    </Frame>
   );
 }

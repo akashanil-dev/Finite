@@ -180,6 +180,8 @@ Legend: **[M]** mandatory, approved by the owner · **[O]** optional enhancement
 
 ## C. Feature inventory and implementation status
 
+Swipe briefing: finite vertical story deck with horizontal Brief / Different views / Explore panels, embedded two-level journeys and direction-aware dock. Native scrolling plus tabs/buttons/keyboard alternatives. Local desktop/mobile viewport validation passed; physical-device touch testing remains pending.
+
 Status meanings:
 
 - **COMPLETE:** implemented and verified.
@@ -543,6 +545,8 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+2026-10-25: Owner requested Instagram-like vertical news navigation and sideways in-card features, while retaining a finite endpoint. Long source content scrolls within its panel; Previous/Next provides direct story navigation. Motion remains calm and playful. Cards fetch on first visit and retain state until the page is left.
+
 - Knowledge-map precision takes precedence over filling three branches. Cached concepts are revalidated at request time; weak results remain empty. Headlines provide salience and independent context; recency only bounds the candidate pool.
 
 
@@ -592,7 +596,7 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 
 ## I. Current development state
 
-2026-10-25T06:14:39+05:30 — AI reliability fixes: analysis v3 independently checks summaries, claims, questions and missing-piece premises; failed summaries become source excerpts. Rabbit-hole fallbacks no longer fabricate entity-based follow-ups, mark incomplete evidence, and upgrade when AI is available. Translation caches track analysis version/mode. 43 backend tests pass; real API sample audit covers Kerala and Jamia, two depths, off-topic rejection, translation, classification, embeddings and multi-outlet comparison. Production AI remains disabled pending explicit server approval. Swipe UX is in progress in the working tree.
+2026-10-25T06:14:39+05:30 — AI reliability fixes: analysis v3 independently checks summaries, claims, questions and missing-piece premises; failed summaries become source excerpts. Rabbit-hole fallbacks no longer fabricate entity-based follow-ups, mark incomplete evidence, and upgrade when AI is available. Translation caches track analysis version/mode. 43 backend tests pass; real API sample audit covers Kerala and Jamia, two depths, off-topic rejection, translation, classification, embeddings and multi-outlet comparison. Production AI remains disabled pending explicit server approval. Swipe UX is implemented and locally browser-verified; see AI_UX_QA.md.
 
 2026-10-25T05:47:36+05:30 — Knowledge-map false-positive fix: 39 backend tests passed; published Kerala report with synthetic comparison fixtures and 20 stored stories checked locally. No AI spend. Release `584716f` deployed; Actions run `40146140933` passed checks, builds, smoke tests and public verification.
 
@@ -665,6 +669,8 @@ Current verification: 2026-10-25T00:17:27+05:30; `0d88ce0` plus checkpoint `fix:
 
 ## J. Bugs, limitations and technical debt
 
+AI audit is sample-based, not a guarantee: verification is itself model-based, Wikipedia/source coverage can be incomplete, and follow-up questions can still need editorial review. Production AI activation is pending. Swipe reader was tested with browser-native scrolling at desktop/mobile viewport sizes, not on physical touch devices.
+
 - Redesign QA is sampled local browser coverage, not a full accessibility or frame-rate audit. Reduced-motion CSS is implemented but OS-level emulation has not been exercised. Next development mode emits existing instant-navigation diagnostics for auth-gated routes; production build and tested navigation succeed.
 
 Auth v1 has no password recovery, email verification or MFA (reset excluded by owner). Production HTTPS/cookie and mobile validation pending. Login throttling behind an untrusted proxy uses a shared peer-IP bucket; trusted proxy configuration is intentionally not guessed. Legacy data is preserved but must be explicitly assigned by the owner.
@@ -704,6 +710,8 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 ---
 
 ## K. Roadmap and pending tasks
+
+Current next steps: explicitly approve production AI activation at $15; verify production AI after activation; run physical-device touch QA and broaden factual evaluation beyond the Kerala/Jamia samples.
 
 - Pinterest-inspired visual overhaul implemented; obtain owner visual feedback and complete physical-device/cross-browser motion and accessibility testing.
 
@@ -917,3 +925,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T05:51:38+05:30 | docs: record connection fix deployment (this commit) | I; DESIGN_QA | Release `584716f`, Actions `40146140933` passed; article browser QA local |
 
 | 2026-10-25T06:14:39+05:30 | fix: verify story suggestions and preserve configurable AI budgets | C/D/H/I/J/M; README and AI audit | 43 backend tests pass; real AI samples exercised, browser QA ongoing; production activation pending |
+
+| 2026-10-25T06:17:33+05:30 | feat: add a swipeable finite briefing | C/H/I/J/K; README and AI_UX_QA | Desktop/mobile browser gestures, journeys, challenge, save, graph and timeline; tsc, ESLint and production build passed |

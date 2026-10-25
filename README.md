@@ -151,3 +151,7 @@ See [DESIGN_QA.md](DESIGN_QA.md) for the visual references, redesign test covera
 Connection Explorer uses conservative headline relevance: both stories must name the same subject and share at least two additional meaningful words. Candidates are ranked before selecting up to three. An empty result is expected when evidence is weak; synonyms and body-only links may be missed. Existing cached analyses are revalidated without AI regeneration.
 
 Development AI allowance is now $5; the separately approved production allowance is $15. Set the value in the environment without deleting the existing ledger. The production template does not enable AI: an API key and explicit server-change approval are still required. Analysis validates summaries, factual claims and question premises against retrieved sources; failed summaries use literal excerpts, and unsupported questions are removed. AI checks reduce errors but cannot guarantee factual correctness.
+
+## Swipe briefing
+
+The briefing is a finite vertical deck. Swipe/scroll vertically between story cards; use Previous/Next or focus the deck and press Up/Down on desktop. Swipe horizontally inside a card (or use its tabs/Left/Right keys) for Brief, Different views and Explore. Longer panel content scrolls within the card; use the card header/footer or Next to advance directly. Reading is saved with Mark as read. Returning to a visited card preserves its panel and journey during the current page session. The dock hides on a forward vertical gesture and returns on a reverse gesture; keyboard focus reveals it.

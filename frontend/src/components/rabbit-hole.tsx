@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { api, type Exploration, type NextQuestion } from "@/lib/api";
 import { CuriosityChallenge } from "./curiosity-challenge";
 import { CitationChips, ConfidenceBadge } from "./citations";
@@ -10,6 +10,7 @@ import { Button, CompletionFlower, ErrorNote, Eyebrow, Skeleton } from "./ui";
 export type HoleStart = { question: string; angle: string; search: string[]; custom?: boolean };
 
 type Props = {
+  embedded?: boolean;
   storyId: string;
   storyTitle: string;
   start: HoleStart;
@@ -19,7 +20,8 @@ type Props = {
   onClose: () => void;
 };
 
-export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefingId, onClose }: Props) {
+export function RabbitHole({ embedded = false, storyId, storyTitle, start, lang, maxDepth, briefingId, onClose }: Props) {
+  const anchor = useRef<HTMLDivElement>(null);
   const [steps, setSteps] = useState<Exploration[]>([]);
   const [pending, setPending] = useState<HoleStart | null>(start);
   const [error, setError] = useState<string | null>(null);
@@ -55,8 +57,9 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
   }, [load, start]);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
-  }, [steps.length, ended]);
+    const target = embedded ? anchor.current?.closest(".embedded-journey") : window;
+    target?.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+  }, [steps.length, ended, embedded]);
 
   const current = steps[steps.length - 1];
   const concepts = [...new Set(steps.flatMap((s) => s.concepts ?? []))];
@@ -90,7 +93,7 @@ export function RabbitHole({ storyId, storyTitle, start, lang, maxDepth, briefin
   const levels = Array.from({ length: maxDepth }, (_, i) => steps[i]?.question ?? (i === steps.length && pending ? pending.question : null));
 
   return (
-    <div className="rise">
+    <div ref={anchor} className="rise">
       <div className="flex items-center justify-between">
         <button onClick={onClose} className="text-sm text-muted">
           ← Back to story
