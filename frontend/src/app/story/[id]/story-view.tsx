@@ -114,10 +114,12 @@ export function StoryReader({ id, bid = null, embedded = false }: { id: string; 
           {embedded && readerHeader}
           <section className="reader-summary mt-6">
             <div className="depth-controls">
-              <Eyebrow>What happened</Eyebrow>
-              <Segmented value={depth} options={["quick", "standard", "deep"] as const} onChange={setDepth} label="Reading depth" />
+              <Eyebrow>{a.content_unavailable ? "Linked source · Preview unavailable" : "What happened"}</Eyebrow>
+              {!a.content_unavailable && <Segmented value={depth} options={["quick", "standard", "deep"] as const} onChange={setDepth} label="Reading depth" />}
             </div>
             <p className="mt-3 font-serif text-[1.15rem] leading-relaxed">{a.summary[depth]}</p>
+            {a.articles.some(source => source.discussion_url) && <p className="mt-3 text-sm text-muted">Discovered via Hacker News. Linked content represents its author’s claims.</p>}
+            {a.content_unavailable && <div className="mt-4 flex flex-wrap gap-4 text-sm">{a.articles.map(source => <span key={source.ref} className="flex flex-wrap gap-4"><a href={source.url} target="_blank" rel="noreferrer" className="underline">Open original source ↗</a>{source.discussion_url && <a href={source.discussion_url} target="_blank" rel="noreferrer" className="underline">View discussion ↗</a>}</span>)}</div>}
             {a.what_happened.length > 0 && (
               <ul className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
                 {a.what_happened.map((f, i) => (
@@ -157,9 +159,10 @@ export function StoryReader({ id, bid = null, embedded = false }: { id: string; 
 
           </div> }, { label: "Different views", content: <aside className="reader-tools" aria-label="Explore this story">
             <div className="mt-6"><Eyebrow>Take a different view</Eyebrow></div>
-          <PerspectiveLens key={id} storyId={id} />
+          {!a.content_unavailable && <><PerspectiveLens key={id} storyId={id} />
           <ConnectionExplorer key={`connections-${id}`} storyId={id} storyTitle={s.card.title} />
-          <TimeMachine key={`timeline-${id}`} storyId={id} />
+          <TimeMachine key={`timeline-${id}`} storyId={id} /></>}
+          {a.content_unavailable && <p className="mt-4 text-sm text-muted">Different views need readable source content. Open the original link to explore this story.</p>}
 
           </aside> }, { label: "Explore", content: <div className="reader-questions">
           {a.missing_piece.length > 0 && (
@@ -182,7 +185,7 @@ export function StoryReader({ id, bid = null, embedded = false }: { id: string; 
             </section>
           )}
 
-          <section className="mt-8">
+          {!a.content_unavailable && <section className="mt-8">
             <h2 className="font-serif text-2xl">Where would you like to go from here?</h2>
             <div className="mt-4 grid gap-2.5">
               {a.questions.map((q) => (
@@ -222,11 +225,12 @@ export function StoryReader({ id, bid = null, embedded = false }: { id: string; 
               </div>
               <p className="mt-2 text-[11px] text-muted">Answered only from sources, with citations. If we can&apos;t find a sourced answer, we&apos;ll say so.</p>
             </form>
-          </section>
+          </section>}
 
+          {a.content_unavailable && <p className="mt-6 text-sm text-muted">Exploration is unavailable until we can retrieve readable source content.</p>}
           </div> }]} />
           <p className="mt-8 text-center text-[11px] text-muted">
-            {a.summary_fallback ? "Includes source excerpts where an AI summary could not be verified." : a.mode === "ai" ? "Summary written by AI from the linked sources." : "Extractive summary: sentences quoted from the linked sources."}
+            {a.content_unavailable ? "No summary generated: source content unavailable." : a.summary_fallback ? "Includes source excerpts where an AI summary could not be verified." : a.mode === "ai" ? "Summary written by AI from the linked sources." : "Extractive summary: sentences quoted from the linked sources."}
             {a.translation === "unavailable" && " Malayalam translation needs an AI key."}
           </p>
         </article>

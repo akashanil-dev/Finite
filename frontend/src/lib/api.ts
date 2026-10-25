@@ -58,6 +58,7 @@ export type Cited = { text: string; citations: string[] };
 export type Question = { id: string; question: string; angle: string; blurb: string; search: string[] };
 
 export type Analysis = {
+  content_unavailable?: boolean;
   summary_fallback?: boolean;
   summary: Record<Depth, string>;
   what_happened: Cited[];
@@ -67,7 +68,7 @@ export type Analysis = {
   story_type: string;
   mode: "ai" | "extractive";
   translation?: string;
-  articles: { ref: string; source: string; title: string; url: string; tier: string; weight: number; published_at: number; updated_at: number }[];
+  articles: { discussion_url?: string; ref: string; source: string; title: string; url: string; tier: string; weight: number; published_at: number; updated_at: number }[];
 };
 
 export type ExploreNode = { heading: string; text: string; citations: string[]; confidence: "verified" | "reported" | "disputed" };

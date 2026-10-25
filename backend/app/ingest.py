@@ -11,7 +11,7 @@ import feedparser
 import httpx
 import trafilatura
 
-from . import db, llm
+from . import db, llm, linked_content
 from .config import USER_AGENT
 from .sources import SOURCE_MAP, SOURCES
 from .taxonomy import STORY_TYPES, SUBFIELDS
@@ -144,6 +144,22 @@ def run_ingest():
 
 def extract_article(article):
     """Fetch and extract full text for an article (cached in DB)."""
+    if article["source_id"] == "hackernews":
+        key = f"linked-content-v{linked_content.VERSION}:" + article["id"]
+        info = db.kv_get(key)
+        if not info or (info.get("status") == "unavailable" and time.time() - info.get("checked_at", 0) > 3600):
+            info = linked_content.resolve(article)
+            db.kv_set(key, info)
+        if info["url"].startswith("https://gitlab.com/") and info["content"]:
+            info["content"] = linked_content.readme_prose(info["content"])
+            db.kv_set(key, info)
+        article["content"] = info["content"]
+        article["description"] = ""  # Discovery metadata must never become evidence.
+        article["url"] = info["url"]
+        article["discussion_url"] = info.get("discussion_url")
+        with db.tx() as c:
+            c.execute("UPDATE articles SET content=? WHERE id=?", (info["content"], article["id"]))
+        return info["content"]
     if article.get("content"):
         return article["content"]
     text = ""
