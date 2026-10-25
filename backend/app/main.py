@@ -248,14 +248,34 @@ def get_briefing(bid: int, user=Depends(auth.require_user)):
     return out
 
 
+@app.post("/api/briefings/{bid}/opened")
+def open_briefing(bid: int, user=Depends(auth.require_user)):
+    if not briefing.mark_opened(bid, user['id']):
+        raise HTTPException(404)
+    return {'ok': True}
+
+
 class ReadBody(BaseModel):
     story_id: str
+    read: bool = True
 
 
 @app.post("/api/briefings/{bid}/read")
 def read_story(bid: int, body: ReadBody, user=Depends(auth.require_user)):
-    out = briefing.mark_read(bid, body.story_id, user["id"])
+    out = briefing.mark_read(bid, body.story_id, user["id"], read=body.read)
     if not out:
+        raise HTTPException(404)
+    return out
+
+
+class BriefingReadBody(BaseModel):
+    read: bool
+
+
+@app.post("/api/briefings/{bid}/read-state")
+def set_briefing_read(bid: int, body: BriefingReadBody, user=Depends(auth.require_user)):
+    out = briefing.mark_read(bid, None, user['id'], read=body.read)
+    if out is None:
         raise HTTPException(404)
     return out
 

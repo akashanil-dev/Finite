@@ -237,3 +237,8 @@ Replace the latest-only briefing page with saved-edition cards and a dedicated r
 ## 2026-10-25T06:54:04+05:30 — Public documentation and scheduler checkpoint
 
 Rebuilt README around current features, production links, mobile screenshots, reproducible setup, evidence, AI guard and honest limitations. Added docs/ARCHITECTURE.md and docs/EVALUATION.md; rewrote SUBMISSION.md, reconciled deployment/handoff/context and labeled historical QA. Updated GitHub description/homepage/topics and made repository public with explicit approval after a 360-blob credential-pattern/private-path check (no matches; not a full audit). Verified mobile release f8a5379 via successful Actions 40149975675. Executed separately approved scheduler activation with environment backup and backend-only restart; health and first ingestion pass, timed delivery unobserved. Local document/image link checks and git diff --check passed. Unauthenticated GitHub repository, production homepage, signup and health returned HTTP 200.
+
+
+### 2026-10-25 17:04 IST — feat: improve briefing editions and reading controls
+- Backfill narrow-interest editions, generate content-based cover lines, number/open editions, stack library cards and persist read/unread controls.
+- Validation: 71 backend tests and frontend TypeScript/ESLint passed for the assembled changes; browser checks recorded in the detailed task entries. No push.

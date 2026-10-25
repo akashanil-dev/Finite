@@ -94,3 +94,45 @@ class BriefingHistoryTests(unittest.TestCase):
         with patch.object(main,'PREPARE_BEFORE_MIN',15):
             self.assertIsNone(main.due_schedule(profile,datetime(2026,10,25,7,30,tzinfo=ZoneInfo('Asia/Kolkata'))))
             self.assertEqual(main.due_schedule(profile,datetime(2026,10,25,7,50,tzinfo=ZoneInfo('Asia/Kolkata'))),'2026-10-25')
+
+    def test_opened_state_is_owned_idempotent_and_does_not_mark_read(self):
+        own = self.insert(); other = self.insert(user=2)
+        self.assertEqual(self.client.post(f'/api/briefings/{other}/opened').status_code,404)
+        self.assertEqual(self.client.post(f'/api/briefings/{own}/opened').status_code,200)
+        item = self.client.get('/api/briefings').json()['items'][0]
+        self.assertIsNotNone(item['opened_at'])
+        self.assertEqual(item['read_count'],0)
+        self.client.post(f'/api/briefings/{own}/opened')
+        self.assertEqual(self.client.get('/api/briefings').json()['items'][0]['opened_at'],item['opened_at'])
+        self.assertEqual(item['number'],1)
+
+    def test_edition_numbers_are_per_account_and_stable_across_pages(self):
+        self.insert(); self.insert(user=2); self.insert()
+        items = self.client.get('/api/briefings').json()['items']
+        self.assertEqual([item['number'] for item in items],[2,1])
+        self.assertEqual(briefing.list_briefings(1,before=items[0]['id'])['items'][0]['number'],1)
+
+    def test_theme_uses_topic_mix_not_first_headline(self):
+        with db.tx() as c:
+            for i,topic in enumerate(['sports','ai','sports']):
+                c.execute('INSERT INTO stories(id,article_ids,title,lang,subfields,story_type,created_at) VALUES(?,?,?,?,?,?,?)',(str(i),'[]','A misleading first headline','en',json.dumps({topic:1}),'general',1))
+        self.assertEqual(briefing.edition_theme(['0','1','2']), 'A misleading first headline')
+        self.assertEqual(briefing.edition_theme([]),'Your news, in perspective')
+
+    def test_read_unread_roundtrip_and_owner_boundary(self):
+        bid = self.insert(); other = self.insert(user=2)
+        with db.tx() as c:
+            c.execute('UPDATE briefings SET story_ids=? WHERE id=?', ('["a","b"]',bid))
+        self.assertEqual(self.client.post(f'/api/briefings/{other}/read-state',json={'read':True}).status_code,404)
+        self.assertEqual(self.client.post(f'/api/briefings/{bid}/read',json={'story_id':'missing','read':False}).status_code,404)
+        self.client.post(f'/api/briefings/{bid}/read-state',json={'read':True})
+        row=db.query('SELECT * FROM briefings WHERE id=?',(bid,))[0]
+        self.assertEqual(json.loads(row['read_ids']),['a','b']); self.assertIsNotNone(row['completed_at'])
+        self.client.post(f'/api/briefings/{bid}/read',json={'story_id':'a','read':False})
+        row=db.query('SELECT * FROM briefings WHERE id=?',(bid,))[0]
+        self.assertEqual(json.loads(row['read_ids']),['b']);self.assertIsNone(row['completed_at'])
+        self.client.post(f'/api/briefings/{bid}/read-state',json={'read':False})
+        row=db.query('SELECT * FROM briefings WHERE id=?',(bid,))[0]
+        self.assertEqual(json.loads(row['read_ids']),[]);self.assertIsNone(row['completed_at'])
+        self.client.post(f'/api/briefings/{bid}/read',json={'story_id':'a'})
+        self.assertEqual(json.loads(db.query('SELECT read_ids FROM briefings WHERE id=?',(bid,))[0]['read_ids']),['a'])

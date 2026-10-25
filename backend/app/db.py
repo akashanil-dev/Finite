@@ -121,7 +121,7 @@ def init():
         if 'is_admin' not in {row['name'] for row in c.execute('PRAGMA table_info(users)')}:
             c.execute('ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0')
         briefing_columns = {row['name'] for row in c.execute('PRAGMA table_info(briefings)')}
-        for name, definition in [('refresh_used', 'INTEGER NOT NULL DEFAULT 0'), ('edition_of', 'INTEGER'), ('scheduled_for', 'TEXT')]:
+        for name, definition in [('refresh_used', 'INTEGER NOT NULL DEFAULT 0'), ('edition_of', 'INTEGER'), ('scheduled_for', 'TEXT'), ('opened_at', 'REAL')]:
             if name not in briefing_columns:
                 c.execute(f'ALTER TABLE briefings ADD COLUMN {name} {definition}')
         c.execute('CREATE TABLE IF NOT EXISTS briefing_requests (request_key TEXT PRIMARY KEY, created_at REAL NOT NULL)')

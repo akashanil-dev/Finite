@@ -8,7 +8,7 @@ from collections import Counter
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from . import db, llm
+from . import db, llm, edition_title
 from .sources import SOURCE_MAP
 from .taxonomy import SUBFIELDS
 from .textutil import hid
@@ -126,15 +126,21 @@ def build_briefing(profile=None, user_id=None, edition_of=None, scheduled_for=No
 
     n = profile["stories_per_briefing"]
     cap = max(2, math.ceil(n / 4))
-    per_sub, chosen = Counter(), []
+    per_sub, chosen, deferred = Counter(), [], []
     for score, cl in scored:
         lead = max(cl, key=lambda a: a["_score"])
         if per_sub[lead["_sid"]] >= cap:
+            deferred.append((score, cl, lead))
             continue
         per_sub[lead["_sid"]] += 1
         chosen.append((score, cl, lead))
         if len(chosen) >= n:
             break
+
+    # Diversity is a preference, not a reason to discard otherwise eligible news.
+    # Narrow interest profiles should still fill their requested edition when possible.
+    chosen.extend(deferred[:max(0, n - len(chosen))])
+    chosen.sort(key=lambda item: item[0], reverse=True)
 
     if not chosen:
         return None
@@ -156,6 +162,7 @@ def build_briefing(profile=None, user_id=None, edition_of=None, scheduled_for=No
         cur = c.execute("INSERT INTO briefings(created_at, window_start, window_end, config, story_ids, user_id, edition_of, scheduled_for) VALUES(?,?,?,?,?,?,?,?)",
                         (now, start, now, json.dumps(profile), json.dumps(story_ids), user_id, edition_of, scheduled_for))
         bid = cur.lastrowid
+    edition_title.cover_line(story_ids, generate=True)
     return bid
 
 
@@ -193,19 +200,30 @@ def story_card(s):
     }
 
 
-def mark_read(bid, story_id, user_id=None):
-    rows = db.query("SELECT story_ids, read_ids FROM briefings WHERE id=? AND user_id IS ?", (bid, user_id))
-    if not rows:
-        return None
-    read = set(json.loads(rows[0]["read_ids"]))
-    if story_id not in json.loads(rows[0]["story_ids"]):
-        return None
-    read.add(story_id)
-    all_ids = set(json.loads(rows[0]["story_ids"]))
-    completed = time.time() if all_ids <= read else None
+def mark_read(bid, story_id, user_id=None, read=True):
     with db.tx() as c:
-        c.execute("UPDATE briefings SET read_ids=?, completed_at=COALESCE(completed_at, ?) WHERE id=?", (json.dumps(sorted(read)), completed, bid))
+        row = c.execute("SELECT story_ids, read_ids, completed_at FROM briefings WHERE id=? AND user_id IS ?", (bid, user_id)).fetchone()
+        if not row:
+            return None
+        all_ids = set(json.loads(row['story_ids']))
+        if story_id is not None and story_id not in all_ids:
+            return None
+        selected = all_ids if story_id is None else {story_id}
+        read_ids = set(json.loads(row['read_ids'])) & all_ids
+        read_ids = read_ids | selected if read else read_ids - selected
+        completed = (row['completed_at'] or time.time()) if all_ids and all_ids <= read_ids else None
+        c.execute('UPDATE briefings SET read_ids=?, completed_at=? WHERE id=?', (json.dumps(sorted(read_ids)), completed, bid))
     return briefing_payload(bid, user_id)
+
+
+def edition_theme(story_ids):
+    return edition_title.cover_line(story_ids)
+
+
+def mark_opened(bid, user_id):
+    with db.tx() as c:
+        return c.execute('UPDATE briefings SET opened_at=COALESCE(opened_at, ?) WHERE id=? AND user_id=?',
+                         (time.time(), bid, user_id)).rowcount > 0
 
 
 def list_briefings(user_id, before=None, limit=20):
@@ -213,9 +231,10 @@ def list_briefings(user_id, before=None, limit=20):
     items = []
     for b in rows[:limit]:
         ids = json.loads(b['story_ids'])
-        title = db.query('SELECT title FROM stories WHERE id=?', (ids[0],)) if ids else []
+        number = db.query('SELECT COUNT(*) AS n FROM briefings WHERE user_id=? AND id<=?', (user_id, b['id']))[0]['n']
         items.append({'id': b['id'], 'created_at': b['created_at'], 'story_count': len(ids),
+                      'requested_count': json.loads(b['config']).get('stories_per_briefing', len(ids)),
                       'read_count': len(json.loads(b['read_ids'])), 'completed_at': b['completed_at'],
                       'can_refresh': not b['refresh_used'] and b['edition_of'] is None, 'edition_of': b['edition_of'],
-                      'headline': title[0]['title'] if title else 'No stories in this edition'})
+                      'headline': ('Demo · ' if json.loads(b['config']).get('demo_data') else '') + edition_theme(ids), 'number': number, 'opened_at': b['opened_at']})
     return {'items': items, 'next_cursor': items[-1]['id'] if len(rows) > limit else None}
