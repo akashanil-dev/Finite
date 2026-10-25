@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import "./briefing-stack.css";
 import { useEffect, useRef, useState } from "react";
 import { api, fmtTime, type Briefing } from "@/lib/api";
 import { StoryReader } from "@/app/story/[id]/story-view";
@@ -44,14 +45,14 @@ export function BriefingDeck({ briefing, onChange }: { briefing: Briefing; onCha
         event.preventDefault(); go(Math.min(count, Math.max(0, index + (event.key === 'ArrowDown' ? 1 : -1))));
       }
     }}>
-      {briefing.stories.map((story, i) => <section className="deck-story" key={story.id} data-index={i} aria-label={`Story ${i + 1} of ${count}`}>
+      {briefing.stories.map((story, i) => <div className="deck-story-slot" key={story.id} data-index={i} data-stack={Math.min(2, count - i - 1)}><section className="deck-story" aria-label={`Story ${i + 1} of ${count}`}>
         <div className="deck-story-top" style={{flexWrap: "wrap", flexShrink: 0}}><Link href="/briefing" aria-label="All saved briefings">← Briefings</Link><span>{fmtTime(briefing.created_at)} · {i + 1}/{count}</span><Link href={`/story/${story.id}?b=${briefing.id}`} aria-label="Open full story">↗</Link>
         <div style={{width: "100%"}} className="briefing-read-actions" aria-label="Whole briefing reading status"><span>{briefing.read_ids.length}/{count} read</span><button disabled={busy} onClick={() => markRead(null, !briefing.completed_at)}>{busy ? 'Saving…' : briefing.completed_at ? 'Mark briefing unread' : 'Mark briefing read'}</button></div>
         </div>
         {visited.has(i) ? <StoryReader key={story.id} id={story.id} embedded /> : <div className="deck-preview"><h2>{story.title}</h2><p>{story.teaser}</p></div>}
-        <div className="deck-story-bottom"><div className="deck-step-buttons"><button disabled={i === 0} onClick={() => go(i - 1)} aria-label="Previous story">↑</button><button onClick={() => go(i + 1)} aria-label="Next story">↓</button><span>Swipe for next</span></div><button disabled={busy} onClick={() => markRead(story.id, !briefing.read_ids.includes(story.id))}>{busy ? 'Saving…' : briefing.read_ids.includes(story.id) ? 'Mark unread' : 'Mark as read'}</button></div>
+        <div className="deck-story-bottom"><div className="deck-step-buttons"><button disabled={i === 0} onClick={() => go(i - 1)} aria-label="Previous story">↑</button><button onClick={() => go(i + 1)} aria-label={i < count - 1 ? "Next story" : "Finish briefing"}>↓</button><span>{i < count - 1 ? "Swipe for next" : "Last story · swipe to finish"}</span></div><button disabled={busy} onClick={() => markRead(story.id, !briefing.read_ids.includes(story.id))}>{busy ? 'Saving…' : briefing.read_ids.includes(story.id) ? 'Mark unread' : 'Mark as read'}</button></div>
         {error && index === i && <ErrorNote message={error} />}
-      </section>)}
+      </section></div>)}
       <section className="deck-ending" data-index={count}>
         <Link href="/briefing">← All saved briefings</Link><CompletionFlower /><h2>The end. Take a breath.</h2>
         <p>{count - briefing.read_ids.length > 0 ? `${count - briefing.read_ids.length} unread. You can return to them whenever you like.` : 'You’re done for today.'} Nothing more will load.</p>

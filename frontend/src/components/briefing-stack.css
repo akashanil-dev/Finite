@@ -1,0 +1,17 @@
+/* A finite stack: two sheets, one sheet, then none as the edition ends. */
+.deck-story-slot { position: relative; isolation: isolate; height: 100%; padding-bottom: 16px; scroll-snap-align: start; scroll-snap-stop: always; }
+.deck-story-slot > section { position: relative; z-index: 2; scroll-snap-align: none; }
+.deck-story-slot::before, .deck-story-slot::after { content: ""; position: absolute; pointer-events: none; border: 1px solid #cbd1bc; border-radius: 28px; height: 50%; }
+.deck-story-slot::before { z-index: 0; bottom: 1px; left: 18px; right: 18px; background: #dce5c8; }
+.deck-story-slot::after { z-index: 1; bottom: 8px; left: 9px; right: 9px; background: #ecefdf; }
+.deck-story-slot[data-stack="0"]::before, .deck-story-slot[data-stack="0"]::after,
+.deck-story-slot[data-stack="1"]::before { display: none; }
+@media (max-width: 600px) {
+  .deck-story-slot::before, .deck-story-slot::after { border-radius: 22px; }
+}
+
+/* Match the desktop sidebar's 28px top/bottom inset, including stack sheets. */
+@media (min-width: 1000px) {
+  .app-shell[data-immersive=true] .app-main:has(.briefing-deck) { padding-top: 28px; padding-bottom: 28px; }
+  .app-shell[data-immersive=true] .briefing-deck-wrap .briefing-deck { height: calc(100dvh - 56px); }
+}

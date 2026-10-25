@@ -262,3 +262,8 @@ Rebuilt README around current features, production links, mobile screenshots, re
 ### 2026-10-25 17:04 IST — feat: improve source methodology readability
 - Add readable editorial principles, full-methodology disclosure and source-settings link with responsive layout and protected-route wrapper.
 - Validation: 71 backend tests and frontend TypeScript/ESLint passed for the assembled changes; browser checks recorded in the detailed task entries. No push.
+
+
+### 2026-10-25 17:04 IST — fix: show remaining stories as an aligned card stack
+- Use explicit stack styles with two/one/no layers, last-story navigation wording and desktop sidebar alignment. Mobile 390x844 and 320x640 verified: stack visible, 8px dock clearance, no horizontal overflow, final layers absent.
+- Validation: 71 backend tests and frontend TypeScript/ESLint passed for the assembled changes; browser checks recorded in the detailed task entries. No push.
