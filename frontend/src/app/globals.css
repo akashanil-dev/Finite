@@ -342,3 +342,17 @@ h1 { letter-spacing: -.045em; }
 
 .briefing-read-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; font-size: 12px; color: var(--color-muted); }
 .briefing-read-actions button { min-height: 36px; padding: 6px 10px; border-radius: 12px; background: #edf0e3; color: var(--color-ink); }
+
+/* Passport describes saved activity rather than achievement. */
+.passport-panel { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 24px; padding: clamp(18px, 3vw, 28px); }
+.passport-concepts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.passport-concepts li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; padding: 12px 14px; border-radius: 14px; background: #f1f2e9; font-size: 14px; overflow-wrap: anywhere; }
+.passport-count { color: var(--color-muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.passport-topic-label { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 14px; }
+.passport-topic-label > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .passport-concepts { grid-template-columns: 1fr; }
+  .passport-stats { gap: 8px; }
+  .passport-stats > div { border-radius: 18px; padding: 18px 8px; }
+  .passport-stats > div > div:first-child { font-size: 2rem; }
+}

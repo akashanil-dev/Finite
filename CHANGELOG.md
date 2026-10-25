@@ -247,3 +247,8 @@ Rebuilt README around current features, production links, mobile screenshots, re
 ### 2026-10-25 17:04 IST — fix: retrieve original content behind Hacker News links
 - Retrieve bounded public content and GitLab README prose, reject feed metadata, preserve source attribution, repair caches with backup and show unavailable previews without unsupported reader tools.
 - Validation: 71 backend tests and frontend TypeScript/ESLint passed for the assembled changes; browser checks recorded in the detailed task entries. No push.
+
+
+### 2026-10-25 17:04 IST — feat: clarify passport exploration history
+- Replace mastery wording and variable-size chips with counted idea tiles and explicitly explained topic-frequency bars; preserve concept-free journeys.
+- Validation: 71 backend tests and frontend TypeScript/ESLint passed for the assembled changes; browser checks recorded in the detailed task entries. No push.
