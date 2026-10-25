@@ -68,7 +68,7 @@ Screenshots are from the local production build against isolated copied news dat
 | Accounts and sessions | Username/password registration, login, logout, revocable cookie sessions; account-owned profiles, briefings and journeys | [Auth backend](backend/app/auth.py), [auth tests](backend/tests/test_auth.py) |
 | Curiosity profile | Weighted subject priorities, English/Malayalam preferences, source/topic exclusions, story count, lookback window, delivery time and timezone | [Profile editor](frontend/src/components/profile-editor.tsx), [taxonomy](backend/app/taxonomy.py) |
 | News ingestion | Reads 29 configured publisher feeds; classifies articles and lazily extracts full text | [Ingestion](backend/app/ingest.py), [source registry](backend/app/sources.py) |
-| Personalised briefing builder | Ranks by interest, source weight and freshness; groups similar coverage, limits topic concentration and skips previously delivered articles | [Builder](backend/app/briefing.py) |
+| Personalised briefing builder | Ranks by interest, source weight and freshness; groups similar coverage, prefers topic diversity, fills remaining slots with ranked eligible news and skips previously delivered articles | [Builder](backend/app/briefing.py) |
 | Saved edition library | Keeps multiple editions and earlier days, with pagination, dates and read counts | [Library UI](frontend/src/app/briefing/page.tsx), [history tests](backend/tests/test_briefing_history.py) |
 | One-time extra edition | Atomic server-side claim; original retained, child cannot chain, empty attempts do not create empty cards | [API](backend/app/main.py), [history tests](backend/tests/test_briefing_history.py) |
 | Scheduled preparation | Background ingestion and preparation 30 minutes before a local delivery time; unique user/date prevents duplicate scheduled editions, including midnight boundaries | [Scheduler](backend/app/main.py); unit-tested, real clock-triggered delivery verification remains separate |
@@ -255,3 +255,25 @@ The server **pulls images; it does not clone or build the repository**. Deployme
 | [Agent guide](AGENTS.md) / [event rules](RULES.md) | Development workflow and event requirements |
 
 This README describes implemented behavior and separately labels unverified or planned work. Final organizer submission and final freeze SHA are tracked in [SUBMISSION.md](SUBMISSION.md).
+
+### Local briefing-count correction (not deployed)
+
+Each library card is an edition containing multiple stories. Settings changes require **Save changes** and apply only to future editions; historical editions remain frozen. The requested story count is a target: insufficient eligible, unseen news can produce a shorter edition. The local builder now treats topic diversity as a preference and backfills remaining slots without relaxing exclusions, language, lookback or previously-delivered filters. Library cards show the original requested count for short editions. This correction is uncommitted and has not been pushed or deployed at the owner’s request.
+
+Local edition-library styling now shows a stack of cards with a gentle hover/focus fan-out and reduced-motion support; this design is not deployed.
+
+Local briefing cards now use per-account Brief # numbering and titles summarising their dominant stored topics, rather than the first headline. Opened cards are muted with a persistent Opened badge; opening does not mark stories read. Completed editions offer Read again. Titles are deterministic topic labels, not AI-written factual summaries. These changes remain uncommitted and undeployed.
+
+Local title behavior supersedes the earlier category-label design: covers use news-specific editorial lines cached against their actual headlines. AI-enabled edition creation can generate one line through the existing budget guard; library reads never spend credits. Without AI, uncached editions use source-headline excerpts. Existing akash_a editions have assistant-reviewed, headline-grounded lines prepared locally.
+
+Local reader cards now support marking the entire briefing read/unread from the header and toggling individual stories in the footer. Unread clears completion; opening history remains separate. Changes persist only after server confirmation.
+
+The local stacked-card design, numbering, opened styling and read/unread controls apply to every account and every briefing type, including scheduled and extra editions. They are not restricted to seeded data. Generated editorial titles require AI availability at creation; uncached editions otherwise use headline excerpts.
+
+
+Passport records exploration rather than mastery: idea counts are saved expeditions containing each label; topic bars compare expedition frequency, with a journey potentially counted under multiple topics. Question steps include repeats, and completed briefings reflect stories marked read.
+
+
+Hacker News is a discovery source: Finite retrieves the linked page (or supported GitLab README) before summarizing. Unreadable destinations show a preview-unavailable state, with original/discussion links, rather than RSS metadata. Failed source fetches retry after one hour. To repair an existing local database, run `cd backend && OPENAI_API_KEY='' FINITE_SCHEDULER_ENABLED=false uv run python scripts/repair_linked_articles.py`. This creates an online SQLite backup and refreshes HN content and derived story caches, preserving user records.
+
+The opened briefing uses decorative sheets beneath story cards to indicate remaining stories: two, then one, then no stack on the final story.

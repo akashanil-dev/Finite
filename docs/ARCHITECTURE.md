@@ -29,7 +29,7 @@ Paths above are relative to `backend/app/` unless another location is given. No 
 2. Classification assigns subfield scores and a story type. The fallback uses keywords/source hints; AI classification is optional.
 3. The builder selects articles inside the profile’s lookback window and allowed languages/sources/topics.
 4. Interest priority, source weight and freshness determine relevance. The implemented score includes exponential age decay. Similarity groups coverage using embeddings when available or TF-IDF otherwise.
-5. Previously delivered article IDs are considered when filtering clusters. Multi-source coverage affects ranking; a per-subfield cap encourages diversity.
+5. Previously delivered article IDs are considered when filtering clusters. Multi-source coverage affects ranking; a first-pass per-subfield cap encourages diversity, then deferred ranked eligible clusters fill any remaining slots (local correction, not yet deployed).
 6. Selected story IDs and a profile snapshot are saved in an edition. Empty selections produce no edition. Existing story rows are reused rather than replaced.
 7. A four-worker executor can prefetch analysis. Reading progress is saved separately on each owned edition.
 

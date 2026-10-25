@@ -238,6 +238,92 @@ Replace the latest-only briefing page with saved-edition cards and a dedicated r
 
 Rebuilt README around current features, production links, mobile screenshots, reproducible setup, evidence, AI guard and honest limitations. Added docs/ARCHITECTURE.md and docs/EVALUATION.md; rewrote SUBMISSION.md, reconciled deployment/handoff/context and labeled historical QA. Updated GitHub description/homepage/topics and made repository public with explicit approval after a 360-blob credential-pattern/private-path check (no matches; not a full audit). Verified mobile release f8a5379 via successful Actions 40149975675. Executed separately approved scheduler activation with environment backup and backend-only restart; health and first ingestion pass, timed delivery unobserved. Local document/image link checks and git diff --check passed. Unauthenticated GitHub repository, production homepage, signup and health returned HTTP 200.
 
+## 2026-10-25T07:53:00+05:30 — Local briefing-count correction (uncommitted)
+
+Changed backend/app/briefing.py to use a soft diversity cap with ranked backfill, preserving all eligibility and prior-delivery filters. Added four deterministic selection regressions and original requested-count metadata to history. Clarified edition cards and unsaved Settings changes. Read-only production inspection matched the two reported editions: 6 and 10 stories, both requested 12 at creation; the account still had 12 saved. This does not prove why a 20-story UI selection was not saved. Validation: 55 backend tests passed with AI/scheduling disabled; frontend TypeScript, ESLint and production build passed for the count/library change. No new browser QA or production mutation; existing editions unchanged. No commits or pushes, per owner instruction.
+
+## 2026-10-25T08:11:07+05:30 — Stacked briefing cards (local only)
+
+Codex added two decorative sage paper layers and a 420ms eased lift/fan animation on hover and keyboard focus. Touch keeps the static stack; reduced-motion disables movement. Changed briefing/page.tsx and globals.css. An isolated browser preview caught and corrected layer ordering that obscured text; corrected focus state visually checked. TypeScript and ESLint pass. Authenticated full-page/mobile motion QA and human design review remain pending. No AI calls, commits, pushes or deployment.
+
+## 2026-10-25T08:16:30+05:30 — Actual-page stacked-card QA
+
+Tested authenticated /briefing on localhost using a dedicated local QA account with two copied saved editions (existing accounts unchanged), at 1280x900, 390x844 and 320x640. Found stale generated Next CSS still covering text despite corrected source; preserved/moved generated cache and restarted frontend, then verified z-index 2 and readable real-page cards. No application-code change required. Checked 34px inter-card layout gaps, no horizontal overflow, narrow-screen wrapped footer with 44px button and dock clearance, keyboard-focus fan-out, pointer hover state, opening an edition and returning. Sampled 18 computed transform states over 374ms: progressive easing toward -3px lift without overshoot. This is not a frame-rate benchmark; physical touch and OS reduced-motion emulation remain untested. Screenshot evidence: /tmp/finite-stack-mobile.png and /tmp/finite-stack-desktop.png (temporary local files, not repository assets). AI and scheduler disabled for the restarted local backend. No commits, pushes or production changes.
+
+## 2026-10-25T08:20:19+05:30 — Brief identity and opened state (local)
+
+Codex replaced first-story library headlines with concise top-three dominant-topic labels derived from stored story classifications (no AI calls). Added per-account chronological insertion numbering, Unopened/Opened/Finished badges, softer opened-card surfaces, and Continue reading/Read again actions. Additive nullable opened_at migration and authenticated idempotent POST /api/briefings/{bid}/opened persist opening only after reader data loads; reading counts stay independent. Existing saved stories and accounts are preserved. Tests: 58 backend tests pass including cross-account denial, idempotence, numbering/pagination and topic mix; frontend tsc and ESLint pass. Actual authenticated local browser verified open/return/reload persistence, zero stories marked read, and 390px/1280px styling. Production build blocked by font networking in sandbox, then Turbopack subprocess port permission in retry; not claimed passed. Human design review pending. No commits, pushes or production changes.
+
+## 2026-10-25T08:43:33+05:30 — Requested local account demo data
+
+Verified localhost Settings signed in as stack_layout_qa_0813. With owner authorization, seeded only that account with 10 demo editions and 8 explicitly labeled sample expeditions using existing stored stories; prior records preserved. Mixed unopened, partial and finished states; demo editions disable extra refresh. Passport browser readback: 8 expeditions, 16 sample questions, 3 finished briefs; library: 12 total cards including two prior editions. Added Demo prefix for history items whose config.demo_data is true. Database online backup: /tmp/finite-before-demo-1792897977.sqlite3. Seed marker demo_passport_cards_v1:<account id> records inserted IDs and prevents duplicate seed runs. Demo questions are illustrative, not claims of genuine user exploration; dates/read counts are simulated. No AI, production writes, commits or pushes.
+
+## 2026-10-25T08:46:06+05:30 — Requested akash_a demo account
+
+Owner corrected the demo destination to local username akash_a. Confirmed it did not exist, created it with the owner-supplied credential (not recorded here), and seeded 10 labeled demo editions and 8 sample Passport expeditions. Login API verification passed; 10 editions, 8 expeditions, 16 questions and 3 completed examples. Existing QA account/data retained. Backup /tmp/finite-before-demo-1792898149.sqlite3; inserted edition IDs 18–27 and journey IDs 10–17. No AI, production changes, commits or pushes.
+
+## 2026-10-25T09:22:49+05:30 — Local akash_a presentation adjustment
+
+At owner request, removed visible Demo prefixes from the seeded akash_a edition and expedition titles/questions. Internal seed provenance remains in kv; historical reading/question activity is seeded, not verified personal activity. Updated only the ten seeded editions: newest three contain 10 actual stored stories each, remaining seven contain 15 each. Counts/read lists adjusted consistently; completed examples stay complete. All referenced story payloads verified present and unique within each edition. The 42-story corpus is reused across editions; no invented news or AI calls. Backup: /tmp/finite-akash-before-card-update-1792900355.sqlite3. No commits, pushes or production changes.
+
+## 2026-10-25T09:25:29+05:30 — News-specific edition cover lines
+
+Replaced generic category-list titles with content-keyed editorial cover lines (app/edition_title.py). At creation, AI-enabled builds request an 8–16-word line from actual headlines through the existing guarded LLM wrapper; output length and supporting-story IDs are validated, but these checks do not guarantee factual entailment. Library reads never generate. Unavailable/rejected generation falls back to two headline excerpts. Keys include ordered story IDs and headlines, so changed contents cannot reuse stale titles. Codex reviewed all ten akash_a edition headline sets and saved specific cover lines locally without provider calls. This one-time reviewed backfill is distinct from automated generation. Added cache/fallback/invalid-support tests; all 61 backend tests passed with AI disabled, and authenticated running API returned new titles. Existing numbering, counts and opened/read states preserved. No commits, pushes or deployment.
+
+## 2026-10-25T09:29:05+05:30 — Reversible briefing reading status
+
+Added whole-briefing Mark read/unread control inside the reader card header and reversible individual-story footer toggle. Authenticated POST /api/briefings/{bid}/read-state updates all stories; existing /read accepts read:false (default true preserved). Atomic owner-scoped updates recompute completed_at, clearing it when unread so Passport completed counts remain correct. UI uses confirmed server payload; failures show errors. Mobile QA caught a positional flex-layout conflict; moved controls into the existing header to preserve reader scrolling and footer clearance. 62 backend tests pass; actual local QA browser verified whole-brief read/unread persistence and individual toggle at desktop/390px. No AI, commits, pushes or production changes.
+
+## 2026-10-25T09:31:48+05:30 — Shared card feature coverage
+
+Verified card design and controls are shared application behavior, not seeded-account conditions. Added regression coverage creating normal initial, extra and scheduled editions for two independent accounts without demo metadata: cover caching, per-account numbering, owner-scoped opening and whole-edition read/unread completion all pass. Shared frontend maps every library item and routes every edition through the same reader controls. All 63 backend tests pass; title generation mocked, zero provider calls. Existing uncached editions use headline excerpts; new AI-enabled editions can generate editorial lines at creation. No additional runtime change needed, no commits or pushes.
+
+
+### 2026-10-25 10:13 IST — Passport exploration wording and layout (local, uncommitted)
+- Replaced mastery/unlock language with saved exploration history. Counts explicitly describe saved expeditions, question steps (including repeats), and briefings marked read.
+- Replaced variable-size lime chips with consistent muted idea tiles and expedition counts; mobile uses one column. Topic bars now explain relative frequency and multi-topic counting, not proficiency.
+- Saved journeys without concept labels remain visible. Backend data and API unchanged.
+- Validation: TypeScript and ESLint passed; authenticated localhost Passport inspected at desktop 1280×900 and mobile 390×844, including topic bars; mobile document width matched content width. No production build rerun, API spending, commit or push.
+
+
+### 2026-10-25 10:24 IST — Resolve Hacker News links before summarizing (local, uncommitted)
+- Added bounded public-URL retrieval with per-redirect validation, pinned resolved destination, TLS hostname, content-type/size limits and GitLab README prose extraction. HN description/link/points metadata is never used as evidence. Original and discussion links remain distinct; citations name the destination with HN discovery attribution.
+- Unreadable sources return an explicit unavailable preview with links; reader suppresses depth choices and unsupported exploration tools. Failed retrievals retry after an hour; existing unavailable summaries do not bypass retrieval. Analysis/exploration cache versions advanced without deleting saved exploration records.
+- Added scripts/repair_linked_articles.py: SQLite online backup, refresh HN content and invalidate only affected story analysis/translations. Local repair covered 45 articles (32 readable, 13 unavailable) and seven story caches; accounts, briefings, progress and saved journeys/explorations preserved. Backup files remain in gitignored backend/data/.
+- Validation: 70-test full backend suite passed, followed by eight targeted tests after adding mixed-empty-source coverage; TypeScript/ESLint passed. Browser verified reported TCL/GitLab story, Small Programs and Languages HTML extraction, and Steal My Bitcoin unavailable state including Different views/Explore on a mobile viewport. README markdown/table noise found in browser and removed. No AI credits used. No commit, push, production change or final production build.
+- Limits: special README support currently covers two-segment gitlab.com project URLs with README.md; other repositories use generic HTML extraction or honest fallback. Self-post discussions are deliberately not treated as article evidence. Extraction is heuristic, not verification of authors' claims.
+
+
+### 2026-10-25 10:27 IST — Remaining-story stack cue (local, uncommitted)
+- Briefing reader shows two decorative sheets when at least two stories remain, one when one remains, and none on the final story. Fixed-height snap slots reserve 16px for layers; reading/footer controls stay above them. Final navigation says “Last story · swipe to finish”. Styles scoped to the component.
+- Verified authenticated three-story edition at desktop: stack states 2/1/0, next-button scrolling at exact slot height, and final card without layers. Mobile 390×844 final card and dock remained separated with no horizontal overflow. TypeScript/ESLint and diff checks passed. No commits, pushes or API calls introduced.
+
+
+### 2026-10-25 10:52 IST — Briefing instant-navigation validation (local)
+- Split /briefing into a server page wrapper and unchanged client briefing-library component. Set instant=false only on the server page: AuthGate deliberately withholds this route until the client session check resolves, so its initial render cannot be validated as instant. Auth behavior and data access remain unchanged.
+- Consulted installed Next.js 16 documentation; instant exports are invalid in client components. Other routes retain validation. This is a scoped validation opt-out, not a performance improvement.
+- Validation: TypeScript, ESLint and diff checks passed. Authenticated browser loaded saved briefings with no insight badge and no captured error/warning logs. No production build rerun, commit or push.
+
+
+### 2026-10-25 10:56 IST — Protected-route instant validation (local, uncommitted)
+- Applied the briefing server-wrapper pattern to Settings, Passport, Sources, onboarding and start; existing story/edition server pages also declare instant=false. All sit behind the same client AuthGate and cannot promise a validation-time render. Public landing/login/signup remain unchanged. No auth checks removed and client view behavior preserved.
+- Validation: TypeScript, ESLint and diff checks passed; authenticated Settings loaded with no insight badge or captured warning/error logs. Other routes inspected structurally but not individually browser-tested this turn. No commits or pushes.
+
+
+### 2026-10-25 10:59 IST — Source methodology readability (local, uncommitted)
+- Replaced dense dark methodology block with a light bordered card, clear headline, three concise principles, version badge and link to source settings. All five API-provided methodology rules remain available in a native keyboard-accessible disclosure. Desktop columns become mobile rows; namespaced stylesheet avoids dev CSS-module export issues.
+- Validation: TypeScript/ESLint passed; desktop/mobile browser inspection, disclosure opens with all five rules, mobile width equals scroll width (no horizontal overflow). No API behavior changes, commits or pushes.
+
+
+### 2026-10-25 16:59 IST — Make story-stack styles reliable (local)
+- Replaced the reader stack CSS-module binding with an explicit namespaced stylesheet import, matching the working Sources styling approach. This avoids missing module class mappings in the current development pipeline. Layer logic remains two/one/none.
+- TypeScript, ESLint and diff checks passed. Authenticated browser verified computed layer displays for all three positions, visual first-card stack and persistence after a full reload. No commit/push.
+
+
+### 2026-10-25 17:01 IST — Align desktop reader with sidebar (local)
+- Desktop immersive reader now uses the sidebar's 28px top/bottom inset. Deck including decorative sheets has height 100dvh minus 56px; mobile rules unchanged.
+- Browser geometry confirmed sidebar and deck both top 28px/bottom 692px at 720px viewport height; front card reserves 16px for sheets. TypeScript/ESLint passed. No commit/push.
+
 
 ### 2026-10-25 17:04 IST — feat: improve briefing editions and reading controls
 - Backfill narrow-interest editions, generate content-based cover lines, number/open editions, stack library cards and persist read/unread controls.
@@ -267,3 +353,9 @@ Rebuilt README around current features, production links, mobile screenshots, re
 ### 2026-10-25 17:04 IST — fix: show remaining stories as an aligned card stack
 - Use explicit stack styles with two/one/no layers, last-story navigation wording and desktop sidebar alignment. Mobile 390x844 and 320x640 verified: stack visible, 8px dock clearance, no horizontal overflow, final layers absent.
 - Validation: 71 backend tests and frontend TypeScript/ESLint passed for the assembled changes; browser checks recorded in the detailed task entries. No push.
+
+
+### 2026-10-25 17:05 IST — Mobile verification and authorized local checkpoints
+- Owner authorized logical commits after mobile verification; no push authorized. Six implementation commits created: d7f9b64 briefing editions/reading controls, 94e7cf1 linked-source retrieval, 9836f93 Passport, 1a32785 protected-route validation, 6b86ef8 source methodology, f63f06f story stacks. Earlier “uncommitted” notes describe their historical task state and are superseded by this checkpoint.
+- Mobile browser checks at 390×844 and 320×640 confirmed visible layers, 8px stack-to-dock clearance, no horizontal overflow, successful next navigation and no layers on the final story. No further mobile code fix needed. Not a physical-device or safe-area hardware test.
+- Final assembled checks: 71 backend tests passed with AI/scheduler disabled, TypeScript and ESLint passed, diff whitespace checks passed. Production build was not rerun; production is unchanged. No push performed.
