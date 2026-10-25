@@ -2,160 +2,256 @@
 
 **News that ends. Understanding that doesn't.**
 
-Finite is a finite, personalised daily news briefing (English and Malayalam). Most news apps answer *what happened* and then keep you scrolling. Finite also helps you see **why it happened, how we got here, and what it connects to**, through source-backed "rabbit holes" that go a fixed number of levels deep and always end. You finish your briefing, and you're done.
+[![CI/CD](https://github.com/akashanil-dev/Finite/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/akashanil-dev/Finite/actions/workflows/ci-cd.yml)
 
-Built solo by Akash A ([@akashanil-dev](https://github.com/akashanil-dev)) with Devin at **[Devin Hacks Kochi](https://www.devinhacks.in/)**, 24–25 October 2026.
+**[Open the live app](https://finite.akashanil.dev) · [Create an account](https://finite.akashanil.dev/signup) · [Sign in](https://finite.akashanil.dev/login) · [Evaluation guide](docs/EVALUATION.md) · [Architecture](docs/ARCHITECTURE.md)**
 
-| Event document | Purpose |
+Finite is a working, account-based news application for readers who want to understand the news without an endless feed. It turns English and Malayalam coverage into a bounded, personalised briefing, then lets readers explore the context, different perspectives, history and connections behind a story. Each reading session and two-level exploration has an explicit ending. Saved editions remain available rather than disappearing when a newer edition arrives.
+
+Built from scratch during **[Devin Hacks Kochi](https://www.devinhacks.in/), 24–25 October 2026**, by **Akash A ([akashanil-dev](https://github.com/akashanil-dev))**, with Devin and subsequent Codex assistance. [AI_USAGE.md](AI_USAGE.md) records actual contributions and validation; [RULES.md](RULES.md) records event requirements.
+
+## Why Finite exists
+
+News products make it easy to keep consuming headlines but harder to know when to stop or how to understand a story. Finite combines three product choices:
+
+1. **A finite commitment:** a chosen number of stories, saved read progress, and an ending instead of automatic infinite loading.
+2. **Understanding beyond the headline:** summaries at three depths, cited facts, gaps in the coverage, perspectives, chronology and bounded follow-up exploration.
+3. **Visible evidence and limits:** publisher attribution, inspectable citations, explicit extractive fallbacks and empty states when support is insufficient.
+
+The intended audience is readers seeking an India-first, English/Malayalam news briefing with context. Finite is a hackathon implementation, not an independently fact-checked news service. Its distinctive behavior is implemented in the application, not just described in this README.
+
+## Try the production demo
+
+The hosted app requires only a modern browser. **No local installation or API key is needed to try the hosted version.**
+
+| Destination | Link | Access |
+| --- | --- | --- |
+| Product introduction | [finite.akashanil.dev](https://finite.akashanil.dev/) | Public |
+| Create account | [Sign up](https://finite.akashanil.dev/signup) | Public; choose your own credentials |
+| Existing account | [Log in](https://finite.akashanil.dev/login) | Public entry |
+| Saved edition library | [Briefing](https://finite.akashanil.dev/briefing) | Sign-in required |
+| Saved explorations | [Knowledge Passport](https://finite.akashanil.dev/passport) | Sign-in required |
+| Publisher methodology | [Sources](https://finite.akashanil.dev/sources) | Sign-in required |
+| Interests and delivery preferences | [Settings](https://finite.akashanil.dev/settings) | Sign-in required |
+| Service health | [API health](https://finite.akashanil.dev/api/health) | Public JSON |
+| Build and deployment history | [GitHub Actions](https://github.com/akashanil-dev/Finite/actions/workflows/ci-cd.yml) | Public |
+
+Production runs as two ARM64 containers on Oracle Ampere behind Caddy HTTPS. AI has been activated with a separate **$15 cumulative application allowance** and a 100-request ceiling. This is shared installation capacity, not a per-user allowance or monthly billing subscription. When capacity is unavailable, supported features fall back to source excerpts. Production scheduling is enabled after explicit owner approval; its first ingestion completed successfully. A real clock-triggered edition has not yet been observed. [Activation evidence](deploy/SCHEDULER_APPROVAL.md) records that boundary.
+
+### A five-minute walkthrough
+
+1. Create an account, choose languages and interests, and set priority levels. Exclude topics or publishers if desired.
+2. Open **Briefing**. Prepare your first edition if the library is empty, then open its card.
+3. Read **Quick**, **Standard** or **Deep**. Open a citation to inspect the source. Mark a story read; progress belongs to your account.
+4. Swipe vertically between news cards. Swipe horizontally, or use the visible tabs, to switch between **Brief**, **Different views** and **Explore**. Desktop users can use buttons and arrow keys.
+5. In **Different views**, open Perspective Lens, Time Machine or Connection Explorer. For the knowledge map, select a branch and compare the evidence on both stories.
+6. In **Explore**, choose a question or a Missing Piece. Follow a connection, optionally make a Curiosity Challenge prediction, and reach the second-level ending. Save the expedition to your Passport.
+7. Return to **Briefing**: the original card remains. Each original/scheduled edition offers one **New edition** attempt. Once pressed, that action disappears; extra editions cannot create an unlimited refresh chain.
+
+Coverage-dependent features may legitimately show one publisher, no meaningful connection, no dated passage, or insufficient background evidence. Those states are intentional; [the evaluation guide](docs/EVALUATION.md) explains what can be verified without relying on a particular changing headline.
+
+## Mobile reading experience
+
+The reader uses the screen for the article: edition date and position sit inside its card, and the headline scrolls with the body. Quick/Standard/Deep controls have room for their labels. A compact **56px fixed mobile dock** keeps navigation available without the former large footer. Longer content scrolls inside a panel; the next-story button also provides a direct way forward. Desktop uses a navigation rail.
+
+| Compact reader | Saved edition library |
 | --- | --- |
-| [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md) | Canonical architecture, requirements, current state and handoff |
-| [RULES.md](RULES.md) | Devin Hacks Kochi event details and rules |
-| [SUBMISSION.md](SUBMISSION.md) | Submission details and checklist |
-| [CHANGELOG.md](CHANGELOG.md) | Timestamped development log |
-| [AI_USAGE.md](AI_USAGE.md) | How Devin and other AI tools were used |
-| [AGENTS.md](AGENTS.md) | Conventions and commands for coding agents |
+| <img src="docs/images/mobile-reader.png" alt="Finite mobile reader with scrollable article text and compact fixed dock" width="300"> | <img src="docs/images/saved-briefings.png" alt="Saved briefing cards retain original and extra editions" width="300"> |
 
-## How it works
+Screenshots are from the local production build against isolated copied news data, not staged illustrations or proof of physical-device testing. The underlying reporting remains attributed to its publishers. [Mobile QA](MOBILE_BRIEFING_QA.md) records viewport, persistence and interaction checks.
 
-1. **Curiosity profile:** choose fields and subfields and give each a priority (occasional, moderate or high). You can also exclude subjects and sources. Choosing Malayalam adds Malayalam outlets to the sources Finite reads.
-2. **Briefing schedule:** pick a delivery time, a lookback window (24, 30 or 48 hours; default 30) and the number of stories. Finite prepares the briefing 30 minutes before delivery, then freezes it.
-3. **Finite feed:** a numbered list of source-backed stories with a progress bar and an explicit *"You're done for today"* ending.
-4. **Story:** quick (30s), standard (2 min) or deep (5 min) summary, key facts with citations, original publish and update times, sources with credibility tier, and **The Missing Piece** (what the coverage didn't explain).
-5. **Rabbit holes:** questions chosen to fit the type of story, plus *ask your own*. Level 1 gives context and Level 2 gives connections, then the expedition is complete. Every claim is cited and labelled *established*, *reported* or *disputed*, with a timeline where relevant.
-6. **Curiosity Challenges:** before following a Level 2 connection, optionally predict a shared history, similar mechanism or wider impact. Reveal the cited exploration and reflect; there are no scores or invented correct answers. Skip or return to the connection choices anytime before revealing. Your prediction is saved with the journey. No extra AI calls are required.
-7. **Knowledge Passport:** the concepts you've explored, with no streaks.
-8. **Perspective Lens:** open “Compare” on a story to see headlines and short original excerpts from up to eight distinct publishers. With AI enabled, cited claims are grouped as corroborated, reported, disputed or opinion only after an explicit support check. Failed checks fall back to source excerpts. Aggregators are excluded; one publisher cannot count as multiple perspectives. Comparisons are English; excerpts retain their original language.
-9. **Sources page:** a public credibility index of every outlet Finite reads, with its tier, confidence weight and the reason for it.
+## Implemented features
 
-## Stack
+| Feature | What the application does | Implementation / evidence |
+| --- | --- | --- |
+| Public landing page | Explains the product and offers separate signup/login entry points | [Homepage](frontend/src/app/page.tsx), [design QA](DESIGN_QA.md) |
+| Accounts and sessions | Username/password registration, login, logout, revocable cookie sessions; account-owned profiles, briefings and journeys | [Auth backend](backend/app/auth.py), [auth tests](backend/tests/test_auth.py) |
+| Curiosity profile | Weighted subject priorities, English/Malayalam preferences, source/topic exclusions, story count, lookback window, delivery time and timezone | [Profile editor](frontend/src/components/profile-editor.tsx), [taxonomy](backend/app/taxonomy.py) |
+| News ingestion | Reads 29 configured publisher feeds; classifies articles and lazily extracts full text | [Ingestion](backend/app/ingest.py), [source registry](backend/app/sources.py) |
+| Personalised briefing builder | Ranks by interest, source weight and freshness; groups similar coverage, limits topic concentration and skips previously delivered articles | [Builder](backend/app/briefing.py) |
+| Saved edition library | Keeps multiple editions and earlier days, with pagination, dates and read counts | [Library UI](frontend/src/app/briefing/page.tsx), [history tests](backend/tests/test_briefing_history.py) |
+| One-time extra edition | Atomic server-side claim; original retained, child cannot chain, empty attempts do not create empty cards | [API](backend/app/main.py), [history tests](backend/tests/test_briefing_history.py) |
+| Scheduled preparation | Background ingestion and preparation 30 minutes before a local delivery time; unique user/date prevents duplicate scheduled editions, including midnight boundaries | [Scheduler](backend/app/main.py); unit-tested, real clock-triggered delivery verification remains separate |
+| Swipe reader | Finite vertical story cards; horizontal Brief / Different views / Explore panels; buttons and keyboard alternatives; saved read progress and ending | [Deck](frontend/src/components/briefing-deck.tsx), [panels](frontend/src/components/swipe-panels.tsx) |
+| Three reading depths | Quick, Standard and Deep summaries with cited facts and distinct publication/update metadata | [Analysis](backend/app/analysis.py), [reader](frontend/src/app/story/[id]/story-view.tsx) |
+| The Missing Piece | Questions about what the retrieved coverage leaves unexplained | [Analysis](backend/app/analysis.py), [real-key audit](AI_UX_QA.md) |
+| Rabbit holes | Source-backed contextual exploration capped at two levels; claim support checks, evidence gaps and explicit ending | [Exploration](backend/app/rabbithole.py), [retrieval](backend/app/retrieval.py) |
+| Ask your own | Custom questions scoped to the story; unrelated questions rejected | [Exploration API](backend/app/main.py), [AI audit](AI_UX_QA.md) |
+| Curiosity Challenges | Optional ungraded prediction before level two; cited reveal and reflection, saved with the journey | [Challenge UI](frontend/src/components/curiosity-challenge.tsx) |
+| Perspective Lens | Up to eight distinct publishers, attributed excerpts and checked AI comparison claims; single-publisher and insufficient-evidence states | [Perspectives](backend/app/perspectives.py), [tests](backend/tests/test_perspectives.py) |
+| Time Machine | Dated source quotations and a separate publication/update coverage history; unclear dates are not invented | [Timeline](backend/app/time_machine.py), [tests](backend/tests/test_time_machine.py) |
+| Connection Explorer | Up to three related stored stories with shared-subject/headline relevance checks and evidence on both sides | [Connections](backend/app/connections.py), [regression tests](backend/tests/test_connections.py) |
+| Interactive knowledge map | Select finite branches to inspect source evidence; switch to list view | [Map/list UI](frontend/src/components/connection-explorer.tsx) |
+| Knowledge Passport | Saved journeys, explored concepts and challenge predictions; no streak mechanic | [Passport](frontend/src/app/passport/page.tsx) |
+| Malayalam support | Malayalam feeds and cached AI translation; original content retained when translation cannot be supported | [Translation](backend/app/translate.py) |
+| Source methodology | Outlet tiers, editorial confidence weights and rationales, visible with citations | [Sources page](frontend/src/app/sources/page.tsx), [registry](backend/app/sources.py) |
+| Persistent AI guard | Atomic pre-request reservations, bounded model/output sizes, cache reuse, 100-call ceiling and extractive fallback | [Budget](backend/app/budget.py), [tests](backend/tests/test_budget.py) |
+| Container delivery | Checks, ARM64 image build/smoke/publish and automatic SHA-based Oracle deployment on main | [Workflow](.github/workflows/ci-cd.yml), [deployment](deploy/README.md) |
 
-- **Backend:** Python 3.13, FastAPI, SQLite, feedparser, trafilatura, scikit-learn, OpenAI SDK (optional)
-- **Frontend:** Next.js 16, React 19, Tailwind CSS 4. Mobile-first and installable on phones as a web app.
+## How AI is used—and constrained
 
-| Path | Purpose |
+AI is an optional part of the backend, not a requirement for account creation or all features.
+
+1. RSS articles are classified and grouped into stories. With AI enabled, embeddings assist grouping; without it, keyword classification and TF-IDF similarity provide an approximate fallback.
+2. Story analysis uses retrieved publisher passages to produce summaries, facts, questions and concepts. A separate support check evaluates summary assertions, factual claims and question premises. Rejected summaries become literal excerpts, and unsupported items are removed.
+3. Rabbit holes retrieve story passages and Wikipedia background, write cited context, and check claims against the retrieved evidence. Gaps remain visible; the system does not invent follow-up questions just to fill a branch.
+4. Perspective comparisons use distinct publishers and an explicit support check. Multiple syndicated or related pages are not automatically proof of independent corroboration.
+5. Versioned/mode-aware caches reduce repeated calls and avoid retaining obsolete extractive analyses after AI activation.
+
+| Mode | Available behavior |
 | --- | --- |
-| `backend/app/taxonomy.py` | Interest fields and subfields, with keywords for sorting stories into them |
-| `backend/app/sources.py` | Source credibility index |
-| `backend/app/ingest.py` | Reads RSS feeds, detects language, sorts articles into topics, fetches full text when needed |
-| `backend/app/briefing.py` | Lookback window, skipping stories already sent, grouping duplicates, weighted ranking, freezing the briefing |
-| `backend/app/analysis.py` | Summaries, key facts with citations, the Missing Piece, story-specific questions |
-| `backend/app/rabbithole.py` | Cited rabbit holes with a depth limit and claim checking, generated once per story and shared |
-| `backend/app/retrieval.py` | Source passages from the story's articles plus Wikipedia background |
-| `backend/app/translate.py` | Malayalam translation (cached) |
-| `backend/app/llm.py` | OpenAI wrapper with an on-disk cache |
-| `backend/app/main.py` | API routes and the background scheduler |
-| `frontend/src/app/*` | Onboarding, briefing, story and rabbit hole, passport, sources and settings screens |
+| With an approved key and remaining allowance | AI classification/grouping, checked analysis and exploration, supported comparison claims, cached Malayalam translation |
+| Without a key or when a request is blocked | Extractive summaries/context, source attribution, deterministic connections/map/timeline, accounts, saved editions and Passport; translation may be unavailable |
+
+Default configured models are `gpt-6-luna`, `gpt-6.1-sol` and `text-embedding-3-small`. These names describe the implementation configuration, not a promise of model access for every developer account. Unknown model overrides are blocked by the allowance guard until their rates are reviewed.
+
+**Grounding is not a factual guarantee.** Retrieval can miss context, sources can be wrong, and model verification can fail. No percentage accuracy or comprehensive editorial validation is claimed. [AI_UX_QA.md](AI_UX_QA.md) documents the real-key cases, fallbacks and limits.
+
+### Spending controls
+
+- `FINITE_AI_BUDGET_USD` defaults to **$1**, accepts **$0–$15**; this project uses separate development **$5** and approved production **$15** installations.
+- `ai_budget.sqlite3` persists conservative reservations across restarts. It is neither actual billed usage nor a monthly reset.
+- Every uncached call reserves capacity before contacting the provider. Failed calls retain reservations; there are no automatic SDK retries.
+- A separate **100-request installation ceiling** can stop AI before the dollar allowance is exhausted.
+- Cache hits require no reservation. Requests that cannot fit fall back where supported.
+- Do not delete/reset the ledger to recover capacity. This guard does not cover other applications or guarantee an account-wide provider billing cap.
+
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+  Reader[Browser: Next.js / React] --> Caddy[Caddy HTTPS]
+  Caddy --> Web[Frontend ARM64 container]
+  Caddy --> API[FastAPI ARM64 container]
+  API --> DB[(SQLite: accounts, stories, editions, journeys)]
+  API --> Cache[(LLM cache + reservation ledger)]
+  API --> Feeds[Publisher RSS / source articles]
+  API --> Wiki[Wikipedia background passages]
+  API --> AI[Optional OpenAI API]
+  Scheduler[Optional scheduler thread] --> API
+```
+
+**Stack:** Python 3.13+, FastAPI, SQLite WAL, feedparser, trafilatura, NumPy/scikit-learn, OpenAI SDK; Next.js 16, React 19, TypeScript and Tailwind CSS 4. Production uses same-origin `/api` routing. The web manifest supports standalone display; offline reading is not implemented.
+
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for data ownership, ranking, API routes, persistence and deployment flow.
 
 ## Run locally
 
-Prerequisites: Python 3.13 with [uv](https://docs.astral.sh/uv/), Node.js 20+ with npm, and internet access.
+Use Python 3.13+, [uv](https://docs.astral.sh/uv/), Node.js **24** (matches CI), npm and network access to publisher feeds. Commands below start from the repository root.
 
 ```bash
-# backend (port 8000)
+git clone https://github.com/akashanil-dev/Finite.git
+cd Finite
+cp backend/.env.example backend/.env
+```
+
+For a no-spend local evaluation, leave `OPENAI_API_KEY` empty and set `FINITE_SCHEDULER_ENABLED=false` in `backend/.env`. Preparing the first briefing still fetches source feeds on demand. Do not put keys in browser code or commit `.env`.
+
+Terminal 1:
+
+```bash
 cd backend
-cp .env.example .env        # optional: set OPENAI_API_KEY
-uv sync
-uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
-
-# frontend (port 3000), in another terminal
-cd frontend
-npm install
-npm run dev -- -H 0.0.0.0 -p 3000
+uv sync --frozen
+uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Open http://localhost:3000. On a phone on the same network, open `http://<laptop-ip>:3000`. The app calls the API on port 8000 of the same host; set `NEXT_PUBLIC_API_URL` to use a different address.
-
-**Without `OPENAI_API_KEY`** the app runs in *extractive mode*: summaries and rabbit holes quote source passages directly, and Malayalam translation is unavailable. The UI labels which mode produced the content.
-
-### Checks
+Terminal 2, from the repository root:
 
 ```bash
-cd frontend && npx tsc --noEmit && npx eslint src && npx next build
-cd backend && uv run python -c "import app.main"
-uv run python -m unittest discover -s tests -v
+cd frontend
+npm ci
+npm run dev -- -H 127.0.0.1 -p 3000
 ```
 
-### Build troubleshooting
+Open [localhost:3000](http://localhost:3000), register, complete onboarding and prepare an edition. A fresh checkout has no bundled user database or fake news dataset. Publisher availability and your interest choices determine whether stories can be prepared.
 
-If a restricted agent run fails with a Turbopack CSS-worker `binding to a port: Operation not permitted` error, run the build in an environment that permits local ports. If the same error persists after permissions are restored, move the generated `frontend/.next` directory aside and rebuild. A fresh cache resolved this failure during browser QA; no framework/configuration changes were needed. Do not move `.next` while serving the production build.
+For LAN testing, bind both services to `0.0.0.0` and add the exact `http://<laptop-ip>:3000` to `FINITE_ALLOWED_ORIGINS`; the browser defaults to API port 8000 on the same hostname. `NEXT_PUBLIC_API_URL` can override that address. Production builds use `same-origin` and proxy `/api` through Caddy.
 
-## Status
+### Environment configuration
 
-- **Working, tested without an AI key:** reading 29 English and Malayalam feeds, sorting stories into topics, grouping duplicates, weighted ranking, frozen briefings with read progress and completion, story summaries and questions, rabbit holes with a depth limit, ask-your-own, Knowledge Passport, the sources page, and the scheduler.
-- **Verified on a live-key sample (25 Oct):** AI summaries and questions (`gpt-6-luna`), AI rabbit holes (`gpt-6.1-sol`) with claim-by-claim checking, embedding-based duplicate grouping, and Malayalam translation.
-- **Known limitations:**
-  - Single local user only.
-  - Topic sorting without a key is approximate.
-  - Duplicate grouping without a key sometimes splits one event into two stories.
-  - Source weights are editorial judgements.
-  - Perspective Lens and Curiosity Challenges pass a real-key desktop browser sample, including the endpoint and saved prediction. Earlier no-key mobile checks pass; live-AI mobile and broader editorial quality remain pending.
+| Variable | Meaning |
+| --- | --- |
+| `OPENAI_API_KEY` | Backend-only optional key; empty means extractive mode |
+| `FINITE_AI_BUDGET_USD` | Persistent installation allowance, default 1, maximum 15 |
+| `FINITE_FAST_MODEL` / `FINITE_SMART_MODEL` / `FINITE_EMBED_MODEL` | Configured model names; overrides must also be approved in budget rates |
+| `FINITE_ALLOWED_ORIGINS` | Comma-separated exact frontend origins for browser requests |
+| `FINITE_SECURE_COOKIES` | `true` behind production HTTPS; `false` for local HTTP |
+| `FINITE_SCHEDULER_ENABLED` | Start background scheduling; use `false` for controlled evaluation |
+| `FINITE_INGEST_INTERVAL_MIN` | Scheduled ingestion interval, default 60 minutes |
+| `FINITE_DATA_DIR` | Persistent directory, default `backend/data`; parent must exist |
+| `NEXT_PUBLIC_API_URL` | Frontend build-time API location; `same-origin` in production |
 
-## Data and attribution
+Sanitized templates: [local](backend/.env.example), [production](deploy/backend.env.example).
 
-Publisher RSS feeds are listed in `backend/app/sources.py`. Finite shows short summaries with attribution and always links to the original article. Background passages come from the [Wikipedia API](https://www.mediawiki.org/wiki/API:Main_page) (CC BY-SA), and each citation links to the article used. Fonts are Inter, Newsreader and Noto Sans Malayalam (Google Fonts).
+### Checks matching CI
 
-### Local AI testing allowance
+Run each subshell from the repository root:
 
-Finite reserves a conservative cost before every uncached OpenAI request, up to **`FINITE_AI_BUDGET_USD` total** (default $1, maximum $15) or 100 requests for this installation. The ledger lives in gitignored `backend/data/ai_budget.sqlite3`; it persists across restarts and does not reset monthly. Do not delete it to retry. `GET /api/ai-budget` reports reserved allowance, not actual billed usage. Cache hits cost no allowance; failures retain their reservation. When a request cannot fit, generation falls back to extractive mode and translation is unavailable.
+```bash
+(cd backend && uv sync --frozen && OPENAI_API_KEY='' FINITE_SCHEDULER_ENABLED=false uv run python -m unittest discover -s tests -v)
+(cd backend && OPENAI_API_KEY='' FINITE_SCHEDULER_ENABLED=false uv run python -c 'import app.main')
+(cd frontend && npm ci && npx next typegen && npx tsc --noEmit && npx eslint src --max-warnings=0 && npm run build)
+bash -n deploy/deploy.sh deploy/ssh-dispatch.sh
+```
 
-Only the three default models have reviewed rates; unknown model overrides are blocked. Rates deliberately exceed standard published prices, input is conservatively counted by UTF-8 bytes plus framing, outputs are capped at 12,000 tokens, and SDK retries are disabled. Review rates against [OpenAI pricing](https://developers.openai.com/api/docs/pricing) before changing models. This guards this installation only: other apps, other checkouts, existing processes running older code, provider price changes and deleted ledgers are outside its scope. Restart the backend to load it.
+Latest implementation checkpoint: **51 backend tests pass**, frontend TypeScript/ESLint/production build pass, and 320px/390px plus desktop browser checks pass. Automated tests do not make paid AI calls. Real-key sample checks and production browser evidence are recorded separately:
 
-AI mode now recovers from previously cached extractive story summaries after a key is added. JSON requests include the required input instruction. Live classification, embedding clustering and story generation were verified on stored news on 25 October 2026; this is a sample check, not a quality guarantee across all news.
+- [Mobile/history QA](MOBILE_BRIEFING_QA.md)
+- [Real AI and exploration audit](AI_UX_QA.md)
+- [Live account and feature QA](LIVE_QA.md)
+- [Design and connection-regression QA](DESIGN_QA.md)
 
-Live AI QA (25 October): summaries, Missing Piece, Perspective Lens, two-level rabbit holes, unsupported-claim removal, challenges/Passport and Malayalam rendering were exercised in the browser. Rabbit-hole claims and dated timeline events require an explicit positive support verdict; verification failure removes them. Malformed translations fall back to the original payload. The sample is not a comprehensive editorial audit; Malayalam quality needs human review.
+If a restricted environment prevents Turbopack from binding a local port, run the build with normal local-port permissions. Do not replace framework code to hide a sandbox restriction. Avoid rebuilding `.next` while serving that same production build.
 
-For controlled local demos without scheduled/background ingestion, use `uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --lifespan off` **after the database has already been initialized**. Normal startup retains scheduling. This session restarted the existing backend in this controlled mode to activate the guard without spending the remaining allowance on automatic ingestion.
+## Accounts, privacy and persistence
 
-### Time Machine
+Usernames are case-insensitive, 3–32 letters/numbers/underscores. Passwords are 8–128 characters without composition rules. Password reset and email verification are intentionally absent from this version.
 
-Open a story and select **Time Machine → Trace +**. **Events in the sources** shows up to 12 dated source quotations, separating earlier background, current developments and dates needing context. Missing years and conflicting dates are not guessed. **Coverage history** shows article publication/update timestamps separately from event dates. Citations open the supporting publisher links.
+Passwords use salted scrypt. Opaque session tokens are stored as hashes; cookies are HttpOnly, SameSite=Lax, and Secure in production, with a 30-day expiry. Logout revokes the session. Persistent username/IP attempt buckets throttle authentication. Browser writes require an allowed origin and `X-Finite-Request: 1`; administrative ingestion and budget inspection require an explicit admin role.
 
-This feature reads stored text only and makes no AI calls. It recognizes English date expressions and keeps excerpts in their original language; it is not a complete archive or independently verified account. Production desktop browser QA passed for citations, chronology, coverage history, empty states and error/retry. Standalone years require temporal context to avoid treating ordinary counts as dates. No additional API allowance was used.
+Profiles, briefing history/read progress and saved journeys are account-owned. News articles, source analysis and exploration caches are shared content. User questions can be sent to OpenAI when AI mode is enabled; do not enter secrets into exploration prompts. No claim of a full independent security audit is made.
 
-### Connection Explorer
-Open **Connection Explorer** on a story to compare up to three other stored stories sharing a saved concept. Expand **Compare source evidence** for quotations and original-source citations on both sides. This is literal shared-mention discovery, not causal inference; synonyms/translations may be missed. It respects language/source/topic exclusions and needs no additional AI calls.
+State lives outside Git in `backend/data/` locally and `/opt/finite/data` on the server. Existing legacy data is never automatically assigned to the first account. See [architecture and administration](docs/ARCHITECTURE.md) for explicit migration/admin commands. Do not delete the database, WAL files or budget ledger as a troubleshooting shortcut.
 
-Connection Explorer opens in **Knowledge map** view. Select a story node to reveal quoted evidence and citations from both stories; **List view** retains the original comparison cards. The map has at most three branches and uses no additional AI calls.
+## Deployment
 
-### Accounts
+[The CI/CD workflow](.github/workflows/ci-cd.yml) checks all branches/PRs without AI. Main builds and smoke-tests native ARM64 frontend/backend images, publishes full-commit-SHA tags to GHCR and deploys over restricted SSH when `FINITE_DEPLOY_ENABLED=true`.
 
-Open `/login` to create an account or sign in. Usernames are case-insensitive (3–32 letters, numbers or underscores). Passwords need 8–128 characters, with no character-composition rules. No password reset or email verification is included. **Settings → Sign out** ends the current session.
+The server **pulls images; it does not clone or build the repository**. Deployment code and Compose configuration are root-owned. Before changing containers, the deployment script makes integrity-checked SQLite online backups as the app user, avoiding WAL ownership failures. A failed update attempts to restore previous images; this is not an automatic database-schema rollback. Persistent data and budget reservations survive releases.
 
-Profiles, briefings/read progress and Passport journeys belong to each account; article coverage and source-backed AI caches remain shared. Cookies are HttpOnly and expire after 30 days; logout revokes the server-side session. Passwords use salted scrypt ([OWASP guidance](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)); plaintext passwords/tokens are not stored. Login is throttled by username and peer IP. All data APIs require sign-in; only health and login/registration are public. Browser writes require the `X-Finite-Request: 1` header and an allowed origin.
+[Deployment guide](deploy/README.md) · [server handoff and approval boundary](deploy/SERVER_HANDOFF.md) · [Compose](deploy/compose.yml) · [deployment script](deploy/deploy.sh)
 
-`FINITE_ALLOWED_ORIGINS` must list the exact frontend origin; `FINITE_SECURE_COOKIES=true` is required behind HTTPS in production. Use `FINITE_SCHEDULER_ENABLED=false` when testing to avoid automatic ingestion. `FINITE_DATA_DIR` optionally relocates persistent state. Accounts require no OpenAI key.
+## Known limitations and next steps
 
-Existing local data is preserved, but not given to the first registrant. After creating your own account and backing up the SQLite database, explicitly assign legacy history with `cd backend && uv run python -m app.claim_legacy YOUR_USERNAME`. This never overwrites an already-saved account profile. Administrative ingestion/budget access is granted locally with `uv run python -m app.manage_user YOUR_USERNAME --admin` (or `--revoke-admin`); registration never grants admin privileges.
+- AI output is source-checked but not guaranteed correct. Broader editorial evaluation and human Malayalam review remain necessary.
+- Some RSS/full-text sources block automated access. No paywall bypass or complete news/archive coverage is promised.
+- Without AI, classification and grouping are approximate. One event can appear as more than one story.
+- Connection matching is deliberately conservative: weak links are omitted, while synonyms, translations and body-only relationships can be missed. The graph is a bounded navigation view, not a comprehensive semantic knowledge base.
+- Time Machine recognizes English date expressions in stored text. Coverage timestamps are not treated as event dates; it is not a complete historical archive.
+- Source credibility weights are editorial methodology v0, not an objective truth score. Multi-outlet coverage does not necessarily mean independent reporting.
+- Schedules require the server scheduler to be enabled, matching new stories and available resources. Unit-tested timing does not prove a real future delivery has occurred.
+- An extra-edition attempt is consumed even if no new matching stories are available. A process crash during first-ever creation can leave a request claim requiring operator inspection.
+- Mobile viewport checks passed; physical touch devices, Safari, full accessibility, load testing and disaster recovery drills remain open.
+- No password recovery, email verification, offline article cache, push notifications or analytics dashboard is implemented.
 
-### Oracle containers and GitHub deployment
+## Data, dependencies and attribution
 
-Target: `finite.akashanil.dev` on Oracle Ampere. See [server setup and deployment](deploy/README.md) and [server-side Codex handoff](deploy/SERVER_HANDOFF.md). Two ARM64 containers sit behind the existing Caddy; persistent data stays outside images. The workflow checks code, builds and smoke-tests images, then deploys only when `FINITE_DEPLOY_ENABLED=true` and repository Actions secrets are configured. Automatic deployment on main pushes is verified; the live site is https://finite.akashanil.dev. Deployment uses a forced-command SSH key and root-owned server configuration. AI and scheduling remain disabled.
+- [Publisher registry](backend/app/sources.py): RSS URLs, outlet names, tiers and rationales. Publisher content remains attributed and links to original reporting; it is not relicensed by this repository.
+- [Wikipedia API](https://www.mediawiki.org/wiki/API:Main_page): background passages with source links; Wikipedia text is subject to its applicable attribution/share-alike terms.
+- [Python dependency lock](backend/uv.lock) and [npm lock](frontend/package-lock.json): reproducible library versions. Libraries retain their respective licenses.
+- Fonts: Inter, Newsreader and Noto Sans Malayalam. The [design references](DESIGN_QA.md) informed palette/composition; no Pinterest artwork was copied.
+- AI-assisted development and product AI usage: [AI_USAGE.md](AI_USAGE.md).
 
-Live production QA scope and remaining verification boundaries are recorded in [LIVE_QA.md](LIVE_QA.md). Source-exclusion checkboxes are checked when excluded. Saved delivery times take effect only when scheduled delivery is enabled; production scheduling remains disabled.
+## Repository guide
 
-## Visual design and motion
+| Document | Purpose |
+| --- | --- |
+| [Evaluation guide](docs/EVALUATION.md) | Demo route, evidence matrix, expected fallbacks and limitations |
+| [Architecture](docs/ARCHITECTURE.md) | Modules, data flow, APIs, ownership and operations |
+| [Submission](SUBMISSION.md) | Ready-to-use project description, production/repository links and submission checklist |
+| [Project context](PROJECT_CONTEXT.md) | Canonical detailed decisions, feature history, roadmap and handoff |
+| [Changelog](CHANGELOG.md) | Timestamped implementation and validation record |
+| [AI usage](AI_USAGE.md) | Devin/Codex contributions, human review and validation boundaries |
+| [Agent guide](AGENTS.md) / [event rules](RULES.md) | Development workflow and event requirements |
 
-Finite uses a warm cream canvas, charcoal navigation, lime highlights and lavender/mint/yellow exploration cards. Mobile has a floating navigation dock; desktop has a navigation rail and a side-by-side reader at wide widths. Interactions include spring-like card lifts, gliding reading-depth selections, folding panels and a one-time completion flower. Reduced-motion preferences suppress decorative animation. No animation library or generated artwork was added.
-
-The owner's [finite-ideas Pinterest board](https://in.pinterest.com/gutgbihgg/finite-ideas/) informed the palette and card compositions; no reference artwork was copied. UI QA uses an isolated database and `OPENAI_API_KEY=''`, `FINITE_SCHEDULER_ENABLED=false` so visual testing does not consume AI budget. Physical-device and cross-browser accessibility/performance audits remain pending.
-
-Interest priorities are explicit Off / Occasional / Moderate / High choices in onboarding and Settings. Settings use animated section selectors and show saving feedback before confirmation.
-
-See [DESIGN_QA.md](DESIGN_QA.md) for the visual references, redesign test coverage and deployed release evidence.
-
-
-### Public homepage
-
-`/` introduces Finite without requiring an account or backend request. Get started opens `/signup`; Log in opens `/login`. Successful authentication continues through `/start` to onboarding or the briefing. The existing account pages remain protected.
-
-Connection Explorer uses conservative headline relevance: both stories must name the same subject and share at least two additional meaningful words. Candidates are ranked before selecting up to three. An empty result is expected when evidence is weak; synonyms and body-only links may be missed. Existing cached analyses are revalidated without AI regeneration.
-
-Development AI allowance is now $5; the separately approved and activated production allowance is $15. Set the value in the environment without deleting the existing ledger. The production template contains no key. The owner explicitly approved installing the server-only key; production AI is active with scheduling disabled. Analysis validates summaries, factual claims and question premises against retrieved sources; failed summaries use literal excerpts, and unsupported questions are removed. AI checks reduce errors but cannot guarantee factual correctness.
-
-## Swipe briefing
-
-The briefing is a finite vertical deck. Swipe/scroll vertically between story cards; use Previous/Next or focus the deck and press Up/Down on desktop. Swipe horizontally inside a card (or use its tabs/Left/Right keys) for Brief, Different views and Explore. Longer panel content scrolls within the card; use the card header/footer or Next to advance directly. Reading is saved with Mark as read. Returning to a visited card preserves its panel and journey during the current page session. The mobile dock stays fixed and compact (56px), with safe-area clearance. Briefing opens the saved-edition card library; selecting a card opens `/briefing/{id}`. The reader has no external daily heading: date and position live inside each card, and the headline scrolls with its content. Depth controls wrap with room for every label.
-
-## Saved editions
-
-`GET /api/briefings` lists the signed-in user’s saved editions (20 per page, `before` cursor). `POST /api/briefings` prepares only the first edition. `POST /api/briefings/{id}/edition` consumes that original edition’s single New edition attempt atomically, even when no new matching stories exist. Extra editions cannot create more extras; originals and read progress remain intact. No empty edition is inserted. Scheduled editions use a unique user/local-delivery-date key, independent of manual extras, including preparation across midnight. Production scheduling remains disabled until a separate approved server change.
+This README describes implemented behavior and separately labels unverified or planned work. Final organizer submission and final freeze SHA are tracked in [SUBMISSION.md](SUBMISSION.md).

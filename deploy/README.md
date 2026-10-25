@@ -10,7 +10,7 @@ The key uses `restrict,command="/usr/local/lib/finite/ssh-dispatch.sh"` and perm
 
 Protected script/Compose changes require a separately approved server installation; normal releases update only application images. The existing `/opt/finite` copies are historical and are not used by the Actions dispatcher. Set `FINITE_DEPLOY_ENABLED=false` to disable automated releases.
 
-Verified setup: restricted shell/file-transfer commands rejected; deployment of the existing release through the dedicated key passed backup/health checks. Push-triggered [Actions run 40137766681](https://github.com/akashanil-dev/Finite/actions/runs/40137766681) passed checks, both ARM64 image jobs and deployment for `537687f062e2e42c080dd7d0e7ac12ab669a19d0`. Direct SSH verified that exact current-release and both healthy containers; public homepage/health returned 200, Faber/Tuxos 200, Notes its existing 401. AI and scheduler remain disabled. Finite is already live at https://finite.akashanil.dev; AI and scheduler remain disabled.
+Current verified deployment: [Actions run 40149975675](https://github.com/akashanil-dev/Finite/actions/runs/40149975675) passed checks, both ARM64 image jobs and deployment for `f8a537905b08e053bc3461be77c7a18b8b55bd72`. Production HTTPS is live at https://finite.akashanil.dev. AI is enabled with the independent $15 reservation guard; scheduling was separately approved and activated on 25 October. Both containers are healthy; the first scheduler ingestion completed. Actual timed edition delivery remains unverified. See [scheduler execution evidence](SCHEDULER_APPROVAL.md).
 
 ## Architecture and reference
 
@@ -42,7 +42,7 @@ sudo install -d -o finite-deploy -g finite-deploy -m 700 /etc/finite
 sudo docker network create finite-edge
 ```
 
-Skip already-existing users/directories/networks after verifying their ownership. Docker-group access is root-equivalent: give this account only the dedicated deployment key and use a protected GitHub production environment.
+Skip already-existing users/directories/networks after verifying their ownership. Docker-group access is root-equivalent: give this account only the dedicated restricted deployment key. The owner chose automatic main deployments without a GitHub environment reviewer gate.
 
 4. Copy `deploy/backend.env.example` to `/etc/finite/backend.env`, owned by `finite-deploy`, mode 600. Leave `OPENAI_API_KEY` empty and `FINITE_SCHEDULER_ENABLED=false` initially. Never paste secrets into chat or Git.
 5. In the **existing Caddy Compose file**, add this network to its `caddy` service while preserving its existing networks, volumes, ports and services:
@@ -69,7 +69,7 @@ The automatic deployment setup above is installed. Server GHCR credentials belon
 
 The deploy script pulls images, backs up existing SQLite databases, starts containers and waits for health. It restores previous images after a Compose health failure when a prior release exists. It does not restore databases. A public HTTPS failure in the later workflow check does not automatically trigger rollback. Review migrations before reverting releases.
 
-Confirm successful Actions deployment, `/opt/finite/current-release`, container health, public `/api/health` and `/login`. A backup test passed on Oracle; the budget ledger is absent while AI is disabled. Fresh production data was selected. No laptop account/history migration was performed.
+Confirm successful Actions deployment, `/opt/finite/current-release`, container health, public `/api/health` and `/login`. Online backup/integrity testing passed on Oracle; the active AI budget ledger must also be preserved and backed up. Fresh production data was selected. No laptop account/history migration was performed.
 
 ## Existing laptop data and budget
 
@@ -90,28 +90,18 @@ If retaining local history on Oracle, migrate **before allowing server registrat
 sudo -iu finite-deploy
 cd /opt/finite
 export FINITE_IMAGE_TAG="$(cat current-release)"
-docker compose -f compose.yml ps
-docker compose -f compose.yml logs --tail=100 backend frontend
+docker compose -f /usr/local/lib/finite/compose.yml ps
+docker compose -f /usr/local/lib/finite/compose.yml logs --tail=100 backend frontend
 ```
 
 To roll back, run `bash /usr/local/lib/finite/deploy.sh PREVIOUS_FULL_COMMIT_SHA`. Backups are in `/opt/finite/backups`; retain recent backups and copy them off-server. Image rollback does not restore the database automatically. Current migrations are additive; review future migrations before rolling back. Restrict backup permissions because they contain password hashes and personal history.
 
-Enable the scheduler only after verifying ingestion and reviewing the remaining AI allowance. One scheduler can build briefings for each onboarded account. The $1 application ledger is shared by all accounts in the installation; it is not an account-wide OpenAI billing cap.
+Scheduling is now enabled under explicit approval. One scheduler builds due briefings for onboarded accounts, using local delivery-date uniqueness. The production $15 ledger and 100-request ceiling are shared by all accounts; this is not an account-wide OpenAI billing cap. Review remaining allowance before any further configuration change.
 
-## Codex CLI on the server
+## Server-side collaboration
 
-Yes: a server-side Codex CLI can inspect the live Docker/Caddy setup and perform the server steps. Use a normal SSH login, install Node/npm if needed, then:
-
-```bash
-npm install -g @openai/codex
-codex login --device-auth
-codex
-```
-
-Complete the device-code login yourself. Use your ChatGPT login, not Finite's nearly exhausted API key. Official references: [Codex installation](https://github.com/openai/codex), [headless authentication](https://learn.chatgpt.com/docs/auth).
-
-This laptop chat and a separately installed server CLI do not automatically share messages or state. Provide the server CLI with the current deployment files, `PROJECT_CONTEXT.md` and `deploy/SERVER_HANDOFF.md`, then bring its results back here (or provide an authorized SSH host alias for direct server work). Keep application edits on the laptop and server configuration work on the server to avoid conflicting changes.
+A separately running server agent does not automatically share this chat’s state. Provide current deployment files and [SERVER_HANDOFF.md](SERVER_HANDOFF.md), then return its verified results or use an explicitly authorized SSH connection. No source checkout is required on Oracle. Keep credentials out of chat and preserve explicit approval before infrastructure/configuration changes.
 
 Backups run inside the existing backend container as UID 10001 and stream to private host backup files after integrity checking (60-second outer timeout). Do not open production WAL databases as the host deploy user: that can create sidecars the app cannot write. If a database exists but the backend is stopped, deployment aborts; recover the backend or arrange an approved offline backup first.
 
-Production AI was explicitly approved and enabled on 25 October 2026 with `FINITE_AI_BUDGET_USD=15`; scheduling remains disabled. Environment backup: `/var/backups/finite-ai-20261025T005142Z/backend.env` (server-only, private). Future deployments retain `/etc/finite/backend.env` and `/opt/finite/data/ai_budget.sqlite3`.
+Production AI was explicitly approved and enabled on 25 October 2026 with `FINITE_AI_BUDGET_USD=15`; scheduling was later separately approved and enabled. AI environment backup: `/var/backups/finite-ai-20261025T005142Z/backend.env` (server-only, private). Future deployments retain `/etc/finite/backend.env` and `/opt/finite/data/ai_budget.sqlite3`.

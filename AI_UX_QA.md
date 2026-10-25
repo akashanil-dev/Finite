@@ -1,5 +1,6 @@
 # AI and swipe-reader audit — 25 October 2026
 
+> Historical checkpoint record: earlier configuration and UI descriptions apply to their dated checks. For the current edition library/compact fixed dock see [MOBILE_BRIEFING_QA.md](MOBILE_BRIEFING_QA.md); for current product/setup status see [README.md](README.md).
 ## Scope and evidence
 
 Real OpenAI calls ran against an isolated copy of local story data in `/tmp/finite-ai-audit`, with the **original development reservation ledger** preserved. The initial development audit made no production changes. The later approved production activation and isolated QA account are recorded below. UI QA used a test-only local auth override; this is not a new production authentication test. The normal authentication/isolation regression tests passed.

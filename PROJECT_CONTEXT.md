@@ -2,7 +2,7 @@
 
 > **Canonical, agent-agnostic project memory.** Read this first, then verify against the code. If this document and the repository disagree, investigate the discrepancy; do not silently trust either. Maintenance rules: [AGENTS.md](AGENTS.md#persistent-project-context-and-documentation-maintenance) and [RULES.md](RULES.md#persistent-project-context-and-documentation-maintenance).
 >
-> **Last verified against repository:** 2026-10-25T04:39:05+05:30 on `main`, visual checkpoint `a9628be` plus the preference-controls commit containing this update. See the [Context Maintenance Log](#context-maintenance-log).
+> **Last verified against repository:** 2026-10-25T06:54:04+05:30 on `main`; deployed implementation `f8a5379`, documentation reconciliation in this commit. See the [Context Maintenance Log](#context-maintenance-log).
 
 ## Contents
 
@@ -35,7 +35,7 @@
 
 It also **always ends**:
 
-- **The briefing:** once a day, the user receives a frozen list of N stories, ranked by their weighted interests and a public source credibility index.
+- **The briefing:** saved finite editions of N stories, ranked by weighted interests and a visible source methodology. Scheduled originals can each create one extra edition; prior editions and read progress remain available.
 - **Rabbit holes:** any story can be opened into a "rabbit hole" that is cited and depth-limited. Level 0 is the event, Level 1 is context, Level 2 is connections, and then comes *Expedition complete*.
 - **Knowledge Passport:** records what the user explored, with no streaks.
 
@@ -182,7 +182,7 @@ Legend: **[M]** mandatory, approved by the owner · **[O]** optional enhancement
 
 Mobile reader update: `/briefing` is the permanent edition-card library; `/briefing/[id]` opens the finite reader. Metadata is in-card, headline scrolls with body, depth controls fit labels, and the mobile dock is fixed at 56px. Local 320/390px and desktop browser checks passed; physical-device validation remains pending.
 
-Swipe briefing: finite vertical story deck with horizontal Brief / Different views / Explore panels, embedded two-level journeys and direction-aware dock. Native scrolling plus tabs/buttons/keyboard alternatives. Local desktop/mobile viewport validation passed; physical-device touch testing remains pending.
+Swipe briefing: finite vertical story deck with horizontal Brief / Different views / Explore panels, embedded two-level journeys and a compact fixed dock (superseding direction-based auto-hide). Native scrolling plus tabs/buttons/keyboard alternatives. Local desktop/mobile viewport validation passed; physical-device touch testing remains pending.
 
 Status meanings:
 
@@ -194,7 +194,7 @@ Status meanings:
 - **BLOCKED:** waiting on a dependency or decision.
 - **DEPRECATED:** no longer part of the product.
 
-Verification includes extractive checks on 24 Oct and a real-key AI sample/browser walkthrough on 25 Oct. 34 backend tests now exist. Live checks are sample coverage, not a full editorial audit.
+Verification includes extractive checks on 24 Oct and a real-key AI sample/browser walkthrough on 25 Oct. 51 backend tests now pass. Live checks are sample coverage, not a full editorial audit.
 
 | Feature | Description | Status | Relevant files | Remaining work |
 | --- | --- | --- | --- | --- |
@@ -209,8 +209,8 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | Settings | Edit the same profile after onboarding | COMPLETE (live desktop verified) | `frontend/src/app/settings/page.tsx` | Manual walkthrough |
 | Briefing builder | Lookback window, dedupe vs earlier briefings, clustering, weighted ranking, diversity cap, freeze | COMPLETE | `backend/app/briefing.py` | Clustering sometimes splits one event (see J) |
 | Embedding clustering | Clusters by cosine similarity (0.8) when a key is set | VERIFIED live sample | `backend/app/briefing.py` (`_cluster`), `backend/app/llm.py` (`embed`) | Live sample passed; broaden coverage |
-| Saved briefing APIs | Owned paginated history, immutable editions, one extra attempt per original, no chaining | VERIFIED backend tests | `backend/app/briefing.py`, `main.py`, `db.py` | Production verification pending |
-| Scheduler | Ingests every 60 min; freezes the briefing 30 min before delivery time | IMPLEMENTED / UNVERIFIED (never seen firing at a real delivery time) | `backend/app/main.py` (`scheduler`) | Observe one real trigger |
+| Saved briefing APIs | Owned paginated history, immutable editions, one extra attempt per original, no chaining | VERIFIED backend tests | `backend/app/briefing.py`, `main.py`, `db.py` | Local browser and deployed library empty-state verified; physical-device audit pending |
+| Scheduler | Ingests every 60 min; prepares 30 min before local delivery, unique per user/date | ACTIVE; first ingestion verified, real timed edition not yet observed | `backend/app/main.py` (`scheduler`) | Observe one real trigger |
 | Story analysis (extractive) | Lead-sentence summaries at 3 depths, cited facts, template questions and Missing Piece | COMPLETE | `backend/app/analysis.py` | Missing Piece is generic without a key |
 | Story analysis (AI) | Summaries, facts, story type, Missing Piece, 4–6 tailored questions, concepts | VERIFIED live sample | `backend/app/analysis.py` (`ANALYSIS_SYSTEM`) | Sample passed; broader grounding quality review |
 | Missing Piece | What the coverage didn't explain; each item opens a rabbit hole | VERIFIED live sample | `backend/app/analysis.py`, story page | AI browser sample passed; broader coverage pending |
@@ -549,6 +549,8 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+2026-10-25T06:54:04+05:30 — Owner approved making GitHub public after credential/private-artifact checks and explicitly approved production scheduling. Public description/homepage/topics set. The scheduler flag is enabled without changing the $15 ledger/cap; no artificial schedule change was made to claim a timed delivery.
+
 2026-10-25 — Owner reversed the dock auto-hide behavior: keep a smaller sticky dock. Remove the outer daily-briefing header and preserve reading space by scrolling the title inside the Brief panel.
 
 2026-10-25 — Preserve every briefing. Each original/scheduled edition gets one extra-edition attempt; generated extras cannot chain. An empty/failed attempt stays consumed, as requested for one press. Scheduling is keyed by local delivery date, not the last manual refresh.
@@ -603,6 +605,9 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 ---
 
 ## I. Current development state
+
+2026-10-25T06:54:04+05:30 — Current summary supersedes older checkpoints below: repository public; detailed README, architecture/evaluation guides, submission packet and screenshots prepared. Compact reader/history release `f8a5379` passed full CI/CD (40149975675). Production AI and scheduling are enabled under explicit approvals; first scheduled ingestion completed, both containers healthy, public health 200. Real clock-triggered edition remains unverified. Production reservation snapshot: $0.795639/$15, 25/100 requests. Do not treat that snapshot as current balance. No final organizer submission has been made.
+
 
 2026-10-25T06:46:00+05:30 — Compact reader and saved library browser-verified at 320×640, 390×844 and desktop. Standard/Deep labels fit; article scroll retains the 56px dock; feature panels realign after resize. Successful extra creation, empty attempt, retained originals/read progress and absent refresh buttons verified after reload. TypeScript, ESLint and production build pass. No API credits used; live rollout pending.
 
@@ -727,7 +732,7 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 
 ## K. Roadmap and pending tasks
 
-Saved-edition retention and one-time extras are implemented. Browser library/mobile verification passed; deployment is pending; production schedule activation requires explicit owner approval.
+Saved-edition retention, one-time extras and compact mobile reader are deployed. Production scheduling is approved and enabled; observe a real scheduled edition without changing user preferences. Final freeze SHA and organizer submission remain pending.
 
 Current next steps: run physical-device touch QA and broaden factual evaluation beyond the Kerala/Jamia samples.
 
@@ -840,13 +845,13 @@ Time Machine v1 is complete: dedicated source-extractive story timeline plus cov
 
 ## M. Instructions for Incoming AI Agents
 
-Preserve the saved-edition library and compact fixed dock. New edition is a single attempt per original/scheduled edition, not a repeatable refresh; child editions have no further attempt. Server scheduling is still off pending the separate approval batch in `deploy/SCHEDULER_APPROVAL.md`.
+Preserve the saved-edition library and compact fixed dock. New edition is a single attempt per original/scheduled edition, not a repeatable refresh; child editions have no further attempt. Server scheduling is now enabled following the approved batch in `deploy/SCHEDULER_APPROVAL.md`; preserve its state unless another change is explicitly approved.
 
 For visual work, preserve the owner-approved playful/calm motion and finite product boundaries. Preview with AI explicitly disabled and isolated data; do not enable the production key to test styling.
 
 Server agents must follow `deploy/SERVER_HANDOFF.md`: inspect containerized Caddy read-only first, then ask explicit owner permission before every change or precisely scoped batch. Do not treat deployment instructions as authorization.
 
-For Oracle work, read `deploy/README.md` and `deploy/SERVER_HANDOFF.md`. Verify live Caddy paths/networks; preserve Tuxos and other services. Automatic deployment is verified and authorized. Production AI activation was explicitly approved and completed at $15; preserve its separate ledger and keep scheduling disabled. Do not migrate the development ledger into this fresh production installation.
+For Oracle work, read `deploy/README.md` and `deploy/SERVER_HANDOFF.md`. Verify live Caddy paths/networks; preserve Tuxos and other services. Automatic deployment is verified and authorized. Production AI activation was explicitly approved and completed at $15; scheduling was later explicitly approved and enabled. Preserve its separate ledger and current scheduler state. Do not migrate the development ledger into this fresh production installation.
 
 Accounts now gate data APIs. Create a test account on a DB copy with AI disabled; never automatically claim legacy data. Back up before migrations. Registration grants no admin role; local CLI controls ownership/admin changes. Production cookies must be Secure with exact HTTPS origin.
 
@@ -953,3 +958,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T06:43:15+05:30 | feat: preserve briefing history and limit extra editions | C/D/H/I/J/K; README | 51 backend tests pass; browser verification ongoing; no AI calls |
 
 | 2026-10-25T06:46:00+05:30 | fix: give mobile stories more reading space | C/H/I/K/M; README, MOBILE_BRIEFING_QA | 320/390px and desktop browser checks; tsc, ESLint, build pass; no AI calls |
+
+| 2026-10-25T06:54:04+05:30 | docs: publish complete product and evaluation guide | C/H/I/K/M; README, submission, architecture/evaluation, deployment records | Public metadata verified; 360 historical blobs checked for obvious credentials; CI/deploy and scheduler ingestion verified; final submission pending |

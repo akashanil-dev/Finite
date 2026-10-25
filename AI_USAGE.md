@@ -222,3 +222,7 @@ Codex implemented and tested saved-edition APIs, retention, one-attempt refresh 
 ## 2026-10-25T06:46:00+05:30 — Mobile reading space and edition library
 
 Codex implemented the saved briefing library, compact mobile reader, fixed dock and responsive depth controls. Browser testing found and fixed horizontal panel misalignment on resize. Local production build, TypeScript and ESLint pass. Browser checks used isolated data/test-only auth and no OpenAI calls. Owner review pending; physical-device checks remain open.
+
+## 2026-10-25T06:54:04+05:30 — Public documentation and scheduler checkpoint
+
+Codex expanded documentation from actual source/config/test evidence, created architecture/evaluation guides and updated submission/runtime records. Captured real local-browser screenshots, not generated artwork. Owner explicitly approved public repository visibility and scheduler activation. Basic history scan found no matching credentials/private artifacts; no comprehensive security guarantee. Mobile CI/deploy passed, scheduler first ingestion passed with $15 guard preserved. Local document/image link checks and whitespace check passed; public GitHub/demo/signup/health links returned 200. Human review of final narrative/submission remains pending; ranking and organizer submission are not claimed.

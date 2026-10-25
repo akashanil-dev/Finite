@@ -1,5 +1,6 @@
 # Design overhaul verification — 25 October 2026
 
+> Historical checkpoint record: earlier configuration and UI descriptions apply to their dated checks. For the current edition library/compact fixed dock see [MOBILE_BRIEFING_QA.md](MOBILE_BRIEFING_QA.md); for current product/setup status see [README.md](README.md).
 ## Direction and sources
 
 Owner approved the implementation plan and clarified that motion should be **playful and calm**, with enjoyable interactions. The visual reference is the owner's [finite-ideas board](https://in.pinterest.com/gutgbihgg/finite-ideas/):

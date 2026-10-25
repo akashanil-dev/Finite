@@ -1,5 +1,6 @@
 # Live browser QA — 25 October 2026
 
+> Historical checkpoint record: earlier configuration and UI descriptions apply to their dated checks. For the current edition library/compact fixed dock see [MOBILE_BRIEFING_QA.md](MOBILE_BRIEFING_QA.md); for current product/setup status see [README.md](README.md).
 Target: https://finite.akashanil.dev. Tests used two explicitly named QA accounts (`qa_live_1025_0400`, `qa_isolation_1025_0400`) rather than owner accounts. These accounts and their QA data remain; no existing user records were deleted. No OpenAI key was present; scheduler remained disabled; no AI budget ledger was created.
 
 ## Verified in the production browser

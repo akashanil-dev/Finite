@@ -1,6 +1,6 @@
 # Finite server handoff
 
-Finite is live at https://finite.akashanil.dev on Oracle ARM64, alongside Faber, Tuxos and Notes. Fresh production data was selected. AI and scheduling remain disabled; do not enable the laptop key without preserving its existing budget ledger.
+Finite is live at https://finite.akashanil.dev on Oracle ARM64, alongside Faber, Tuxos and Notes. Fresh production data was selected. AI is enabled with a separate $15 production allowance and 100-request ceiling. Scheduling is also enabled after explicit approval; preserve both installations’ ledgers and never copy/reset the laptop ledger into production.
 
 ## Authorization
 
@@ -20,6 +20,10 @@ Owner-supplied HTTPS results: Finite origin/public homepage and health returned 
 
 ## Verification and recovery
 
-The dedicated key successfully redeployed the existing 9d246ab release; backups and container health passed. Push-triggered [Actions run 40137766681](https://github.com/akashanil-dev/Finite/actions/runs/40137766681) passed checks, both ARM64 image jobs and deployment for `537687f062e2e42c080dd7d0e7ac12ab669a19d0`. Direct SSH verified that exact current-release and both healthy containers; public homepage/health returned 200, Faber/Tuxos 200, Notes its existing 401. AI and scheduler remain disabled. A prior database online-backup integrity check passed. Image rollback does not restore data, first deployments have no previous image, and post-deploy public HTTP check failures do not automatically roll back. Report actual CI, release SHA, container and HTTPS evidence; never infer live success solely from published images.
+The dedicated key successfully redeployed the existing 9d246ab release; backups and container health passed. Push-triggered [Actions run 40137766681](https://github.com/akashanil-dev/Finite/actions/runs/40137766681) passed checks, both ARM64 image jobs and deployment for `537687f062e2e42c080dd7d0e7ac12ab669a19d0`. Direct SSH verified that exact current-release and both healthy containers; public homepage/health returned 200, Faber/Tuxos 200, Notes its existing 401. At that historical checkpoint AI/scheduling were disabled; both have since been explicitly activated. A prior database online-backup integrity check passed. Image rollback does not restore data, first deployments have no previous image, and post-deploy public HTTP check failures do not automatically roll back. Report actual CI, release SHA, container and HTTPS evidence; never infer live success solely from published images.
 
 Read AGENTS.md, RULES.md, PROJECT_CONTEXT.md and deploy/README.md. Coordinate application changes with the laptop; no server repository clone is required. Never expose private keys, credential files or environment values.
+
+## Current checkpoint — 25 October 2026
+
+Release `f8a537905b08e053bc3461be77c7a18b8b55bd72` passed Actions run 40149975675 and is deployed. Both containers are healthy. The approved scheduler activation changed only its environment flag and recreated only the backend; first ingestion completed, but actual timed edition delivery remains unobserved. See [SCHEDULER_APPROVAL.md](SCHEDULER_APPROVAL.md) for backup and evidence. Subsequent automatic releases may advance the SHA; always read the live marker.
