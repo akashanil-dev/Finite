@@ -81,7 +81,7 @@ def _cluster(arts):
     return clusters
 
 
-def build_briefing(profile=None, user_id=None):
+def build_briefing(profile=None, user_id=None, edition_of=None, scheduled_for=None):
     profile = profile or get_profile(user_id)
     now = time.time()
     start = now - profile["lookback_hours"] * 3600
@@ -136,6 +136,8 @@ def build_briefing(profile=None, user_id=None):
         if len(chosen) >= n:
             break
 
+    if not chosen:
+        return None
     story_ids = []
     with db.tx() as c:
         for score, cl, lead in chosen:
@@ -151,8 +153,8 @@ def build_briefing(profile=None, user_id=None):
                          VALUES(?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING""",
                       (sid, json.dumps([a["id"] for a in cl]), rep["title"], rep["lang"], json.dumps(dict(subs.most_common(3))), st, now))
             story_ids.append(sid)
-        cur = c.execute("INSERT INTO briefings(created_at, window_start, window_end, config, story_ids, user_id) VALUES(?,?,?,?,?,?)",
-                        (now, start, now, json.dumps(profile), json.dumps(story_ids), user_id))
+        cur = c.execute("INSERT INTO briefings(created_at, window_start, window_end, config, story_ids, user_id, edition_of, scheduled_for) VALUES(?,?,?,?,?,?,?,?)",
+                        (now, start, now, json.dumps(profile), json.dumps(story_ids), user_id, edition_of, scheduled_for))
         bid = cur.lastrowid
     return bid
 
@@ -169,6 +171,7 @@ def briefing_payload(bid, user_id=None):
         if s:
             stories.append(story_card(s[0]))
     return {"id": b["id"], "created_at": b["created_at"], "window_start": b["window_start"], "window_end": b["window_end"],
+            "can_refresh": not b["refresh_used"] and b["edition_of"] is None, "edition_of": b["edition_of"],
             "config": json.loads(b["config"]), "stories": stories, "read_ids": json.loads(b["read_ids"]), "completed_at": b["completed_at"]}
 
 
@@ -203,3 +206,16 @@ def mark_read(bid, story_id, user_id=None):
     with db.tx() as c:
         c.execute("UPDATE briefings SET read_ids=?, completed_at=COALESCE(completed_at, ?) WHERE id=?", (json.dumps(sorted(read)), completed, bid))
     return briefing_payload(bid, user_id)
+
+
+def list_briefings(user_id, before=None, limit=20):
+    rows = db.query("SELECT * FROM briefings WHERE user_id=? AND (? IS NULL OR id<?) ORDER BY id DESC LIMIT ?", (user_id, before, before, limit + 1))
+    items = []
+    for b in rows[:limit]:
+        ids = json.loads(b['story_ids'])
+        title = db.query('SELECT title FROM stories WHERE id=?', (ids[0],)) if ids else []
+        items.append({'id': b['id'], 'created_at': b['created_at'], 'story_count': len(ids),
+                      'read_count': len(json.loads(b['read_ids'])), 'completed_at': b['completed_at'],
+                      'can_refresh': not b['refresh_used'] and b['edition_of'] is None, 'edition_of': b['edition_of'],
+                      'headline': title[0]['title'] if title else 'No stories in this edition'})
+    return {'items': items, 'next_cursor': items[-1]['id'] if len(rows) > limit else None}

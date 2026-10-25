@@ -225,3 +225,7 @@ Add a finite vertical briefing deck and horizontal in-card feature panels, retai
 ## 2026-10-25T06:24:38+05:30 — Deployment and approved production AI
 
 Verified release b33eb6e through successful Actions 40148109626. Executed explicitly approved server-only AI activation at $15, scheduling disabled, separate ledger preserved, environment backed up and backend health verified. Browser login and actual production Kerala article AI analysis passed. No Caddy/DNS/other-service configuration changes.
+
+## 2026-10-25T06:43:15+05:30 — Saved briefing editions
+
+Preserve saved briefing history with owner-scoped pagination; add atomic one-use extra editions, prohibit chaining/unlimited POST refresh, avoid empty editions, and key scheduled editions by local delivery date including midnight preparation. Additive SQLite migration preserves existing data. Affected: backend/app/{db,briefing,main}.py and tests/test_briefing_history.py. Validation: all 51 backend tests passed; no AI calls. Production scheduler activation remains separate; initial-creation crash claim recovery is an operator limitation.

@@ -155,3 +155,7 @@ Development AI allowance is now $5; the separately approved and activated produc
 ## Swipe briefing
 
 The briefing is a finite vertical deck. Swipe/scroll vertically between story cards; use Previous/Next or focus the deck and press Up/Down on desktop. Swipe horizontally inside a card (or use its tabs/Left/Right keys) for Brief, Different views and Explore. Longer panel content scrolls within the card; use the card header/footer or Next to advance directly. Reading is saved with Mark as read. Returning to a visited card preserves its panel and journey during the current page session. The dock hides on a forward vertical gesture and returns on a reverse gesture; keyboard focus reveals it.
+
+## Saved editions
+
+`GET /api/briefings` lists the signed-in user’s saved editions (20 per page, `before` cursor). `POST /api/briefings` prepares only the first edition. `POST /api/briefings/{id}/edition` consumes that original edition’s single New edition attempt atomically, even when no new matching stories exist. Extra editions cannot create more extras; originals and read progress remain intact. No empty edition is inserted. Scheduled editions use a unique user/local-delivery-date key, independent of manual extras, including preparation across midnight. Production scheduling remains disabled until a separate approved server change.

@@ -39,11 +39,22 @@ def prefetch(bid, user_id):
         pool.submit(analysis.analyze, s["id"])
 
 
-def make_briefing(user_id):
-    bid = briefing.build_briefing(user_id=user_id)
+def make_briefing(user_id, **options):
+    bid = briefing.build_briefing(user_id=user_id, **options)
     if bid:
         prefetch(bid, user_id)
     return bid
+
+
+def due_schedule(profile, now=None):
+    now = now or datetime.now(ZoneInfo(profile['timezone']))
+    hh, mm = map(int, profile['delivery_time'].split(':'))
+    delivery = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
+    lead = timedelta(minutes=PREPARE_BEFORE_MIN)
+    # A just-after-midnight delivery must be prepared on the previous evening.
+    if now >= delivery + timedelta(days=1) - lead:
+        delivery += timedelta(days=1)
+    return delivery.date().isoformat() if now >= delivery - lead else None
 
 
 def scheduler():
@@ -57,13 +68,10 @@ def scheduler():
                 user_id = account['id']
                 p = briefing.get_profile(user_id)
                 if p["onboarded"]:
-                    tz = ZoneInfo(p["timezone"])
-                    now = datetime.now(tz)
-                    hh, mm = map(int, p["delivery_time"].split(":"))
-                    prepare_at = now.replace(hour=hh, minute=mm, second=0, microsecond=0) - timedelta(minutes=PREPARE_BEFORE_MIN)
-                    latest = db.query("SELECT created_at FROM briefings WHERE user_id=? ORDER BY id DESC LIMIT 1", (user_id,))
-                    if now >= prepare_at and (not latest or latest[0]["created_at"] < prepare_at.timestamp()):
-                        make_briefing(user_id)
+                    schedule_key = due_schedule(p)
+                    latest = db.query("SELECT id FROM briefings WHERE user_id=? AND scheduled_for=?", (user_id, schedule_key))
+                    if schedule_key and not latest:
+                        make_briefing(user_id, scheduled_for=schedule_key)
         except Exception:
             log.exception("scheduler tick failed")
         time.sleep(300)
@@ -182,14 +190,48 @@ def run_ingest(user=Depends(auth.require_admin)):
     return do_ingest()
 
 
+@app.get("/api/briefings")
+def briefing_history(before: int | None = None, user=Depends(auth.require_user)):
+    return briefing.list_briefings(user['id'], before)
+
+
 @app.post("/api/briefings")
 def create_briefing(refresh: bool = True, user=Depends(auth.require_user)):
-    if refresh:
-        do_ingest()
-    bid = make_briefing(user["id"])
-    if not bid:
-        raise HTTPException(404, "No stories matched your interests in this window. Try adding interests or widening the lookback.")
-    return briefing.briefing_payload(bid, user["id"])
+    # Claim before ingestion: concurrent clicks cannot spend repeatedly or create duplicates.
+    key = f"first-briefing:{user['id']}"
+    with db.tx() as c:
+        c.execute('BEGIN IMMEDIATE')
+        if c.execute('SELECT id FROM briefings WHERE user_id=? LIMIT 1', (user['id'],)).fetchone():
+            raise HTTPException(409, "Your briefings are saved. Use an edition's one-time New edition action.")
+        if not c.execute('INSERT OR IGNORE INTO briefing_requests VALUES(?,?)', (key,time.time())).rowcount:
+            raise HTTPException(409, "Your first briefing is already being prepared.")
+    try:
+        if refresh:
+            do_ingest()
+        bid = make_briefing(user['id'])
+        if not bid:
+            raise HTTPException(404, "No new stories matched your interests. Your saved editions are unchanged.")
+        return briefing.briefing_payload(bid, user['id'])
+    finally:
+        with db.tx() as c:
+            c.execute('DELETE FROM briefing_requests WHERE request_key=?', (key,))
+
+
+@app.post("/api/briefings/{bid}/edition")
+def extra_edition(bid: int, user=Depends(auth.require_user)):
+    with db.tx() as c:
+        c.execute('BEGIN IMMEDIATE')
+        row = c.execute('SELECT * FROM briefings WHERE id=? AND user_id=?', (bid,user['id'])).fetchone()
+        if not row:
+            raise HTTPException(404, "Briefing not found")
+        if row['refresh_used'] or row['edition_of'] is not None:
+            raise HTTPException(409, "This edition has already used its one-time refresh.")
+        c.execute('UPDATE briefings SET refresh_used=1 WHERE id=?', (bid,))
+    do_ingest()
+    new_id = make_briefing(user['id'], edition_of=bid)
+    if not new_id:
+        raise HTTPException(404, "No new matching stories were available. This edition's refresh has been used; all saved briefs remain available.")
+    return briefing.briefing_payload(new_id, user['id'])
 
 
 @app.get("/api/briefings/latest")

@@ -207,7 +207,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | Settings | Edit the same profile after onboarding | COMPLETE (live desktop verified) | `frontend/src/app/settings/page.tsx` | Manual walkthrough |
 | Briefing builder | Lookback window, dedupe vs earlier briefings, clustering, weighted ranking, diversity cap, freeze | COMPLETE | `backend/app/briefing.py` | Clustering sometimes splits one event (see J) |
 | Embedding clustering | Clusters by cosine similarity (0.8) when a key is set | VERIFIED live sample | `backend/app/briefing.py` (`_cluster`), `backend/app/llm.py` (`embed`) | Live sample passed; broaden coverage |
-| Finite feed UI | Numbered list, progress bar, read state, "You're done for today" | COMPLETE (live desktop verified) | `frontend/src/app/briefing/page.tsx` | Manual walkthrough |
+| Saved briefing APIs | Owned paginated history, immutable editions, one extra attempt per original, no chaining | VERIFIED backend tests | `backend/app/briefing.py`, `main.py`, `db.py` | Production verification pending |
 | Scheduler | Ingests every 60 min; freezes the briefing 30 min before delivery time | IMPLEMENTED / UNVERIFIED (never seen firing at a real delivery time) | `backend/app/main.py` (`scheduler`) | Observe one real trigger |
 | Story analysis (extractive) | Lead-sentence summaries at 3 depths, cited facts, template questions and Missing Piece | COMPLETE | `backend/app/analysis.py` | Missing Piece is generic without a key |
 | Story analysis (AI) | Summaries, facts, story type, Missing Piece, 4–6 tailored questions, concepts | VERIFIED live sample | `backend/app/analysis.py` (`ANALYSIS_SYSTEM`) | Sample passed; broader grounding quality review |
@@ -235,6 +235,8 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 AI budget guard: configurable conservative reservation allowance (default $1, dev $5, production $15; maximum $15) in `backend/data/ai_budget.sqlite3`; atomic across local workers, no refunds/reset, 100 requests maximum, reviewed models only. Four guard tests and backend import pass; live testing follows. `GET /api/ai-budget` exposes reservations, not billing.
 
 ## D. System architecture
+
+Saved-edition storage adds `refresh_used`, `edition_of`, and `scheduled_for` to briefings, a unique user/delivery-date index, and a first-creation request claim table. Owned history uses cursor pagination; extra-edition claims commit before ingestion. Existing rows and progress are retained.
 
 Public entry routes are `/`, `/login` and `/signup`. `/start` preserves the previous profile-based redirect to onboarding/briefing after authentication. The landing page performs no API calls. Backend authorization is unchanged.
 
@@ -545,6 +547,8 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+2026-10-25 — Preserve every briefing. Each original/scheduled edition gets one extra-edition attempt; generated extras cannot chain. An empty/failed attempt stays consumed, as requested for one press. Scheduling is keyed by local delivery date, not the last manual refresh.
+
 2026-10-25: Owner requested Instagram-like vertical news navigation and sideways in-card features, while retaining a finite endpoint. Long source content scrolls within its panel; Previous/Next provides direct story navigation. Motion remains calm and playful. Cards fetch on first visit and retain state until the page is left.
 
 - Knowledge-map precision takes precedence over filling three branches. Cached concepts are revalidated at request time; weak results remain empty. Headlines provide salience and independent context; recency only bounds the candidate pool.
@@ -595,6 +599,8 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 ---
 
 ## I. Current development state
+
+2026-10-25T06:43:15+05:30 — Saved-edition APIs and additive migration implemented; 51 backend tests pass, covering ownership, pagination, duplicate/concurrent refresh, empty attempts, no chaining, and midnight schedule preparation. Production scheduling remains disabled.
 
 2026-10-25T06:24:38+05:30 — Release `b33eb6e` (AI fix `538f9f6`) deployed via successful full Actions run `40148109626`. Owner explicitly approved production AI activation: server-only key, separate $15 allowance, scheduling disabled, backend healthy. Root-only environment backup `/var/backups/finite-ai-20261025T005142Z`. Actual production Kerala article `se042c3c12ba6000d` regenerated relevant AI summaries/questions in the browser. Development reservations $2.281297 of $5 (57 requests); production Kerala rabbit-hole sample completed with three cited relevant nodes and inspectable source links ($0.246894 reserved, $14.753106 remaining, 4 requests).
 
@@ -671,6 +677,8 @@ Current verification: 2026-10-25T00:17:27+05:30; `0d88ce0` plus checkpoint `fix:
 
 ## J. Bugs, limitations and technical debt
 
+A process crash during first-ever briefing creation can leave its request claim behind; operator inspection is required before clearing it. Extra-edition attempts are deliberately not refunded on failure. Scheduler time-window logic is unit-tested; a real scheduled production delivery remains unverified.
+
 AI audit is sample-based, not a guarantee: verification is itself model-based, Wikipedia/source coverage can be incomplete, and follow-up questions can still need editorial review. Production AI was activated after explicit approval; its separate ledger is preserved. Swipe reader was tested with browser-native scrolling at desktop/mobile viewport sizes, not on physical touch devices.
 
 - Redesign QA is sampled local browser coverage, not a full accessibility or frame-rate audit. Reduced-motion CSS is implemented but OS-level emulation has not been exercised. Next development mode emits existing instant-navigation diagnostics for auth-gated routes; production build and tested navigation succeed.
@@ -712,6 +720,8 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 ---
 
 ## K. Roadmap and pending tasks
+
+Saved-edition retention and one-time extras are implemented. Browser library/mobile verification and deployment are in progress; production schedule activation requires explicit owner approval.
 
 Current next steps: run physical-device touch QA and broaden factual evaluation beyond the Kerala/Jamia samples.
 
@@ -931,3 +941,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T06:17:33+05:30 | feat: add a swipeable finite briefing | C/H/I/J/K; README and AI_UX_QA | Desktop/mobile browser gestures, journeys, challenge, save, graph and timeline; tsc, ESLint and production build passed |
 
 | 2026-10-25T06:24:38+05:30 | docs: record swipe deployment and production AI activation | I/M and deployment docs | Full CI/deploy passed; approved backend-only activation healthy; live article verified |
+
+| 2026-10-25T06:43:15+05:30 | feat: preserve briefing history and limit extra editions | C/D/H/I/J/K; README | 51 backend tests pass; browser verification ongoing; no AI calls |

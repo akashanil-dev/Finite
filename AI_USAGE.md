@@ -214,3 +214,7 @@ Codex implemented the requested swipe reader and calm interaction changes, then 
 ## 2026-10-25T06:24:38+05:30 — Deployment and approved production AI
 
 Codex performed the owner-approved production AI activation after CI passed. Key transferred privately over SSH, never printed or committed. Isolated live QA account used; signup API and browser login/article generation verified. Development reservation ledger remained $2.281297/$5. Production sample validation recorded in AI_UX_QA.md.
+
+## 2026-10-25T06:43:15+05:30 — Saved briefing editions
+
+Codex implemented and tested saved-edition APIs, retention, one-attempt refresh and scheduled-date uniqueness. Owner requested these behaviors; human code review pending. 51 backend tests passed with no OpenAI calls; browser flow verification is ongoing.

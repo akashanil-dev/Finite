@@ -120,12 +120,18 @@ def init():
         c.executescript(SCHEMA)
         if 'is_admin' not in {row['name'] for row in c.execute('PRAGMA table_info(users)')}:
             c.execute('ALTER TABLE users ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0')
+        briefing_columns = {row['name'] for row in c.execute('PRAGMA table_info(briefings)')}
+        for name, definition in [('refresh_used', 'INTEGER NOT NULL DEFAULT 0'), ('edition_of', 'INTEGER'), ('scheduled_for', 'TEXT')]:
+            if name not in briefing_columns:
+                c.execute(f'ALTER TABLE briefings ADD COLUMN {name} {definition}')
+        c.execute('CREATE TABLE IF NOT EXISTS briefing_requests (request_key TEXT PRIMARY KEY, created_at REAL NOT NULL)')
         # Additive migration: legacy local data stays unassigned until explicitly claimed.
         for table in ('briefings', 'journeys'):
             columns = {row['name'] for row in c.execute(f'PRAGMA table_info({table})')}
             if 'user_id' not in columns:
                 c.execute(f'ALTER TABLE {table} ADD COLUMN user_id INTEGER REFERENCES users(id)')
             c.execute(f'CREATE INDEX IF NOT EXISTS {table}_user ON {table}(user_id)')
+        c.execute('CREATE UNIQUE INDEX IF NOT EXISTS briefing_schedule ON briefings(user_id,scheduled_for) WHERE scheduled_for IS NOT NULL')
 
 
 def kv_get(key, default=None):
