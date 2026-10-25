@@ -257,3 +257,8 @@ Rebuilt README around current features, production links, mobile screenshots, re
 ### 2026-10-25 17:04 IST — fix: scope instant validation to protected route behavior
 - Keep protected page validation configuration in server wrappers; preserve client auth gating and the settings unsaved-change notice.
 - Validation: 71 backend tests and frontend TypeScript/ESLint passed for the assembled changes; browser checks recorded in the detailed task entries. No push.
+
+
+### 2026-10-25 17:04 IST — feat: improve source methodology readability
+- Add readable editorial principles, full-methodology disclosure and source-settings link with responsive layout and protected-route wrapper.
+- Validation: 71 backend tests and frontend TypeScript/ESLint passed for the assembled changes; browser checks recorded in the detailed task entries. No push.
