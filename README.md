@@ -147,3 +147,5 @@ See [DESIGN_QA.md](DESIGN_QA.md) for the visual references, redesign test covera
 ### Public homepage
 
 `/` introduces Finite without requiring an account or backend request. Get started opens `/signup`; Log in opens `/login`. Successful authentication continues through `/start` to onboarding or the briefing. The existing account pages remain protected.
+
+Connection Explorer uses conservative headline relevance: both stories must name the same subject and share at least two additional meaningful words. Candidates are ranked before selecting up to three. An empty result is expected when evidence is weak; synonyms and body-only links may be missed. Existing cached analyses are revalidated without AI regeneration.

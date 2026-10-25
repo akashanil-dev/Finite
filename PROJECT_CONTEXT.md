@@ -222,7 +222,7 @@ Verification includes extractive checks on 24 Oct and a real-key AI sample/brows
 | PWA manifest | Installable app manifest and icon | IMPLEMENTED / UNVERIFIED | `frontend/src/app/manifest.ts`, `frontend/public/icon.svg` | No service worker or offline support |
 | Perspective Lens | On-demand original coverage comparison; AI groups cited claims with fail-closed verification | IMPLEMENTED / PARTIALLY VERIFIED | `backend/app/perspectives.py`, `frontend/src/components/perspective-lens.tsx` | Seven backend/API tests, desktop/mobile browser QA and production build pass; real-key sample passed; broader quality review pending |
 | Curiosity Challenges | Optional three-hypothesis prediction before Level 2; reveal, skip, reflect and save | COMPLETE in extractive mode | `curiosity-challenge.tsx`, `rabbit-hole.tsx`, Passport | Desktop/mobile browser QA passed; live AI journey/Passport sample passed; no extra AI generation |
-| Connection Explorer | Three finite source-backed cross-story comparisons | COMPLETE (v1; desktop browser verified) | `connections.py`, `connection-explorer.tsx` | Literal saved-concept matching; no causal inference |
+| Connection Explorer | Three finite source-backed cross-story comparisons | COMPLETE (v1; desktop browser verified) | `connections.py`, `connection-explorer.tsx` | Conservative subject + headline-context matching; no causal inference |
 | Interactive knowledge graph | Selectable source-backed story map with list alternative | COMPLETE (v1; desktop browser verified) | `connection-explorer.tsx` | Literal shared mentions only; maximum three branches |
 | Push notifications | "Briefing ready" alert | PROPOSED | — | — |
 | Accounts and auth | Username/password, cookie sessions and per-user profiles/briefings/Passport | COMPLETE (local API and live desktop verified) | `auth.py`, `db.py`, `main.py`, login, auth gate | Live HTTPS auth/isolation verified; broader security/UX review pending; no reset |
@@ -243,7 +243,7 @@ Accounts add `users`, `sessions`, `auth_attempts` and nullable `user_id` ownersh
 
 Knowledge graph: client-only view of the existing connections endpoint. At most three selectable nodes reveal stored citations; no new endpoint, schema or provider calls.
 
-Connection Explorer: GET `/api/stories/{id}/connections` reads saved concepts and articles only; latest 200 candidates, maximum three cited inline comparisons. Profile exclusions/languages and overlapping articles/URLs are filtered. No schema changes or AI calls.
+Connection Explorer: GET `/api/stories/{id}/connections` revalidates saved concepts and derives headline entities from stored articles; requires subject mentions in both headlines and two additional non-stopword context terms. Ranks the latest 200 candidates by context overlap before choosing up to three cited comparisons. Profile exclusions/languages and overlapping articles/URLs are filtered. No schema changes or AI calls.
 
 ### D1. High level
 
@@ -543,6 +543,9 @@ Perspective Lens now has a focused unittest suite (`uv run python -m unittest di
 
 ## H. Design decisions and rationale
 
+- Knowledge-map precision takes precedence over filling three branches. Cached concepts are revalidated at request time; weak results remain empty. Headlines provide salience and independent context; recency only bounds the candidate pool.
+
+
 - Public homepage stays available to visitors and signed-in readers; account entry is explicitly `/start`. Landing visuals are illustrative journey cards, not fabricated live news.
 
 
@@ -588,6 +591,9 @@ D23 — Connection Explorer uses cited shared mentions from stored coverage, wit
 ---
 
 ## I. Current development state
+
+2026-10-25T05:47:36+05:30 — Knowledge-map false-positive fix: 39 backend tests passed; published Kerala report with synthetic comparison fixtures and 20 stored stories checked locally. No AI spend. Deployment pending.
+
 
 2026-10-25T05:25:18+05:30 — Public landing page implemented and locally verified at desktop/320px. Signup/login links and section navigation work; tsc, ESLint and production build pass. Release `b7ed394` deployed successfully via Actions run `40144672691`; live public homepage and signed-out `/start` redirect verified. No API spend.
 
@@ -663,7 +669,7 @@ Auth v1 has no password recovery, email verification or MFA (reset excluded by o
 
 Knowledge graph is a finite selectable tree view of literal shared mentions, not a semantic or causal graph. Desktop verified; mobile-specific QA and full assistive-technology audit remain pending.
 
-Connection Explorer requires saved concepts and literal mentions in both stories. It misses synonyms/translations and does not infer causality; source excerpts retain original language.
+Connection Explorer requires a subject in both headlines plus two independent context terms. This conservative lexical gate can miss synonyms/translations and body-only or cross-topic relationships; it does not infer causality. Source excerpts retain original language.
 
 Perspective Lens limitations: real-key sample verified on stored Jamia coverage; broader editorial quality remains pending. Browser QA and production build pass; fresh generated cache and a port-capable environment resolved the prior build failure. At most eight distinct publisher hostnames; syndication/shared ownership are not detected. Comparison uses stored excerpts, and generated text is English only.
 
@@ -702,6 +708,9 @@ Ordered by impact on the demo and the product. *Hypothesis* marks a suspected ca
 No invented deadlines. The only external deadline is the 8:00 AM IST code freeze on 25 Oct 2026.
 
 ### Immediate (hackathon)
+
+Knowledge-map false-positive regression fixed; wider multilingual/semantic matching remains future work.
+
 
 Public landing page delivered; existing feature and accessibility follow-ups remain unchanged.
 
@@ -898,3 +907,5 @@ If this document conflicts with the repository, **investigate and fix the docume
 | 2026-10-25T05:25:18+05:30 | feat: add public landing page (this commit) | C/D/H/I/K; README, changelog, AI usage | Local desktop/mobile browser, tsc, ESLint and build pass; deployment pending |
 
 | 2026-10-25T05:29:16+05:30 | docs: record landing page deployment; release `b7ed394` | I/C and DESIGN_QA | CI/CD passed; live public homepage and protected-entry redirect verified |
+
+| 2026-10-25T05:47:36+05:30 | fix: reject weak knowledge map connections (this commit) | C/D/H/I/J/K | 39 tests; isolated Kerala report and corpus QA; no AI |

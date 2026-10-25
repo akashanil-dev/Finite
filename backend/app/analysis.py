@@ -3,6 +3,7 @@
 import json
 import re
 from collections import Counter
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
 from . import db, llm
 from .config import FAST_MODEL, MOCK_MODE
@@ -71,7 +72,8 @@ STOP_CAPS = {"The", "A", "An", "In", "On", "At", "This", "That", "He", "She", "I
 
 def proper_nouns(text, k=6):
     phrases = re.findall(r"\b([A-Z][a-zA-Z\-]+(?:\s+(?:of|the|and|de)?\s*[A-Z][a-zA-Z\-]+){0,3})", text)
-    c = Counter(p.strip() for p in phrases if p.split()[0] not in STOP_CAPS and len(p) > 3)
+    c = Counter(p.strip() for p in phrases if p.split()[0] not in STOP_CAPS and p.casefold() not in ENGLISH_STOP_WORDS
+                and p.casefold() not in {"responding", "subsequently", "reportedly", "meanwhile"} and len(p) > 3)
     return [p for p, _ in c.most_common(k)]
 
 
