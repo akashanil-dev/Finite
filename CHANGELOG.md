@@ -252,3 +252,8 @@ Rebuilt README around current features, production links, mobile screenshots, re
 ### 2026-10-25 17:04 IST — feat: clarify passport exploration history
 - Replace mastery wording and variable-size chips with counted idea tiles and explicitly explained topic-frequency bars; preserve concept-free journeys.
 - Validation: 71 backend tests and frontend TypeScript/ESLint passed for the assembled changes; browser checks recorded in the detailed task entries. No push.
+
+
+### 2026-10-25 17:04 IST — fix: scope instant validation to protected route behavior
+- Keep protected page validation configuration in server wrappers; preserve client auth gating and the settings unsaved-change notice.
+- Validation: 71 backend tests and frontend TypeScript/ESLint passed for the assembled changes; browser checks recorded in the detailed task entries. No push.
